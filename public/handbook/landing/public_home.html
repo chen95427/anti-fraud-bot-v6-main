@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>民眾防詐專區｜新北市政府警察局 AI 阻詐溝通技巧平臺</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#1a2c4e;--navy2:#24406b;--navy-deep:#111d35;
+  --gold:#d7a854;--gold2:#c9973a;--gold-soft:#f5e6c8;
+  --teal:#2f8f78;--teal2:#0a5c48;--green:#3ea173;--red:#c94a3f;--amber:#d98a2b;--blue:#2f6fb5;
+  --bg:#f6f8fb;--card:#fff;--line:#e5e9ef;
+  --ink:#1c2536;--ink2:#3b4658;--muted:#6b7688;
+  --mono:'IBM Plex Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px;}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(17,29,53,.82);backdrop-filter:blur(10px);border-bottom:1px solid rgba(215,168,84,.22);}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:60px;}
+.brand{display:flex;align-items:center;gap:9px;color:#fff;}
+.brand-shield{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--gold),#e8c476);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.brand-name{font-weight:900;font-size:15.5px;letter-spacing:.5px;}
+.nav-links{display:flex;align-items:center;gap:4px;}
+.nav-links a{color:rgba(255,255,255,.78);font-size:13.5px;font-weight:700;padding:7px 12px;border-radius:8px;transition:.2s;}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,.1);}
+.nav-cta{background:var(--gold);color:var(--navy-deep)!important;margin-left:6px;}
+.nav-up{background:#fff!important;color:var(--navy-deep)!important;font-size:14px!important;font-weight:800!important;padding:9px 16px!important;border-radius:20px!important;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+
+/* hero */
+.hero{position:relative;background:var(--teal2);color:#fff;padding:128px 0 66px;overflow:hidden;min-height:88vh;display:flex;align-items:center;}
+/* 照片背景（比照員警／銀行行員頁：照片鋪滿 + 深青綠漸層壓字 + 格線） */
+.hero-bg{position:absolute;inset:0;}
+.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 40%;}
+/* 綠色遮罩降階：照片保持清楚，只在中下方文字區稍暗以確保白字可讀 */
+.hero-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,60,48,.18) 0%,rgba(10,60,48,.38) 45%,rgba(10,60,48,.70) 100%);}
+.hero-grid{display:none;}
+.hero-in h1,.hero-in .hero-sub,.hero-in .hero-pill{text-shadow:0 2px 12px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.6);}
+.hero-in{position:relative;text-align:center;max-width:720px;margin:0 auto;padding:0 22px;}
+.hero-pill{display:inline-block;font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:3px;color:#eafff6;border:1.5px solid rgba(255,255,255,.55);border-radius:999px;padding:11px 26px;background:rgba(255,255,255,.12);}
+.hero-em{font-size:104px;line-height:1;margin:26px 0 16px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25));}
+.hero h1{font-size:clamp(26px,4.4vw,40px);font-weight:900;line-height:1.4;letter-spacing:1px;}
+.hero h1 em{font-style:normal;color:var(--gold-soft);}
+.hero-sub{margin-top:14px;font-size:15px;color:rgba(255,255,255,.88);}
+.hero-sub b{color:#fff;letter-spacing:6px;font-size:19px;}
+.hero-cta{margin-top:26px;}
+.btn{display:inline-block;font-weight:800;font-size:15.5px;border-radius:13px;padding:15px 30px;transition:transform .15s,box-shadow .2s;}
+.btn:active{transform:scale(.97);}
+.btn-white{background:#fff;color:var(--teal2);box-shadow:0 8px 26px rgba(0,0,0,.22);}
+.btn-teal{background:var(--teal);color:#fff;box-shadow:0 8px 24px rgba(47,143,120,.35);}
+.hero-mic{margin-top:14px;font-family:var(--mono);font-size:11.5px;letter-spacing:1px;color:rgba(255,255,255,.6);}
+
+/* sections */
+section.method,section.atlas{padding:80px 0;}
+.sec-head{text-align:center;max-width:680px;margin:0 auto 48px;}
+.sec-kicker{display:inline-block;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:3px;color:var(--teal);border-bottom:2px solid var(--teal);padding-bottom:6px;margin-bottom:14px;}
+.sec-title{font-size:clamp(24px,3.4vw,34px);font-weight:900;color:var(--navy);letter-spacing:2px;}
+.sec-sub{margin-top:12px;font-size:14.5px;color:var(--muted);}
+
+/* 五步 + 守護線 */
+.method{background:#fff;border-bottom:1px solid var(--line);}
+.track{position:relative;}
+.track-line{position:absolute;top:58px;left:6%;width:88%;height:60px;overflow:visible;pointer-events:none;}
+.track-base,.track-gold{fill:none;stroke-width:3;vector-effect:non-scaling-stroke;}
+.track-base{stroke:var(--line);}
+.track-gold{stroke:var(--gold);stroke-linecap:round;}
+.steps{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+.step{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:26px 14px 20px;text-align:center;}
+.step-em{font-size:62px;line-height:1;margin-top:10px;}
+.step-img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;margin-top:4px;box-shadow:0 4px 14px rgba(26,44,78,.14);}
+.step h3{font-size:24px;font-weight:900;color:var(--c);margin-top:6px;letter-spacing:2px;}
+.step-k{font-size:13px;font-weight:800;color:var(--ink);margin-top:2px;}
+.step-d{font-size:12.5px;color:var(--ink2);line-height:1.8;margin-top:10px;text-align:left;}
+@media(max-width:760px){
+  .steps{grid-template-columns:1fr 1fr;}
+  .steps .step:last-child{grid-column:1/-1;}
+  .track-line{display:none;}
+}
+
+/* 手法圖鑑 */
+.atlas{background:var(--bg);}
+.grp{margin-bottom:34px;}
+.grp-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.grp-em{font-size:38px;line-height:1;}
+.grp-pic{width:64px;height:48px;object-fit:cover;border-radius:10px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.14);}
+.grp-head h3{font-size:19px;font-weight:900;color:var(--navy);}
+.grp-tag{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1px;color:var(--gc);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 13px;}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:680px){.tiles{grid-template-columns:1fr;}}
+.tile{background:#fff;border:1.5px solid var(--line);border-top:5px solid var(--gc);border-radius:16px;padding:22px 18px 18px;text-align:center;cursor:pointer;transition:box-shadow .2s,transform .15s;}
+.tile:hover{box-shadow:0 10px 26px rgba(26,44,78,.1);}
+.tile:active{transform:scale(.985);}
+.tile-em{font-size:56px;line-height:1;}
+.tile h4{font-size:17px;font-weight:900;margin-top:12px;color:var(--navy);}
+.tile-ai{font-size:11.5px;color:var(--muted);margin-top:4px;}
+.tile-more{font-size:12.5px;font-weight:800;color:var(--gc);margin-top:12px;}
+.flags{display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:6px;text-align:left;}
+.tile.open .flags{display:block;}
+.flag{display:flex;gap:12px;align-items:flex-start;padding:10px 2px;}
+.flag + .flag{border-top:1px solid var(--bg);}
+.flag-ic{font-size:26px;line-height:1.2;flex-shrink:0;}
+.flag p{font-size:13px;color:var(--ink2);line-height:1.75;font-weight:600;}
+.atlas-cta{text-align:center;margin-top:10px;}
+
+
+/* ===== 手機版 ===== */
+@media(max-width:640px){
+  .brand-name{font-size:13px;letter-spacing:0;}
+  .brand-shield{width:26px;height:26px;font-size:13px;}
+  .nav-links a{font-size:12.5px;padding:6px 9px;}
+  .hero{padding:110px 0 52px;}
+  .hero-pill{font-size:13.5px;padding:9px 18px;letter-spacing:2px;}
+  .hero-em{font-size:84px;}
+  .hero-cta .btn{width:min(100%,360px);text-align:center;}
+  section.method,section.atlas{padding:56px 0;}
+  .sec-head{margin-bottom:32px;}
+  .grp-head{flex-wrap:wrap;}
+  .grp-tag{margin-left:0;}
+}
+@media(max-width:600px){
+  .steps{grid-template-columns:1fr;}
+  .steps .step:last-child{grid-column:auto;}
+  .step{padding:22px 18px 18px;}
+  .step-d{font-size:13.5px;}
+}
+
+/* footer */
+.foot{background:var(--navy-deep);color:rgba(255,255,255,.55);text-align:center;padding:30px 0 40px;font-size:13px;}
+.foot-sub{font-size:11.5px;margin-top:6px;line-height:1.8;}
+.foot b{color:var(--gold);}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="/">
+      <span class="brand-shield">🛡️</span>
+      <span class="brand-name">新北市政府警察局 AI 阻詐溝通技巧平臺</span>
+    </a>
+    <nav class="nav-links">
+      <a class="nav-up" href="/">↑ 回主頁</a>
+      <a class="nav-cta" href="/mg?group=B">開始演練</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-bg">
+    <img src="/handbook/landing/assets/public_hero.jpg" alt="詐騙集團話務室與正在接詐騙電話的長輩夫妻" />
+    <div class="hero-veil"></div>
+    <div class="hero-grid" aria-hidden="true"></div>
+  </div>
+  <div class="hero-in">
+    <span class="hero-pill" data-hero>👨‍👩‍👧‍👦 全民防詐 · 自我保護</span>
+    <h1 data-hero>詐騙先動搖人心，<br /><em>再奪走財產。</em></h1>
+    <p class="hero-sub" data-hero>這次要穩住的人，是你自己。自我保護五步：<b>看穩聽問守</b></p>
+    <div class="hero-cta" data-hero><a class="btn btn-white" href="/mg?group=B">🎯 開始 AI 詐騙演練</a></div>
+    <div class="hero-mic" data-hero>🎤 AI 扮演詐騙者來找你，按麥克風說話練習識破與拒絕</div>
+  </div>
+</section>
+
+<section class="method">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-kicker">五步自我保護</span>
+      <h2 class="sec-title">看 · 穩 · 聽 · 問 · 守</h2>
+      <p class="sec-sub">對方越急、你越要慢。每一步都在幫自己爭取「想清楚」的時間。</p>
+    </div>
+    <div class="track">
+      <svg class="track-line" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
+        <path class="track-base" d="M0,30 L1000,30" />
+        <path class="track-gold" d="M0,30 L1000,30" />
+      </svg>
+      <div class="steps">
+        <div class="step" data-step style="--c:#c94a3f">
+          <img class="step-img" src="/handbook/landing/assets/steps/look.jpg" alt="看"><h3>看</h3><p class="step-k">看清警訊</p>
+          <p class="step-d">陌生來電或私訊，一開口就講到錢、帳戶、個資、限時——先當可疑。</p>
+        </div>
+        <div class="step" data-step style="--c:#1a2c4e">
+          <img class="step-img" src="/handbook/landing/assets/steps/calm.jpg" alt="穩"><h3>穩</h3><p class="step-k">先掛斷</p>
+          <p class="step-d">心跳加速的時候就是被操控的時候。真正重要的事，永遠等得起十分鐘。</p>
+        </div>
+        <div class="step" data-step style="--c:#2f8f78">
+          <img class="step-img" src="/handbook/landing/assets/steps/listen.jpg" alt="聽"><h3>聽</h3><p class="step-k">聽他要什麼</p>
+          <p class="step-d">不聽故事，只看他最後要你做什麼：轉帳、給密碼、操作 ATM——就是詐騙。</p>
+        </div>
+        <div class="step" data-step style="--c:#d98a2b">
+          <img class="step-img" src="/handbook/landing/assets/steps/ask.jpg" alt="問"><h3>問</h3><p class="step-k">問對的人</p>
+          <p class="step-d">不問對方、不打他給的電話。掛斷後撥 165、110，或回撥原本認識的號碼。</p>
+        </div>
+        <div class="step" data-step style="--c:#3ea173">
+          <img class="step-img" src="/handbook/landing/assets/steps/guard.jpg" alt="守"><h3>守</h3><p class="step-k">守住三不</p>
+          <p class="step-d">不匯款、不交卡、不給密碼。發現被騙不是你笨，是他們太專業——立刻撥 165。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="atlas">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-kicker">常見手法圖鑑</span>
+      <h2 class="sec-title">九種劇本，先看過就不會慌</h2>
+      <p class="sec-sub">依 165 打詐儀錶板統計。點一張卡，看三面破綻紅旗。</p>
+    </div>
+
+    <div class="grp" style="--gc:#c94a3f" data-fade>
+      <div class="grp-head"><img class="grp-pic" src="/handbook/landing/assets/roles/elder.jpg" alt=""><h3>長輩最常遇到</h3><span class="grp-tag">165 高齡被害前三名</span></div>
+      <div class="tiles">
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">📞</div><h4>假檢警來電</h4><p class="tile-ai">AI 扮演：冒充檢察官／書記官</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">⚖️</span><p>真檢警不會用電話辦案，更不會要你轉到「監管帳戶」</p></div>
+            <div class="flag"><span class="flag-ic">🤫</span><p>以「偵查不公開」要求保密、不能告訴家人</p></div>
+            <div class="flag"><span class="flag-ic">⏰</span><p>用「凍結帳戶／通緝」製造恐懼、限時逼你處理</p></div>
+          </div>
+        </div>
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">📈</div><h4>假投資（退休金）</h4><p class="tile-ai">AI 扮演：冒充投資老師／理財專員</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">💯</span><p>「穩賺不賠／保證配息」——合法投資不可能保證獲利</p></div>
+            <div class="flag"><span class="flag-ic">🏦</span><p>要你解定存、把退休金轉到不明平台</p></div>
+            <div class="flag"><span class="flag-ic">🎣</span><p>前期小額配息是餌，大額投入就領不出來</p></div>
+          </div>
+        </div>
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">👨‍👩‍👧</div><h4>假親友借錢</h4><p class="tile-ai">AI 扮演：冒充兒女／老朋友</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">❓</span><p>只喊「是我啦」，等你自己喊出名字再冒充那個人</p></div>
+            <div class="flag"><span class="flag-ic">📱</span><p>用「換號碼／聲音怪」合理化各種不對勁</p></div>
+            <div class="flag"><span class="flag-ic">🚑</span><p>急用錢＋不讓其他家人知道——回撥原號碼就破解</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grp" style="--gc:#2f6fb5" data-fade>
+      <div class="grp-head"><img class="grp-pic" src="/handbook/landing/assets/roles/adult.jpg" alt=""><h3>青壯年最常遇到</h3><span class="grp-tag">165 件數財損前五名</span></div>
+      <div class="tiles">
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">📈</div><h4>假投資群組</h4><p class="tile-ai">AI 扮演：投資群組的老師／助理</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">💯</span><p>「穩賺不賠／保證獲利」一定是詐騙</p></div>
+            <div class="flag"><span class="flag-ic">📲</span><p>要求下載不明 App、匯款到個人帳戶</p></div>
+            <div class="flag"><span class="flag-ic">🎭</span><p>獲利截圖、群組成員、小額出金都可造假</p></div>
+          </div>
+        </div>
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">💬</div><h4>假交友詐騙</h4><p class="tile-ai">AI 扮演：交友軟體上的曖昧對象</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">💘</span><p>沒見過面就談感情、天天噓寒問暖建立依賴</p></div>
+            <div class="flag"><span class="flag-ic">🙈</span><p>以急難／投資為由要錢，卻拒絕視訊或見面</p></div>
+            <div class="flag"><span class="flag-ic">🎣</span><p>帶你「小額試水溫」，嘗到甜頭再誘導大額加碼</p></div>
+          </div>
+        </div>
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">🛒</div><h4>假客服解除分期</h4><p class="tile-ai">AI 扮演：冒充購物網站／銀行客服</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">🏧</span><p>ATM 和網銀都沒有「解除分期」功能</p></div>
+            <div class="flag"><span class="flag-ic">📦</span><p>講得出你的訂單是因為個資外洩，不代表是真客服</p></div>
+            <div class="flag"><span class="flag-ic">⏰</span><p>假銀行專員接力演出＋限時結算製造緊張</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grp" style="--gc:#d98a2b" data-fade>
+      <div class="grp-head"><img class="grp-pic" src="/handbook/landing/assets/roles/teen.jpg" alt=""><h3>青少年最常遇到</h3><span class="grp-tag">校園宣導重點</span></div>
+      <div class="tiles">
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">💸</div><h4>車手高薪招募</h4><p class="tile-ai">AI 扮演：「高薪打工」招募者</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">💰</span><p>高薪、免經驗、日領現金——天下沒有這種好事</p></div>
+            <div class="flag"><span class="flag-ic">💳</span><p>要你領錢、交卡、借帳戶＝車手與人頭帳戶</p></div>
+            <div class="flag"><span class="flag-ic">⚖️</span><p>「只是借帳戶」也構成幫助詐欺罪，會留案底</p></div>
+          </div>
+        </div>
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">🎮</div><h4>遊戲代儲詐騙</h4><p class="tile-ai">AI 扮演：便宜代儲／賣帳號的人</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">🏷️</span><p>價格低於官方行情太多，一定有鬼</p></div>
+            <div class="flag"><span class="flag-ic">💸</span><p>只收私下轉帳／超商代碼，不走官方金流</p></div>
+            <div class="flag"><span class="flag-ic">👻</span><p>先小額取信，大額付款後就封鎖消失</p></div>
+          </div>
+        </div>
+        <div class="tile" onclick="tg(this)">
+          <div class="tile-em">🎫</div><h4>假票券網拍</h4><p class="tile-ai">AI 扮演：賣演唱會門票／限量商品的人</p>
+          <div class="tile-more">點看紅旗 ▾</div>
+          <div class="flags">
+            <div class="flag"><span class="flag-ic">🔒</span><p>只能私下轉帳，不走有保障的平台交易</p></div>
+            <div class="flag"><span class="flag-ic">⏰</span><p>限時催促付款，不給你查證時間</p></div>
+            <div class="flag"><span class="flag-ic">🪪</span><p>票券截圖、購買證明、證件照都可能偽造盜用</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="atlas-cta" data-fade><a class="btn btn-teal" href="/mg?group=B">🎯 立即開始 AI 詐騙演練</a></div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>民眾防詐專區 · 看穩聽問守</p>
+    <p class="foot-sub">資料來源：內政部警政署 165 打詐儀錶板｜研究設計：田心喬醫師（新光醫院精神科）｜遇疑似詐騙撥 <b>165</b>（24 小時）或 <b>110</b></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+function tg(el){
+  const open = !el.classList.contains('open');
+  el.classList.toggle('open', open);
+  el.querySelector('.tile-more').textContent = open ? '收合 ▴' : '點看紅旗 ▾';
+  if (window.ScrollTrigger) ScrollTrigger.refresh();
+}
+gsap.registerPlugin(ScrollTrigger);
+const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (prefersReduced) {
+  gsap.set("[data-hero],[data-fade],[data-step]", { opacity: 1, y: 0, clearProps: "transform" });
+  gsap.set(".track-gold", { strokeDashoffset: 0 });
+} else {
+  gsap.set("[data-hero]", { opacity: 0, y: 16 });
+  gsap.timeline({ defaults: { ease: "power2.out", duration: 0.65 } })
+    .to(".hero-pill", { opacity: 1, y: 0, duration: 0.45 })
+    .to(".hero-em",   { opacity: 1, y: 0, duration: 0.5 }, "-=0.2")
+    .to(".hero h1",   { opacity: 1, y: 0, duration: 0.85 }, "-=0.3")
+    .to(".hero-sub",  { opacity: 1, y: 0 }, "-=0.5")
+    .to(".hero-cta",  { opacity: 1, y: 0 }, "-=0.45")
+    .to(".hero-mic",  { opacity: 1, y: 0, duration: 0.45 }, "-=0.4");
+
+  const goldPath = document.querySelector(".track-gold");
+  if (goldPath) {
+    const len = goldPath.getTotalLength();
+    gsap.set(goldPath, { strokeDasharray: len, strokeDashoffset: len });
+    gsap.to(goldPath, { strokeDashoffset: 0, ease: "none",
+      scrollTrigger: { trigger: ".track", start: "top 78%", end: "bottom 45%", scrub: 0.6 } });
+    gsap.from("[data-step]", { opacity: 0, y: 14, duration: 0.5, ease: "power2.out",
+      stagger: { each: 0.14, from: "start" },
+      scrollTrigger: { trigger: ".steps", start: "top 80%", once: true } });
+  }
+  gsap.utils.toArray("[data-fade]").forEach(el => {
+    gsap.from(el, { opacity: 0, y: 12, duration: 0.45, ease: "power1.out",
+      scrollTrigger: { trigger: el, start: "top 86%", once: true } });
+  });
+}
+if (document.fonts && document.fonts.ready) { document.fonts.ready.then(() => ScrollTrigger.refresh()); }
+window.addEventListener("load", () => ScrollTrigger.refresh());
+</script>
+</body>
+</html>

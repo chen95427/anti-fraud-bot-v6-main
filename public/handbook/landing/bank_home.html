@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>銀行行員臨櫃攔阻｜新北市政府警察局 AI 阻詐溝通技巧平臺</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1a2c4e;--navy2:#24406b;--navy-deep:#111d35;
+  --gold:#d7a854;--gold2:#c9973a;--gold-soft:#f5e6c8;
+  --teal:#2f8f78;--green:#3ea173;--red:#c94a3f;--amber:#d98a2b;
+  --bg:#f6f8fb;--card:#fff;--line:#e5e9ef;
+  --ink:#1c2536;--ink2:#3b4658;--muted:#6b7688;
+  --mono:'IBM Plex Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px;}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(17,29,53,.82);backdrop-filter:blur(10px);border-bottom:1px solid rgba(215,168,84,.22);}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:60px;}
+.brand{display:flex;align-items:center;gap:9px;color:#fff;}
+.brand-shield{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--gold),#e8c476);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.brand-name{font-weight:900;font-size:15.5px;letter-spacing:.5px;}
+.nav-links{display:flex;align-items:center;gap:4px;}
+.nav-links a{color:rgba(255,255,255,.78);font-size:13.5px;font-weight:700;padding:7px 12px;border-radius:8px;transition:.2s;}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,.1);}
+.nav-cta{background:var(--gold);color:var(--navy-deep)!important;margin-left:6px;}
+.nav-up{background:#fff!important;color:var(--navy-deep)!important;font-size:14px!important;font-weight:800!important;padding:9px 16px!important;border-radius:20px!important;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+
+/* hero */
+.hero{position:relative;background:var(--navy-deep);color:#fff;padding:128px 0 66px;overflow:hidden;min-height:88vh;display:flex;align-items:center;}
+/* 照片背景（比照員警頁 hero：照片鋪滿 + 深色漸層壓字 + 金色格線） */
+.hero-bg{position:absolute;inset:0;}
+.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 40%;}
+/* 遮罩降階：照片保持清楚，只在中下方文字區稍暗以確保白字可讀 */
+.hero-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(17,29,53,.18) 0%,rgba(17,29,53,.38) 45%,rgba(17,29,53,.72) 100%);}
+.hero-grid{display:none;}
+.hero-in h1,.hero-in .hero-sub,.hero-in .hero-pill{text-shadow:0 2px 12px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.6);}
+.hero-in{position:relative;text-align:center;max-width:720px;margin:0 auto;padding:0 22px;}
+.hero-pill{display:inline-block;font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:3px;color:var(--gold-soft);border:1.5px solid rgba(215,168,84,.6);border-radius:999px;padding:11px 26px;background:rgba(215,168,84,.12);}
+.hero-em{font-size:104px;line-height:1;margin:26px 0 16px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.3));}
+.hero h1{font-size:clamp(26px,4.4vw,40px);font-weight:900;line-height:1.4;letter-spacing:1px;}
+.hero h1 em{font-style:normal;color:var(--gold);}
+.hero-sub{margin-top:14px;font-size:15px;color:rgba(255,255,255,.85);}
+.hero-sub b{color:var(--gold);letter-spacing:6px;font-size:19px;}
+.hero-cta{margin-top:26px;}
+.btn{display:inline-block;font-weight:800;font-size:15.5px;border-radius:13px;padding:15px 30px;transition:transform .15s,box-shadow .2s;}
+.btn:active{transform:scale(.97);}
+.btn-gold{background:var(--gold);color:var(--navy-deep);box-shadow:0 8px 26px rgba(215,168,84,.35);}
+.hero-mic{margin-top:14px;font-family:var(--mono);font-size:11.5px;letter-spacing:1px;color:rgba(255,255,255,.5);}
+
+/* sections */
+section.method,section.nosay{padding:80px 0;}
+.sec-head{text-align:center;max-width:640px;margin:0 auto 48px;}
+.sec-kicker{display:inline-block;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:3px;color:var(--gold2);border-bottom:2px solid var(--gold);padding-bottom:6px;margin-bottom:14px;}
+.sec-title{font-size:clamp(24px,3.4vw,34px);font-weight:900;color:var(--navy);letter-spacing:2px;}
+.sec-sub{margin-top:12px;font-size:14.5px;color:var(--muted);}
+
+/* 五步 + 守護線 */
+.method{background:#fff;border-bottom:1px solid var(--line);}
+.track{position:relative;}
+.track-line{position:absolute;top:58px;left:6%;width:88%;height:60px;overflow:visible;pointer-events:none;}
+.track-base,.track-gold{fill:none;stroke-width:3;vector-effect:non-scaling-stroke;}
+.track-base{stroke:var(--line);}
+.track-gold{stroke:var(--gold);stroke-linecap:round;}
+.steps{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+.step{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:26px 14px 20px;text-align:center;}
+.step-em{font-size:62px;line-height:1;margin-top:10px;}
+.step-img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;margin-top:4px;box-shadow:0 4px 14px rgba(26,44,78,.14);}
+.step h3{font-size:24px;font-weight:900;color:var(--c);margin-top:6px;letter-spacing:2px;}
+.step-k{font-size:13px;font-weight:800;color:var(--ink);margin-top:2px;}
+.step-say{margin-top:12px;background:#fff;border:1px solid var(--gold-soft);border-left:4px solid var(--gold);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--ink2);line-height:1.8;text-align:left;}
+@media(max-width:760px){
+  .steps{grid-template-columns:1fr 1fr;}
+  .steps .step:last-child{grid-column:1/-1;}
+  .track-line{display:none;}
+}
+
+/* 三不說 */
+.nosay{background:var(--bg);}
+.no-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+@media(max-width:680px){.no-grid{grid-template-columns:1fr;}}
+.no{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px 20px;text-align:center;}
+.no-em{font-size:52px;line-height:1;}
+.no b{display:block;font-size:18px;color:var(--red);margin-top:12px;font-weight:900;}
+.no-arrow{font-family:var(--mono);font-size:12px;color:var(--muted);margin:8px 0 4px;letter-spacing:2px;}
+.no span{display:block;font-size:15px;font-weight:800;color:var(--teal);}
+.no-cta{text-align:center;margin-top:44px;}
+.btn-navy{background:var(--navy);color:#fff;box-shadow:0 8px 24px rgba(26,44,78,.3);}
+
+
+/* ===== 手機版 ===== */
+@media(max-width:640px){
+  .brand-name{font-size:13px;letter-spacing:0;}
+  .brand-shield{width:26px;height:26px;font-size:13px;}
+  .nav-links a{font-size:12.5px;padding:6px 9px;}
+  .hero{padding:110px 0 52px;}
+  .hero-pill{font-size:13.5px;padding:9px 18px;letter-spacing:2px;}
+  .hero-em{font-size:84px;}
+  .hero-cta .btn{width:min(100%,360px);text-align:center;}
+  section.method,section.nosay{padding:56px 0;}
+  .sec-head{margin-bottom:32px;}
+}
+@media(max-width:600px){
+  .steps{grid-template-columns:1fr;}
+  .steps .step:last-child{grid-column:auto;}
+  .step{padding:22px 18px 18px;}
+  .step-say{font-size:13.5px;}
+}
+
+/* footer */
+.foot{background:var(--navy-deep);color:rgba(255,255,255,.55);text-align:center;padding:30px 0 40px;font-size:13px;}
+.foot-sub{font-size:11.5px;margin-top:6px;line-height:1.8;}
+.foot b{color:var(--gold);}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="/">
+      <span class="brand-shield">🛡️</span>
+      <span class="brand-name">新北市政府警察局 AI 阻詐溝通技巧平臺</span>
+    </a>
+    <nav class="nav-links">
+      <a class="nav-up" href="/">↑ 回主頁</a>
+      <a class="nav-cta" href="/mg?group=A&role=bank">開始演練</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-bg">
+    <img src="/handbook/landing/assets/bank_hero.jpg" alt="銀行行員臨櫃關懷長者客戶" />
+    <div class="hero-veil"></div>
+    <div class="hero-grid" aria-hidden="true"></div>
+  </div>
+  <div class="hero-in">
+    <span class="hero-pill" data-hero>🏦 金融機構 · 臨櫃關懷</span>
+    <h1 data-hero>你多核對的那一分鐘，<br /><em>可能是他們的一輩子。</em></h1>
+    <p class="hero-sub" data-hero>錢從櫃檯出去就追不回來。臨櫃攔阻五步：<b>看穩聽問守</b></p>
+    <div class="hero-cta" data-hero><a class="btn btn-gold" href="/mg?group=A&role=bank">🎯 開始 AI 臨櫃演練</a></div>
+    <div class="hero-mic" data-hero>🎤 按麥克風說話，AI 扮演臨櫃客戶回應你</div>
+  </div>
+</section>
+
+<section class="method">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-kicker">臨櫃五步</span>
+      <h2 class="sec-title">看 · 穩 · 聽 · 問 · 守</h2>
+      <p class="sec-sub">行員最有力的工具不是勸說，是作業流程本身——多一道核對，就多一次機會。</p>
+    </div>
+    <div class="track">
+      <svg class="track-line" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
+        <path class="track-base" d="M0,30 L1000,30" />
+        <path class="track-gold" d="M0,30 L1000,30" />
+      </svg>
+      <div class="steps">
+        <div class="step" data-step style="--c:#c94a3f">
+          <img class="step-img" src="/handbook/landing/assets/steps/look.jpg" alt="看"><h3>看</h3><p class="step-k">看清警訊</p>
+          <div class="step-say">💬「這筆金額比較大，我幫您多核對一下。您要匯給哪一位呢？」</div>
+        </div>
+        <div class="step" data-step style="--c:#1a2c4e">
+          <img class="step-img" src="/handbook/landing/assets/steps/calm.jpg" alt="穩"><h3>穩</h3><p class="step-k">用流程放慢</p>
+          <div class="step-say">💬「大額匯款照規定要多做一次確認，您先坐一下，我馬上處理。」</div>
+        </div>
+        <div class="step" data-step style="--c:#2f8f78">
+          <img class="step-img" src="/handbook/landing/assets/steps/listen.jpg" alt="聽"><h3>聽</h3><p class="step-k">合規關懷</p>
+          <div class="step-say">💬「這位收款的朋友您認識多久了？這筆錢是用在什麼地方呢？」</div>
+        </div>
+        <div class="step" data-step style="--c:#d98a2b">
+          <img class="step-img" src="/handbook/landing/assets/steps/ask.jpg" alt="問"><h3>問</h3><p class="step-k">問到破口</p>
+          <div class="step-say">💬「對方有沒有跟您說，這件事不能告訴家人、電話要一直開著？」</div>
+        </div>
+        <div class="step" data-step style="--c:#3ea173">
+          <img class="step-img" src="/handbook/landing/assets/steps/guard.jpg" alt="守"><h3>守</h3><p class="step-k">依規通報</p>
+          <div class="step-say">💬「我先幫您暫緩，我們一起打 165 確認——是為了保護您的存款。」</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="nosay">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-kicker">臨櫃三不說</span>
+      <h2 class="sec-title">直接否定，只會讓客戶更防衛</h2>
+      <p class="sec-sub">同一個意思，換一種說法，攔阻成功率就不一樣。</p>
+    </div>
+    <div class="no-grid">
+      <div class="no" data-fade>
+        <div class="no-em">🚫</div><b>「這是詐騙」</b>
+        <div class="no-arrow">改說 ▼</div>
+        <span>「我幫您多確認一下」</span>
+      </div>
+      <div class="no" data-fade>
+        <div class="no-em">🚫</div><b>「你被騙了」</b>
+        <div class="no-arrow">改說 ▼</div>
+        <span>「您停下來想，很聰明」</span>
+      </div>
+      <div class="no" data-fade>
+        <div class="no-em">🚫</div><b>「不能匯」</b>
+        <div class="no-arrow">改說 ▼</div>
+        <span>「先暫緩，我們一起查」</span>
+      </div>
+    </div>
+    <div class="no-cta" data-fade><a class="btn btn-navy" href="/mg?group=A&role=bank">🎯 立即開始 AI 臨櫃演練</a></div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>銀行行員臨櫃攔阻 · 看穩聽問守</p>
+    <p class="foot-sub">依「金融機構臨櫃關懷提問」與真實演練資料設計｜研究設計：田心喬醫師（新光醫院精神科）｜遇可疑情況請撥 <b>165</b></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (prefersReduced) {
+  gsap.set("[data-hero],[data-fade],[data-step]", { opacity: 1, y: 0, clearProps: "transform" });
+  gsap.set(".track-gold", { strokeDashoffset: 0 });
+} else {
+  gsap.set("[data-hero]", { opacity: 0, y: 16 });
+  gsap.timeline({ defaults: { ease: "power2.out", duration: 0.65 } })
+    .to(".hero-pill", { opacity: 1, y: 0, duration: 0.45 })
+    .to(".hero-em",   { opacity: 1, y: 0, duration: 0.5 }, "-=0.2")
+    .to(".hero h1",   { opacity: 1, y: 0, duration: 0.85 }, "-=0.3")
+    .to(".hero-sub",  { opacity: 1, y: 0 }, "-=0.5")
+    .to(".hero-cta",  { opacity: 1, y: 0 }, "-=0.45")
+    .to(".hero-mic",  { opacity: 1, y: 0, duration: 0.45 }, "-=0.4");
+
+  const goldPath = document.querySelector(".track-gold");
+  if (goldPath) {
+    const len = goldPath.getTotalLength();
+    gsap.set(goldPath, { strokeDasharray: len, strokeDashoffset: len });
+    gsap.to(goldPath, { strokeDashoffset: 0, ease: "none",
+      scrollTrigger: { trigger: ".track", start: "top 78%", end: "bottom 45%", scrub: 0.6 } });
+    gsap.from("[data-step]", { opacity: 0, y: 14, duration: 0.5, ease: "power2.out",
+      stagger: { each: 0.14, from: "start" },
+      scrollTrigger: { trigger: ".steps", start: "top 80%", once: true } });
+  }
+  gsap.utils.toArray("[data-fade]").forEach(el => {
+    gsap.from(el, { opacity: 0, y: 12, duration: 0.45, ease: "power1.out",
+      scrollTrigger: { trigger: el, start: "top 86%", once: true } });
+  });
+}
+if (document.fonts && document.fonts.ready) { document.fonts.ready.then(() => ScrollTrigger.refresh()); }
+window.addEventListener("load", () => ScrollTrigger.refresh());
+</script>
+</body>
+</html>
