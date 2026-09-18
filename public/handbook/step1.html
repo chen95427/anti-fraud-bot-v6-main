@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>看・判斷燈號</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#1a2c4e;
+    --navy-700:#24406b;
+    --gold-500:#d7a854;
+    --gold-100:#f5e6c8;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --line:#e5e9ef;
+    --text-900:#1c2536;
+    --text-700:#3b4658;
+    --text-500:#6b7688;
+    --red:#c94a3f;
+    --red-bg:#fbebe9;
+    --amber:#d99a2b;
+    --amber-bg:#fdf3dc;
+    --green:#3ea173;
+    --green-bg:#e9f6ef;
+    --black:#20242c;
+    --blue-bg:#eaf1fb;
+    --blue-line:#c7dbf3;
+    --font:'Noto Sans TC', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:var(--font); background:var(--bg); color:var(--text-900);
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
+
+  .app{max-width:720px; margin:0 auto; min-height:100vh; background:var(--bg);}
+
+  .header{
+    background:var(--navy-900); color:#fff;
+    padding:16px 22px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .shield{width:28px; height:28px; border-radius:7px; background:var(--gold-500); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .brand-name{font-size:15px; font-weight:700;}
+  .badge{background:var(--gold-500); color:var(--navy-900); font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px;}
+
+  .tabs{display:flex; background:#fff; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:14px 8px; font-size:14px; font-weight:700; color:var(--text-500); cursor:pointer;}
+  .tab.active{color:var(--navy-900); border-bottom:2.5px solid var(--navy-900);}
+
+  .breadcrumb{
+    padding:14px 22px 0; font-size:12.5px; color:var(--text-500); display:flex; align-items:center; gap:6px;
+  }
+  .breadcrumb b{color:var(--navy-700); font-weight:700;}
+
+  .content{padding:18px 22px 60px;}
+
+  .title-row{display:flex; align-items:center; gap:10px; margin:6px 0 16px;}
+  .title-icon{font-size:24px;}
+  .title-text{font-size:21px; font-weight:900; color:var(--navy-900);}
+
+  .hr{height:1px; background:var(--line); margin-bottom:20px;}
+
+  .section-label{font-size:14.5px; font-weight:900; color:var(--navy-900); margin:0 0 10px;}
+
+  .quote-box{
+    background:var(--blue-bg); border-radius:10px; padding:16px 18px;
+    display:flex; align-items:flex-start; gap:10px; margin-bottom:12px;
+    font-size:14.5px; line-height:1.75; color:var(--text-900);
+  }
+  .quote-box .ic{font-size:18px; flex-shrink:0;}
+
+  .warn-box{
+    background:var(--red-bg); border-radius:10px; padding:14px 16px;
+    display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.75; color:#7a2b23;
+    margin-bottom:26px;
+  }
+  .warn-box .ic{font-size:16px; flex-shrink:0;}
+
+  .tip-box{
+    background:var(--blue-bg); border:1px solid var(--blue-line); border-radius:10px;
+    padding:14px 16px; display:flex; gap:10px; align-items:flex-start;
+    font-size:12.5px; line-height:1.75; color:#233a5c; margin-bottom:30px;
+  }
+  .tip-box .ic{font-size:15px; flex-shrink:0;}
+
+  table.ref-table{
+    width:100%; border-collapse:collapse; background:var(--card);
+    border-radius:10px; overflow:hidden; margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(20,30,50,0.05);
+  }
+  table.ref-table th{
+    background:var(--navy-900); color:#fff; font-size:12.5px; font-weight:700;
+    text-align:left; padding:11px 14px;
+  }
+  table.ref-table td{
+    padding:11px 14px; font-size:12.5px; color:var(--text-700); border-bottom:1px solid var(--line);
+    line-height:1.6;
+  }
+  table.ref-table tr:last-child td{border-bottom:none;}
+  .light-cell{display:flex; align-items:center; gap:7px; font-weight:700; color:var(--text-900); white-space:nowrap;}
+  .ld{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .ld.red{background:var(--red);} .ld.amber{background:var(--amber);} .ld.green{background:var(--green);} .ld.black{background:var(--black);}
+
+  /* ---- case practice section ---- */
+  .case-section{margin-top:8px;}
+  .case-heading{
+    display:flex; align-items:center; gap:8px; margin-bottom:6px;
+  }
+  .case-heading .n{
+    width:24px; height:24px; border-radius:50%; background:var(--navy-900); color:#fff;
+    font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .case-heading b{font-size:15.5px; color:var(--navy-900);}
+  .case-sub{font-size:13px; color:var(--text-500); margin:0 0 18px 32px; line-height:1.7;}
+
+  .case-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:18px; margin-bottom:14px;
+    box-shadow:0 1px 2px rgba(20,30,50,0.05);
+  }
+  .case-tag{
+    display:inline-block; font-size:11px; font-weight:700; color:var(--navy-700);
+    background:var(--blue-bg); padding:4px 10px; border-radius:999px; margin-bottom:10px;
+  }
+  .case-text{font-size:14.5px; line-height:1.8; color:var(--text-900); margin-bottom:14px;}
+
+  .case-prompt{font-size:12.5px; font-weight:700; color:var(--text-500); margin-bottom:9px;}
+  .case-lights{display:grid; grid-template-columns:repeat(4,1fr); gap:7px;}
+  .case-light-btn{
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    background:#fff; border:1.5px solid var(--line); border-radius:9px;
+    padding:9px 4px; cursor:pointer; font-family:var(--font);
+    transition:border-color 0.15s;
+  }
+  .case-light-btn:active{transform:scale(0.97);}
+  .case-light-btn .ld{width:14px; height:14px;}
+  .case-light-btn span{font-size:11.5px; font-weight:700; color:var(--text-900);}
+  .case-light-btn:disabled{cursor:default;}
+  .case-light-btn.correct{border-color:var(--green); background:var(--green-bg);}
+  .case-light-btn.wrong{border-color:var(--red); background:var(--red-bg);}
+  .case-light-btn.faded{opacity:0.35;}
+
+  .case-feedback{
+    display:none; margin-top:13px; padding:13px 14px; border-radius:9px;
+    font-size:13px; line-height:1.75;
+  }
+  .case-feedback.show{display:block; animation:rise 0.3s ease forwards;}
+  @keyframes rise{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  .case-feedback.correct{background:var(--green-bg); color:#1d5c40; border:1px solid #c8e8d7;}
+  .case-feedback.wrong{background:var(--red-bg); color:#7a2b23; border:1px solid #f2cfc9;}
+  .case-feedback .fl{display:block; font-weight:900; font-size:12.5px; margin-bottom:5px;}
+  .case-feedback .dims{
+    margin-top:9px; display:flex; gap:6px; flex-wrap:wrap;
+  }
+  .dim-chip{
+    font-size:11px; background:rgba(255,255,255,0.6); border:1px solid currentColor;
+    padding:3px 9px; border-radius:999px; opacity:0.85;
+  }
+
+  .case-done-note{
+    text-align:center; font-size:12.5px; color:var(--text-500);
+    padding:16px; background:var(--card); border:1px dashed var(--line); border-radius:10px;
+    margin-top:6px; line-height:1.7;
+  }
+  .congrats-line{font-size:15px; font-weight:900; color:var(--green); margin-bottom:6px;}
+
+  .continue-btn{
+    display:block; width:100%; margin-top:22px;
+    background:var(--navy-900); color:#fff; border:none;
+    padding:14px; border-radius:10px; font-family:var(--font);
+    font-weight:700; font-size:14.5px; cursor:pointer;
+  }
+
+.step-nav{
+  display:flex; gap:6px; padding:12px 16px; background:#fff; border-bottom:1px solid var(--line);
+  overflow-x:auto;
+}
+.step-pill{
+  display:flex; align-items:center; gap:6px; flex-shrink:0; text-decoration:none;
+  background:var(--bg); border:1.5px solid var(--line); border-radius:999px;
+  padding:7px 14px 7px 8px; font-family:'Noto Sans TC', sans-serif; font-size:12.5px; font-weight:700;
+  color:var(--text-500); cursor:pointer; transition:all 0.15s;
+}
+.step-pill .sp-num{
+  width:20px; height:20px; border-radius:50%; background:var(--line); color:var(--text-500);
+  font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.step-pill.active{background:var(--navy-900); border-color:var(--navy-900); color:#fff;}
+.step-pill.active .sp-num{background:var(--gold-500); color:var(--navy-900);}
+.back-link{
+  display:inline-flex; align-items:center; gap:4px; text-decoration:none;
+  color:var(--text-500); font-size:12.5px; font-weight:700;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="shield">🛡️</div>
+      <div class="brand-name">員警阻詐溝通技巧</div>
+    </div>
+    <a href="/handbook/index.html" class="badge" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;">↑ 回上一層</a>
+  </div>
+
+  <div class="tabs">
+    <a class="tab active" href="index.html" style="text-decoration:none;">操作手冊</a>
+    <a class="tab" href="index.html#tools" style="text-decoration:none;">工具資源</a>
+    <a class="tab" href="javascript:void(0)" onclick="goPractice()" style="text-decoration:none;">AI 阻詐教練</a>
+  </div>
+
+    <div class="step-nav">
+    <a class="step-pill active" href="step1.html"><span class="sp-num">1</span><span class="sp-name">看</span></a><a class="step-pill" href="step2.html"><span class="sp-num">2</span><span class="sp-name">穩</span></a><a class="step-pill" href="step3.html"><span class="sp-num">3</span><span class="sp-name">聽</span></a><a class="step-pill" href="step4.html"><span class="sp-num">4</span><span class="sp-name">問</span></a><a class="step-pill" href="step5.html"><span class="sp-num">5</span><span class="sp-name">守</span></a>
+  </div>
+  <div class="breadcrumb"><a class="back-link" href="index.html">← 返回總覽</a></div>
+
+  <div class="content">
+    <div class="title-row">
+      <span class="title-icon">👁️</span>
+      <span class="title-text">看（觀察）－判斷燈號，選對策略</span>
+    </div>
+    <div class="hr"></div>
+
+    <div class="section-label">開場白</div>
+    <div class="quote-box">
+      <span class="ic">👮</span>
+      <span>「您好，我是警察，看您好像在處理一件事，方便跟我說說嗎？」</span>
+    </div>
+    <div class="warn-box">
+      <span class="ic">⚠️</span>
+      <span>說完後停頓 3–5 秒，不要繼續說話。對方的第一個反應，是判斷燈號最重要的資訊。</span>
+    </div>
+
+    <div class="section-label">觀察三個面向</div>
+    <table class="ref-table">
+      <tr><th>燈號</th><th>①情緒狀態</th><th>②溝通意願</th><th>③思考清晰度</th></tr>
+      <tr><td class="light-cell"><span class="ld red"></span>紅燈</td><td>激動、恐懼、恐慌</td><td>拒絕理會、不停看手機</td><td>思路混亂、無法回答</td></tr>
+      <tr><td class="light-cell"><span class="ld amber"></span>黃燈</td><td>任何情緒，有猶豫跡象</td><td>有猶豫但仍要匯款</td><td>時而清醒時而混亂</td></tr>
+      <tr><td class="light-cell"><span class="ld green"></span>綠燈</td><td>平靜、疑惑、主動求助</td><td>主動詢問、願意停下來</td><td>思路清晰、能回答</td></tr>
+      <tr><td class="light-cell"><span class="ld black"></span>特殊</td><td>異常冷靜、流暢自然</td><td>表面配合但催你離開</td><td>對答如流、有備好說詞</td></tr>
+    </table>
+    <div class="warn-box">
+      <span class="ic">🚫</span>
+      <span>禁止：這個階段禁止說「你被騙了」「先停下來」「這是詐騙」。任何判斷性話語都會讓對方立刻關閉溝通。</span>
+    </div>
+
+    <div class="section-label">判斷燈號</div>
+    <table class="ref-table">
+      <tr><th>燈號</th><th>組合條件</th><th>穩的目標</th></tr>
+      <tr><td class="light-cell"><span class="ld red"></span>紅燈</td><td>激動/恐懼 + 拒絕理會 + 思路混亂</td><td>願意暫時離開臨櫃坐下來</td></tr>
+      <tr><td class="light-cell"><span class="ld amber"></span>黃燈</td><td>任何情緒 + 有猶豫但仍要匯款</td><td>願意聽你說明 2 分鐘</td></tr>
+      <tr><td class="light-cell"><span class="ld green"></span>綠燈</td><td>平靜疑惑 + 主動詢問說「感覺怪」</td><td>直接進入聽</td></tr>
+      <tr><td class="light-cell"><span class="ld black"></span>特殊</td><td>異常冷靜 + 有備好說詞 + 要你離開</td><td>多留幾分鐘繼續觀察</td></tr>
+    </table>
+    <div class="tip-box">
+      <span class="ic">📋</span>
+      <span>小提醒：三個面向混雜時，以「溝通意願」為主要判斷依據。燈號不是固定的，隨時重新判斷。</span>
+    </div>
+
+    <!-- ===== 案例練習 ===== -->
+    <div class="case-section" id="caseSection">
+      <div class="case-heading"><div class="n">✓</div><b>案例練習</b></div>
+      <p class="case-sub">準則記住了嗎？用 4 個真實情境試試看 —— 這是你在臨櫃最常遇到的判斷時刻。</p>
+
+      <div id="caseList"></div>
+
+      <div class="case-done-note" id="doneNote" style="display:none;">
+        <div class="congrats-line">🎉 恭喜您答對了，我們一起進入下一個步驟</div>
+        回頭看一次「判斷燈號」表格，你會發現現在讀起來完全不一樣。
+      </div>
+    </div>
+
+    <a class="continue-btn" href="step2.html" style="text-decoration:none; text-align:center; display:block;">繼續 STEP 2・穩 →</a>
+  </div>
+</div>
+
+<script>
+const lights = [
+  {key:'red', name:'紅燈', cls:'red'},
+  {key:'amber', name:'黃燈', cls:'amber'},
+  {key:'green', name:'綠燈', cls:'green'},
+  {key:'black', name:'特殊', cls:'black'}
+];
+
+const cases = [
+  {
+    tag:'臨櫃情境',
+    text:"民眾站在櫃檯前，雙手緊握著存摺，聲音發抖：「拜託你們快一點，我兒子在等，你們是不是要害我！」銀行行員請她先坐下說明，她完全不理會，一直催促要匯款。",
+    answer:'red',
+    dims:['情緒狀態：恐懼恐慌', '溝通意願：拒絕理會', '思考清晰度：無法回答'],
+    explain:"三個面向同時亮紅：情緒失控、拒絕溝通、無法理性對答。這個階段的目標不是查證，而是先讓她「願意暫時離開臨櫃坐下來」——任何說明都要先過這一關。"
+  },
+  {
+    tag:'ATM 情境',
+    text:"民眾一邊操作 ATM 一邊小聲說：「奇怪，這個帳戶戶名跟我兒子平常講的不太一樣……但他們說這是公司帳戶啦。」手停在螢幕前，猶豫了幾秒才繼續按。",
+    answer:'amber',
+    dims:['情緒狀態：有猶豫跡象', '溝通意願：猶豫但仍要匯款', '思考清晰度：時而清醒'],
+    explain:"她自己已經注意到矛盾點（戶名不對），但還是選擇繼續操作——這正是黃燈。這個階段的目標很明確：讓她「願意聽你說明 2 分鐘」，因為她心裡其實已經在找一個台階下。"
+  },
+  {
+    tag:'主動求助情境',
+    text:"民眾主動走到服務台前，語氣平靜，主動說：「我朋友介紹我一個投資機會，但我總覺得哪裡怪怪的，可以麻煩你幫我看一下嗎？」",
+    answer:'green',
+    dims:['情緒狀態：平靜疑惑', '溝通意願：主動詢問', '思考清晰度：思路清晰'],
+    explain:"主動求助、能清楚描述狀況，還自己說出「感覺怪」這個關鍵字——這是綠燈，三個面向都已經到位，可以直接進入「聽」的步驟，不需要再花力氣先處理情緒。"
+  },
+  {
+    tag:'ATM 情境 ②',
+    text:"民眾在 ATM 前操作，你上前關心，他態度自然、對答如流，主動說明自己在做什麼，但講的內容前後有點像背好的說詞，而且一直說：「我知道，沒事的，你不用管我，我等一下就要走了。」",
+    answer:'black',
+    dims:['情緒狀態：異常冷靜', '溝通意願：表面配合但催你離開', '思考清晰度：對答如流、有備好說詞'],
+    explain:"異常冷靜、對答如流、卻一直催你離開——這是特殊燈號，很可能已經被電話另一端同步指導應對。這個階段不用戳破，目標是「多留幾分鐘繼續觀察」，不要因為對方態度正常就輕易放行。"
+  }
+];
+
+let idx = 0;
+const caseList = document.getElementById('caseList');
+const doneNote = document.getElementById('doneNote');
+
+function renderCase(i){
+  const c = cases[i];
+  const card = document.createElement('div');
+  card.className = 'case-card';
+  card.innerHTML = `
+    <div class="case-tag">案例 ${i+1} · ${c.tag}</div>
+    <div class="case-text">${c.text}</div>
+    <div class="case-prompt">這是哪個燈號？</div>
+    <div class="case-lights"></div>
+    <div class="case-feedback"></div>
+  `;
+  caseList.appendChild(card);
+
+  const lightWrap = card.querySelector('.case-lights');
+  lights.forEach(l=>{
+    const btn = document.createElement('button');
+    btn.className = 'case-light-btn';
+    btn.innerHTML = `<span class="ld ${l.cls}"></span><span>${l.name}</span>`;
+    btn.onclick = ()=> answer(card, c, l.key, btn, i);
+    lightWrap.appendChild(btn);
+  });
+}
+
+function answer(card, c, chosenKey, chosenBtn, i){
+  const isCorrect = chosenKey === c.answer;
+  const btns = card.querySelectorAll('.case-light-btn');
+  btns.forEach(b=>{
+    b.disabled = true;
+    const key = lights.find(l=> b.textContent.includes(l.name)).key;
+    if(key === c.answer) b.classList.add('correct');
+    else if(b === chosenBtn) b.classList.add('wrong');
+    else b.classList.add('faded');
+  });
+
+  const fb = card.querySelector('.case-feedback');
+  fb.className = 'case-feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  const correctName = lights.find(l=>l.key===c.answer).name;
+  fb.innerHTML = `<span class="fl">${isCorrect ? '✓ 判斷正確' : '再想想 — 正確答案是「' + correctName + '」'}</span>${c.explain}
+    <div class="dims">${c.dims.map(d=>`<span class="dim-chip">${d}</span>`).join('')}</div>`;
+
+  if(i < cases.length - 1){
+    setTimeout(()=>{ renderCase(i+1); }, 550);
+  } else {
+    doneNote.style.display = 'block';
+  }
+}
+
+renderCase(0);
+</script>
+<script>
+(function(){var ua=navigator.userAgent,inApp=false;
+if(/Line\//i.test(ua)||/FBAN|FBAV|FB_IAB/i.test(ua)||/Instagram/i.test(ua)||/Messenger/i.test(ua))inApp=true;
+window.__inApp=inApp;})();
+function goPractice(){var url='/mg?group=A&role=police',ua=navigator.userAgent,abs=location.origin+url;
+if(window.__inApp){
+ if(/Line\//i.test(ua)){location.href=abs+'&openExternalBrowser=1';return;}
+ if(/Android/i.test(ua)){location.href='intent://'+abs.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return;}
+ if(/iPad|iPhone|iPod/i.test(ua)){location.href='x-safari-https://'+abs.replace(/^https?:\/\//,'');
+  setTimeout(function(){if(navigator.clipboard)navigator.clipboard.writeText(abs).catch(function(){});alert('請點右上角 ⋯ →「在 Safari 開啟」，網址已複製，可貼到 Safari');},800);return;}
+}
+location.href=url;}
+</script>
+</body>
+</html>

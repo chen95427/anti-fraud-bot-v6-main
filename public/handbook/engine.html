@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>AI 阻詐演練 · 多族群</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --navy:#1a2c4e;--navy2:#24406b;--gold:#d7a854;--goldd:#c6963f;
+    --red:#c94a3f;--amber:#e0932b;--green:#3ea173;--dark:#20242e;
+    --ink:#1c2536;--line:#e5e9ef;--soft:#f4f6f9;--muted:#6b7688;
+  }
+  html,body{height:100%;}
+  body{font-family:"Noto Sans TC","Microsoft JhengHei","微軟正黑體",sans-serif;background:#0f1626;color:var(--ink);display:flex;align-items:center;justify-content:center;}
+  .app{width:min(100vw,480px);height:100dvh;background:var(--soft);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;position:relative;}
+  @media(min-width:520px){.app{height:min(100dvh,880px);border-radius:22px;}}
+  /* 網頁（桌機/平板）共同版本：畫面加寬、字級微放大，手機維持滿版 */
+  @media(min-width:768px){.app{width:600px;}}
+  @media(min-width:1100px){.app{width:660px;}.m{max-width:80%;}}
+  .screen{display:none;flex-direction:column;height:100%;overflow:hidden;}
+  .screen.on{display:flex;}
+
+  .hdr{background:var(--navy);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex:none;}
+  .hdr .l{display:flex;align-items:center;gap:10px;}
+  .hdr .shield{width:30px;height:30px;border-radius:8px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .hdr .tt{font-size:16px;font-weight:800;line-height:1.2;}
+  .hdr .tt small{display:block;font-size:10.5px;font-weight:500;color:#c7d4e6;margin-top:1px;}
+  .hdr .x{font-size:20px;color:#c7d4e6;margin-left:10px;cursor:pointer;background:none;border:none;}
+  .lvbadge{background:var(--gold);color:var(--navy);font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:20px;}
+
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .body::-webkit-scrollbar{width:6px;} .body::-webkit-scrollbar-thumb{background:#cbd3df;border-radius:6px;}
+
+  /* role select */
+  .grouphdr{margin:16px 18px 8px;}
+  .grouphdr .gt{font-size:13.5px;font-weight:800;color:var(--navy);}
+  .grouphdr .gs{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;}
+  .rolecard{margin:0 18px 10px;background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:13px 14px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;}
+  /* 身分選擇畫面：內容平均分散填滿整頁，不留大片空白；卡片放大、大圖示 */
+  .rolebody{display:flex;flex-direction:column;justify-content:space-evenly;padding:6px 0 10px;}
+  .rolebody .rolecard{flex:1;min-height:0;align-items:center;padding:16px 18px;border-radius:16px;box-shadow:0 3px 12px rgba(26,44,78,.06);margin-bottom:8px;}
+  .rolebody .rolecard .ic{font-size:40px;width:56px;text-align:center;}
+  /* 身分卡真實照片（取代 emoji）：圓角縮圖，隨卡片高度放大 */
+  .rolecard .pic{width:112px;height:84px;object-fit:cover;border-radius:12px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+  .rolebody .rolecard .pic{width:132px;height:100px;}
+  @media(max-width:400px){.rolebody .rolecard .pic{width:104px;height:80px;}}
+  .rolebody .rolecard .nm{font-size:18px;}
+  .rolebody .rolecard .ds{font-size:12.5px;line-height:1.6;margin-top:4px;}
+  .rolebody .grouphdr{margin:10px 18px 6px;}
+  .rolefoot{margin:6px 18px 4px;text-align:center;font-size:12px;color:var(--muted);line-height:1.7;background:#fff;border-radius:12px;padding:12px;border:1px dashed var(--line);}
+  .rolecard:active{transform:scale(.99);}
+  .rolecard.groupA{border-left:4px solid var(--gold);}
+  .rolecard.groupB{border-left:4px solid var(--navy2);}
+  .rolecard .ic{font-size:24px;flex:none;}
+  .rolecard .nm{font-size:15px;font-weight:800;color:var(--ink);}
+  .rolecard .ds{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5;}
+
+  /* setup */
+  .sec-num{display:flex;align-items:center;gap:9px;margin:18px 18px 10px;font-size:15px;font-weight:800;color:var(--navy);}
+  .sec-num .b{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .roleBanner{margin:14px 18px 0;background:linear-gradient(135deg,#fff8e8,#fdeec6);border:1px solid var(--gold);border-radius:12px;padding:11px 14px;font-size:12.5px;color:#7a5a1a;display:flex;align-items:center;gap:10px;}
+  .roleBanner .ic{font-size:20px;}
+  .roleBanner b{color:#a5762a;}
+  .fieldrow{display:flex;gap:9px;margin:0 18px;}
+  .fieldrow input{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;color:var(--ink);}
+  .fieldrow input:focus{outline:2px solid var(--navy2);}
+  .seg{display:flex;gap:8px;margin:0 18px;}
+  .seg button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 0;font-family:inherit;font-size:13.5px;font-weight:800;color:var(--muted);cursor:pointer;}
+  .seg button.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .seg button small{display:block;font-size:9.5px;font-weight:600;margin-top:2px;opacity:.75;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin:0 18px;}
+  .lcard{background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:12px 8px;cursor:pointer;transition:.15s;text-align:center;}
+  .lcard.on{border-color:var(--navy2);box-shadow:0 0 0 3px rgba(36,64,107,.12);}
+  .lcard .ball{width:22px;height:22px;border-radius:50%;margin:0 auto 8px;background:radial-gradient(circle at 32% 30%,#fff9,transparent 60%),var(--c);}
+  .lcard .nm{font-size:14px;font-weight:800;color:var(--ink);}
+  .lcard .sub{font-size:10px;color:var(--muted);margin-top:2px;}
+  .tlist{margin:0 18px;display:flex;flex-direction:column;gap:9px;}
+  .trow{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer;display:flex;align-items:center;gap:11px;font-size:14.5px;font-weight:700;color:var(--ink);}
+  .trow.on{border-color:var(--navy2);background:#f2f6fd;}
+  .trow .em{font-size:20px;} .trow .tag{font-size:12px;color:var(--muted);font-weight:600;}
+  .persona{margin:0 18px;background:#fff;border:1.5px solid var(--gold);border-radius:13px;padding:14px;display:flex;gap:12px;align-items:center;}
+  .persona .av{font-size:30px;} .persona .nm{font-size:15px;font-weight:800;color:var(--ink);} .persona .ds{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5;}
+  .startbtn{margin:16px 18px 22px;background:var(--navy);color:#fff;border:none;border-radius:13px;padding:16px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;width:calc(100% - 36px);}
+  .startbtn:disabled{opacity:.5;}
+  .backrow{margin:12px 18px 0;font-size:12.5px;color:var(--muted);cursor:pointer;}
+  /* 右上角統一「↑ 回上一層」按鈕（所有畫面同一位置、同一樣式，明顯可見） */
+  .upbtn{display:inline-flex;align-items:center;gap:5px;background:#fff;color:var(--navy);font-size:13px;font-weight:800;border-radius:20px;padding:8px 14px;cursor:pointer;border:none;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap;flex:none;}
+  .upbtn:active{transform:scale(.96);}
+  .hdr .r{display:flex;align-items:center;gap:8px;}
+  .archNote{font-size:10.5px;color:#8a94a6;text-align:left;padding:12px 18px 4px;line-height:1.6;}
+
+  /* scene */
+  .scene-photo{height:170px;position:relative;background:linear-gradient(135deg,#2a3550,#1a2436);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#8a96ac;flex:none;overflow:hidden;}
+  .scene-photo .ic{font-size:46px;opacity:.5;}
+  /* 情境照片：依詐騙類型放真實情境照（同一類型三燈號共用），有照片時蓋住預設圖示 */
+  .scene-photo img.sp{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;display:none;}
+  .scene-photo.has-img{height:220px;}
+  .scene-photo.has-img img.sp{display:block;}
+  .scene-photo.has-img .ic{display:none;}
+  .scene-photo.has-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(17,29,53,.15) 0%,rgba(17,29,53,.05) 40%,rgba(17,29,53,.55) 100%);pointer-events:none;}
+  .scene-photo .chips{z-index:2;}
+  .scene-photo .chips{position:absolute;top:14px;left:14px;display:flex;gap:8px;}
+  .chip{font-size:12px;font-weight:800;padding:5px 12px;border-radius:20px;color:#fff;}
+  .chip.sig{background:var(--dark);} .chip.type{background:var(--gold);color:var(--navy);}
+  .scene-body{padding:18px;background:var(--dark);color:#fff;flex:1;overflow-y:auto;}
+  .scene-persona{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:13px;padding:15px;display:flex;gap:13px;align-items:center;}
+  .scene-persona .av{font-size:32px;} .scene-persona .nm{font-size:16px;font-weight:800;} .scene-persona .ds{font-size:12.5px;color:#b7c1d4;margin-top:3px;line-height:1.5;}
+  .scene-note{text-align:center;font-size:13px;color:#aeb8ca;margin:18px 6px;line-height:1.6;}
+  .talkbtn{background:var(--gold);color:var(--navy);border:none;border-radius:13px;padding:16px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;width:100%;box-shadow:0 6px 20px rgba(215,168,84,.35);}
+  .talkbtn:disabled{opacity:.6;}
+
+  /* chat header */
+  .chdr{background:var(--navy);color:#fff;padding:12px 16px 0;flex:none;}
+  .chdr .row1{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .chdr .who{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;min-width:0;}
+  .chdr .who .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .chdr .sigchip{font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px;background:var(--red);flex:none;}
+  .chdr .sub{font-size:11px;color:#b9c6dc;margin:3px 0 0 26px;}
+  .chdr .end{background:var(--gold);color:var(--navy);border:none;border-radius:9px;font-size:12px;font-weight:800;padding:8px 12px;cursor:pointer;flex:none;}
+  .tabs{display:flex;gap:5px;margin-top:11px;}
+  .tab{flex:1;text-align:center;padding:9px 0 8px;border-radius:9px 9px 0 0;background:rgba(255,255,255,.08);font-size:13px;font-weight:800;color:#a9b6cc;position:relative;}
+  .tab small{display:block;font-size:9px;}
+  .tab.active{background:#fff;color:var(--navy);}
+  .tab.done{color:#bfe3cf;}
+  .tab.done::after{content:"✓";position:absolute;top:2px;right:6px;font-size:10px;color:var(--green);}
+  .ctx{background:#fbf3dc;color:#7a5a1a;font-size:12px;font-weight:600;padding:8px 16px;flex:none;border-bottom:1px solid #ecdcb0;}
+
+  /* chat body */
+  .cwrap{flex:1;display:flex;overflow:hidden;}
+  .thermo{width:56px;flex:none;background:#eef1f6;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:12px 0 10px;}
+  .thermo .face{font-size:22px;}
+  .thermo .cap{font-size:9.5px;color:var(--muted);margin-top:4px;font-weight:700;}
+  .thermo .tube{flex:1;width:12px;margin:10px 0;border-radius:8px;position:relative;background:linear-gradient(to top,#3ea173 0%,#e0c94b 45%,#e0932b 62%,#c94a3f 100%);}
+  .thermo .mk{position:absolute;left:-4px;width:20px;height:4px;border-radius:2px;background:var(--navy);box-shadow:0 0 0 2px #fff;transition:bottom .5s;}
+  .thermo .val{font-size:18px;font-weight:800;color:var(--navy);}
+  .thermo .st{font-size:9.5px;color:var(--muted);font-weight:700;}
+  .clog{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 6px;background:linear-gradient(180deg,#20242e 0%,#2a3142 100%);}
+  .clog::-webkit-scrollbar{width:5px;} .clog::-webkit-scrollbar-thumb{background:#4a5266;border-radius:6px;}
+  .sysline{text-align:center;color:#c7d0e0;font-size:11px;background:rgba(0,0,0,.3);padding:5px 12px;border-radius:20px;width:fit-content;margin:0 auto 14px;line-height:1.5;}
+  .m{margin-bottom:13px;max-width:86%;}
+  .m.civ .av{width:34px;height:34px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 0 2px var(--red);float:left;margin-right:9px;}
+  .m.civ .bub{background:#fff;border-radius:4px 14px 14px 14px;padding:11px 14px;overflow:hidden;}
+  .m.civ .who{font-size:10.5px;color:#9aa4b4;font-weight:700;margin-bottom:3px;}
+  .m.civ .act{font-size:12px;color:#8a94a6;font-style:italic;background:#f1f3f7;border-radius:6px;padding:3px 8px;display:table;margin:6px 0;}
+  .m.civ .act:first-of-type{margin-top:0;}
+  .m.civ .tx{font-size:14.5px;color:#243049;line-height:1.7;}
+  .m.civ .tx+.tx{margin-top:4px;}
+  .m.cop{margin-left:auto;text-align:right;}
+  .m.cop .bub{display:inline-block;text-align:left;background:linear-gradient(135deg,var(--navy2),#2f5590);color:#fff;border-radius:14px 4px 14px 14px;padding:10px 14px;font-size:14px;line-height:1.6;max-width:100%;}
+  .m.cop .who{font-size:10.5px;color:#b9c6dc;font-weight:700;margin-bottom:3px;}
+  /* 每句話下方的話術標示：字體放大（同理語句／守護語句／太直接了…），讓使用者一眼看到自己這句講得如何 */
+  .m.cop .tags{margin-top:7px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+  .achv{background:#16a34a;color:#fff;font-size:14.5px;font-weight:800;padding:5px 13px;border-radius:20px;box-shadow:0 1px 4px rgba(22,163,74,.35);}
+  .warn{background:#dc2626;color:#fff;font-size:14.5px;font-weight:800;padding:5px 13px;border-radius:20px;box-shadow:0 1px 4px rgba(220,38,38,.35);}
+  .prin{background:#0ea5e9;color:#fff;font-size:14px;font-weight:800;padding:5px 12px;border-radius:20px;box-shadow:0 1px 4px rgba(14,165,233,.35);}
+  .coach{background:linear-gradient(135deg,#fff8e8,#fdeec6);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;font-size:14.5px;color:#7a5a1a;line-height:1.65;margin:0 auto 13px;max-width:96%;}
+  .coach .clbl{margin-bottom:7px;}
+  .coach .lbl{display:inline-block;background:var(--gold);color:var(--navy);font-size:12.5px;font-weight:800;padding:3px 10px;border-radius:20px;}
+  /* 即時情緒回饋橫幅（情緒降到一個階段就在對話中明顯提示） */
+  .rt{margin:4px auto 12px;max-width:96%;border-radius:12px;padding:12px 14px;font-size:15.5px;font-weight:800;line-height:1.5;text-align:center;animation:rtin .35s ease-out;}
+  .rt.good{background:#e6f5ec;color:#1d6b45;border:2px solid #7fc79f;}
+  .rt.great{background:linear-gradient(135deg,#e6f5ec,#d3f0e0);color:#0f5a36;border:2px solid #3ea173;font-size:17px;}
+  .rt.bad{background:#fdf0ee;color:#a33a30;border:2px solid #e8a49c;}
+  @keyframes rtin{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+  .thermo.pulse .val{animation:tp .9s ease-in-out 2;}
+  @keyframes tp{0%,100%{transform:scale(1)}50%{transform:scale(1.35);color:#1d6b45}}
+  /* 操作指引（員警／銀行行員進入 AI 系統時） */
+  .guideOv{position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:9000;display:none;align-items:center;justify-content:center;padding:14px;}
+  .guideOv.on{display:flex;}
+  .guide{background:#fff;border-radius:18px;max-width:560px;width:100%;max-height:92dvh;overflow:auto;padding:22px 22px 18px;box-shadow:0 12px 40px rgba(0,0,0,.3);font-size:17px;line-height:1.7;color:var(--ink);}
+  .guide h2{margin:0 0 10px;font-size:22px;color:var(--navy);}
+  .guide .stp{display:flex;gap:12px;align-items:flex-start;background:#f4f7fc;border-radius:12px;padding:12px 14px;margin:9px 0;}
+  .guide .stp b.n{flex:none;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;}
+  .guide .stp .t{font-size:17px;} .guide .stp .t b{color:var(--navy);}
+  .guide .tip{background:#fff8e8;border:1.5px solid var(--gold);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:16.5px;}
+  .guide .tip .achv,.guide .tip .warn{font-size:14.5px;}
+  .sigb{display:inline-block;padding:3px 12px;border-radius:16px;font-weight:900;color:#fff;font-size:15.5px;margin-right:8px;white-space:nowrap;}
+  .sigb.y{background:#e0932b;} .sigb.r{background:#c94a3f;} .sigb.b{background:#20242e;border:1px solid #555;}
+  .guide button.go{margin-top:14px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:18px;font-weight:800;cursor:pointer;}
+  .guidebtn{background:#fff;color:var(--navy);border:1.5px solid var(--navy);border-radius:20px;padding:6px 12px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;margin-right:6px;}
+  /* 結束點評：完整對話回顧＋存成 PDF */
+  .convo{background:#fff;border:1.5px solid var(--line);border-left:5px solid var(--navy);border-radius:14px;padding:14px 16px;margin-top:14px;text-align:left;}
+  .convo h3{margin:0 0 6px;font-size:16px;color:var(--navy);}
+  .convo .hint{font-size:12.5px;color:var(--muted);background:#f4f6fb;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.6;}
+  .convo .pdfbtn{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px 18px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;}
+  .convo .list{max-height:340px;overflow-y:auto;background:#f4f6fb;border-radius:10px;padding:10px;}
+  .convo .r{display:flex;margin-bottom:8px;} .convo .r.me{justify-content:flex-end;}
+  .convo .b{max-width:84%;border-radius:12px;padding:8px 11px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;}
+  .convo .r.me .b{background:var(--navy);color:#fff;} .convo .r.them .b{background:#fff;border:1px solid var(--line);color:var(--ink);}
+  .convo .b .w{font-size:10.5px;opacity:.65;margin-bottom:2px;} .convo .b .tg{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+  .convo .b .tg span{font-size:11px;font-weight:800;padding:2px 8px;border-radius:12px;}
+  .convo .b .tg .g{background:#16a34a;color:#fff;} .convo .b .tg .p{background:#0ea5e9;color:#fff;} .convo .b .tg .w2{background:#dc2626;color:#fff;}
+  /* 訓練滿意度調查（點評頁；每人只填一次） */
+  .sv{background:#fff;border:1.5px solid var(--line);border-left:5px solid var(--navy);border-radius:14px;padding:16px;margin-top:14px;text-align:left;}
+  .sv h3{margin:0 0 4px;font-size:17px;color:var(--navy);}
+  .sv .st{font-size:12.5px;color:var(--muted);margin-bottom:10px;}
+  .sv .q{margin:14px 0;} .sv .qt{font-size:15.5px;font-weight:800;color:var(--ink);margin-bottom:8px;line-height:1.5;}
+  .sv label.o{display:flex;align-items:center;gap:10px;border:2px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer;font-size:14.5px;background:#fff;}
+  .sv label.o.on{border-color:var(--navy);background:#eef3fb;}
+  .sv label.o input{width:18px;height:18px;accent-color:var(--navy);}
+  .sv .stars span{font-size:34px;color:#d1d5db;cursor:pointer;user-select:none;} .sv .stars span.on{color:#f5a623;}
+  .sv input.txt{width:100%;margin-top:6px;padding:10px 12px;border:1.5px solid #d1d9e6;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box;}
+  .sv button.sub{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:13px;font-family:inherit;font-size:15.5px;font-weight:800;cursor:pointer;}
+  .sv .msg{font-size:13.5px;margin-top:8px;font-weight:700;}
+  .sv .req{color:var(--red);font-size:12px;margin-left:4px;}
+  .coach .cinstr{background:#fff;border:1px solid var(--gold);border-radius:8px;padding:9px 12px;margin:0 0 7px;font-size:13.5px;color:#3a2f14;line-height:1.62;font-weight:700;}
+  .coach .cinstr b{color:#a5762a;font-weight:800;}
+  .coach .csay{font-size:12.5px;color:#7a5a1a;line-height:1.6;margin-bottom:6px;cursor:pointer;}
+  .coach .csay b{color:#a5762a;font-weight:800;}
+  .coach .pp{color:#1f8a80;font-weight:700;font-size:11px;}
+  .typing{color:#aeb8ca;font-size:12px;padding:4px 0 10px;}
+
+  /* input */
+  .foot{flex:none;background:#fff;border-top:1px solid var(--line);}
+  .rounds{text-align:center;font-size:10.5px;color:var(--muted);padding:5px;}
+  .inrow{display:flex;align-items:center;gap:9px;padding:9px 14px calc(14px + env(safe-area-inset-bottom));}
+  .inrow .mic{width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex:none;position:relative;font-family:inherit;}
+  .inrow .mic:hover{border-color:var(--navy2);}
+  .inrow .mic.recording{background:#fee2e2;border-color:var(--red);animation:micPulse 1.5s infinite;}
+  @keyframes micPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+  .inrow .mic.recording::before,.inrow .mic.recording::after{content:'';position:absolute;inset:-7px;border:2px solid rgba(201,74,63,.45);border-radius:50%;animation:micRipple 1.6s infinite;pointer-events:none;}
+  .inrow .mic.recording::after{animation-delay:.8s;}
+  @keyframes micRipple{0%{transform:scale(.9);opacity:1;}100%{transform:scale(1.45);opacity:0;}}
+  .inrow input{flex:1;background:#f1f3f7;border:none;border-radius:22px;padding:12px 16px;font-size:14px;color:var(--ink);font-family:inherit;}
+  .inrow input:focus{outline:2px solid var(--navy2);}
+  .inrow .send{width:46px;height:46px;border-radius:50%;background:var(--navy);color:#fff;border:none;font-size:17px;cursor:pointer;flex:none;}
+  .inrow .send:disabled{opacity:.4;}
+  .demohint{text-align:center;font-size:10.5px;color:var(--goldd);padding:0 14px 8px;font-weight:700;}
+
+  /* report */
+  .rep{padding:20px 18px;overflow-y:auto;}
+  .pass{background:linear-gradient(135deg,#e9f6ef,#d3efe1);border:1px solid #bfe3cf;border-radius:14px;padding:18px;text-align:center;margin-bottom:16px;}
+  .pass.fail{background:linear-gradient(135deg,#fbe9e7,#f6d8d4);border-color:#eab8b1;}
+  .pass .big{font-size:23px;font-weight:800;color:var(--green);}
+  .pass.fail .big{color:var(--red);}
+  .pass .sub{font-size:12.5px;color:#3a6b52;margin-top:5px;line-height:1.5;}
+  .pass.fail .sub{color:#7a3b33;}
+  .radar-wrap{text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:14px;}
+  .scoretbl{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px;color:#40506a;line-height:2;}
+  .scoretbl .n{color:var(--green);font-weight:800;float:right;}
+  .fbtext{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px;color:#33405a;line-height:1.85;margin-bottom:14px;white-space:pre-wrap;}
+  .fbGood{background:#e6f5ec;border:2px solid #3ea173;border-radius:12px;padding:12px 14px;margin:10px 0;font-size:15px;font-weight:700;color:#14532d;line-height:1.8;white-space:pre-wrap;}
+  .fbImp{background:#fff8e8;border:2px solid var(--gold);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:14.5px;font-weight:700;color:#7a5a1a;line-height:1.75;white-space:pre-wrap;}
+  .fbSum{background:#eef3fb;border:2px solid var(--navy2);border-radius:12px;padding:14px 16px;margin:10px 0;font-size:17px;font-weight:800;color:var(--navy);line-height:1.85;white-space:pre-wrap;}
+  .fbGood .fbT,.fbImp .fbT{font-size:16.5px;font-weight:900;margin-bottom:6px;}
+  .fbGood .hl{background:#ffe873;color:#1a2c4e;padding:1px 6px;border-radius:6px;font-weight:900;box-decoration-break:clone;-webkit-box-decoration-break:clone;}
+  .fbtext .steptbl{width:100%;border-collapse:collapse;white-space:normal;margin:4px 0 2px;}
+  .fbtext .steptbl td{padding:6px 4px;border-bottom:1px dashed #eef1f5;vertical-align:top;font-size:13px;line-height:1.6;}
+  .fbtext .steptbl tr:last-child td{border-bottom:none;}
+  .fbtext .steptbl td.s{white-space:nowrap;font-weight:800;color:var(--navy);width:1%;padding-right:8px;}
+  .fbtext .steptbl td.i{width:1%;white-space:nowrap;padding-right:6px;}
+  .fbtext .steptbl td.c{color:#40506a;}
+  .fbtext .steptbl td.p{white-space:nowrap;text-align:right;width:1%;padding-left:8px;font-weight:800;color:var(--green);}
+  .fbtext .emo-note{background:#e9f6ef;border-radius:8px;padding:8px 11px;margin-top:8px;font-size:12.5px;color:#2f6b52;line-height:1.7;white-space:normal;}
+  .redflag{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:12.5px;color:#40506a;line-height:1.85;margin-bottom:14px;}
+  .redflag b{color:var(--navy);}
+  .again{margin-top:6px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:12px;padding:14px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;}
+  .repNote{font-size:11px;color:#8a94a6;line-height:1.6;padding:10px 4px 0;}
+  .err{background:#fbe9e7;color:var(--red);font-size:12.5px;padding:9px 13px;border-radius:10px;margin:0 18px 10px;display:none;}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===== CONSENT（個資蒐集與使用聲明；未同意不得進入演練） ===== -->
+  <div class="screen on" id="s-consent">
+    <div class="hdr"><div class="l"><div class="shield">🛡️</div><div class="tt">AI 阻詐演練<small>個資蒐集與使用聲明</small></div></div></div>
+    <div class="body" style="padding:18px">
+      <div style="background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:18px;font-size:14px;line-height:1.85;color:var(--ink)">
+        <p style="margin:0 0 10px;font-weight:800;color:var(--navy);font-size:16px">📋 使用前請詳閱以下聲明</p>
+        <p style="margin:0 0 8px">為記錄演練成效與活動成果統計，本平台於您使用「AI 阻詐演練」功能時，會蒐集並保存：</p>
+        <ul style="margin:0 0 10px;padding-left:20px">
+          <li>您填寫的姓名或代號、所屬單位</li>
+          <li>演練過程中的完整對話內容</li>
+          <li>系統評分與 AI 教練回饋</li>
+        </ul>
+        <p style="margin:0 0 8px">上述資料僅供本活動主辦單位進行<b>訓練成效分析、成果統計與活動紀錄</b>之用，不會另作其他用途或提供無關第三方。</p>
+        <p style="margin:0">🔒 <b>如擔心個資疑慮，「姓名」欄位可自行填寫代號</b>（例如：學員A、01號），不需填寫真實姓名。</p>
+      </div>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin:16px 4px;font-size:14px;line-height:1.6;cursor:pointer">
+        <input type="checkbox" id="consentCk" style="width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--navy2)">
+        <span>我已閱讀並同意上述蒐集個資及對話內容之聲明，並同意繼續進行本次演練。</span>
+      </label>
+      <button class="startbtn" id="consentBtn" disabled>同意，開始演練 →</button>
+      <div style="text-align:center;margin-top:10px"><span style="font-size:12.5px;color:var(--muted);text-decoration:underline;cursor:pointer" onclick="location.href='/'">不同意，離開</span></div>
+    </div>
+  </div>
+
+  <!-- ===== ROLE SELECT ===== -->
+  <div class="screen" id="s-role">
+    <div class="hdr"><div class="l"><div class="shield">🛡️</div><div class="tt">AI 阻詐演練<small>選擇您的身分族群，開始練習</small></div></div><div class="r"><button class="upbtn" onclick="backToHome()">↑ 回專區首頁</button></div></div>
+    <div class="body rolebody">
+      <div class="grouphdr"><div class="gt">A · 第一線攔阻者</div><div class="gs">練「看穩聽問守」勸阻技能，模擬對象＝正要交錢／過戶的民眾（AI 演民眾）</div></div>
+      <div class="rolecard groupA" data-role="police"><div class="ic">🛡️</div><div><div class="nm">員警</div><div class="ds">模擬對象：猶豫要匯款的民眾。重點在紅／黃／黑燈的同理降階與引導提問。</div></div></div>
+      <div class="rolecard groupA" data-role="bank"><div class="ic">🏦</div><div><div class="nm">銀行行員</div><div class="ds">模擬對象：臨櫃／ATM 前要大額匯款、神色慌張的客戶。用「穩、問」關懷提問攔下可疑匯款。</div></div></div>
+      <div class="grouphdr"><div class="gt">B · 自我防護民眾</div><div class="gs">練「辨識與拒絕」，模擬對象＝各類詐騙者本人（AI 這次演詐騙者，換您練守住底線）</div></div>
+      <div class="rolecard groupB" data-role="elder"><img class="pic" src="/handbook/landing/assets/roles/elder.jpg" alt="長輩民眾"><div><div class="nm">長輩民眾</div><div class="ds">3 個劇本（165 高齡被害前三名）：假檢警來電／假投資（退休金）／假親友借錢。</div></div></div>
+      <div class="rolecard groupB" data-role="adult"><img class="pic" src="/handbook/landing/assets/roles/adult.jpg" alt="青壯年民眾"><div><div class="nm">青壯年民眾</div><div class="ds">3 個劇本（165 件數財損前五名）：假投資群組／假交友詐騙／假客服解除分期。</div></div></div>
+      <div class="rolecard groupB" data-role="teen"><img class="pic" src="/handbook/landing/assets/roles/teen.jpg" alt="青少年"><div><div class="nm">青少年</div><div class="ds">3 個劇本：車手高薪招募／遊戲代儲詐騙／假票券網拍。識破「輕鬆賺錢」話術與法律後果。</div></div></div>
+      <div class="rolefoot">🎤 演練時按麥克風說話就好，AI 用文字回應。<br>選好身分後可挑劇本與對方手法強度（黃／紅／黑）。</div>
+    </div>
+  </div>
+
+  <!-- ===== SETUP ===== -->
+  <div class="screen" id="s-setup">
+    <div class="hdr"><div class="l"><div class="shield" id="setupIcon">🛡️</div><div class="tt">AI 阻詐演練<small>設定演練情境</small></div></div><div class="r"><button class="guidebtn" id="guideBtnSetup" onclick="showGuide(true)" style="display:none;">📖 操作指引</button><span class="lvbadge" id="lvBadge" style="display:none;">一般級別</span><button class="upbtn" onclick="backToHome()">↑ 回專區首頁</button></div></div>
+    <div class="body">
+      <div class="roleBanner"><span class="ic" id="roleBannerIc">🛡️</span><div><b id="roleBannerNm">員警</b><span id="roleBannerDs"></span></div></div>
+
+      <div class="sec-num"><span class="b" id="numData">1</span><span id="dataTt">演練者資料（記錄用）</span></div>
+      <div class="fieldrow"><input id="unitInput" placeholder="單位（必填，例：淡水分局偵查隊）"><input id="nameInput" placeholder="姓名或代號（必填）"></div>
+
+      <div class="sec-num" id="lvSecTt"><span class="b">2</span><span>訓練級別</span></div>
+      <div class="seg" id="segLv">
+        <button class="on" data-lv="一般">基礎級<small>有教練指引＋實戰金句</small></button>
+        <button data-lv="高級">實戰級<small>無教練指引混合型案例</small></button>
+      </div>
+
+      <div id="sigSection">
+      <div class="sec-num"><span class="b" id="numSig">3</span><span id="sigSecTt">選擇起步燈號</span></div>
+      <div class="grid3" id="grpSig">
+        <div class="lcard on" data-sig="yellow"><div class="ball" style="--c:#e0932b"></div><div class="nm" id="sigNmY">黃燈</div><div class="sub" id="sigSubY">民眾半信半疑</div></div>
+        <div class="lcard" data-sig="red"><div class="ball" style="--c:#c94a3f"></div><div class="nm" id="sigNmR">紅燈</div><div class="sub" id="sigSubR">民眾恐懼、堅信對方</div></div>
+        <div class="lcard" data-sig="black"><div class="ball" style="--c:#20242e"></div><div class="nm" id="sigNmB">黑燈</div><div class="sub" id="sigSubB">民眾被教育過、對答如流</div></div>
+      </div>
+      </div>
+
+      <div id="typeSection">
+        <div class="sec-num"><span class="b" id="numType">4</span><span id="typeSecTt">詐騙類型（決定民眾心理）</span></div>
+        <div class="tlist" id="grpType"></div>
+      </div>
+
+      <div class="sec-num"><span class="b" id="pNum">5</span><span id="personaSecTt">演練對象</span></div>
+      <div class="persona" id="personaBox"></div>
+
+      <div class="archNote" id="archNote"></div>
+      <div class="err" id="setupErr"></div>
+      <button class="startbtn" id="startBtn">進入情境 →</button>
+    </div>
+  </div>
+
+  <!-- ===== SCENE ===== -->
+  <div class="screen" id="s-scene">
+    <div class="hdr"><div class="l"><div class="shield" id="sceneIcon">🛡️</div><div class="tt">情境揭示<small id="sceneSub"></small></div></div><div class="r"><button class="upbtn" onclick="go('s-setup')">↑ 回上一層</button></div></div>
+    <div class="body" style="display:flex;flex-direction:column;">
+      <div class="scene-photo" id="scenePhoto"><img class="sp" id="scenePhotoImg" alt=""><div class="chips"><span class="chip sig" id="scChipSig"></span><span class="chip type" id="scChipType"></span></div><div class="ic" id="scenePhotoIc">🏦</div></div>
+      <div class="scene-body">
+        <div class="scene-persona" id="scenePersona"></div>
+        <div class="scene-note" id="sceneNote"></div>
+        <button class="talkbtn" id="talkBtn">開始對話</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHAT ===== -->
+  <div class="screen" id="s-chat">
+    <div class="chdr">
+      <div class="row1"><div class="who"><span id="cAv">👤</span><span class="nm" id="cName"></span><span class="sigchip" id="cSig"></span></div><div class="r"><button class="guidebtn" id="guideBtnChat" onclick="showGuide(true)" style="display:none;font-size:12px;padding:6px 10px;">📖 指引</button><button class="upbtn" onclick="leaveChat()" style="font-size:12px;padding:7px 11px;">↑ 回專區</button><button class="end" onclick="endReport()">結束點評</button></div></div>
+      <div class="sub" id="cSub"></div>
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-s="look">看<small>判燈號</small></div>
+        <div class="tab" data-s="calm">穩<small>穩情緒</small></div>
+        <div class="tab" data-s="listen">聽<small>傾聽</small></div>
+        <div class="tab" data-s="ask">問<small>引導</small></div>
+        <div class="tab" data-s="guard">守<small>守護</small></div>
+      </div>
+    </div>
+    <div class="ctx" id="ctxLine"></div>
+    <div class="cwrap">
+      <div class="thermo">
+        <div class="face" id="tFace">😰</div><div class="cap" id="thermoCap">情緒</div>
+        <div class="tube"><div class="mk" id="tMk" style="bottom:78%;"></div></div>
+        <div class="val" id="tVal">78</div><div class="st" id="tSt">激動</div>
+      </div>
+      <div class="clog" id="clog"></div>
+    </div>
+    <div class="foot">
+      <div class="rounds" id="rounds">第 0 回合</div>
+      <div class="inrow"><button type="button" class="mic" id="micBtn" onclick="toggleMic()" ontouchend="event.preventDefault();toggleMic();">🎤</button><input id="msgBox" placeholder="按 🎤 說話…" autocomplete="off" maxlength="100"><button class="send" id="send">▶</button></div>
+      <div class="demohint" id="demoHint"></div>
+    </div>
+  </div>
+
+  <!-- ===== REPORT ===== -->
+  <div class="screen" id="s-report">
+    <div class="hdr"><div class="l"><div class="tt">結束點評<small id="repSub"></small></div></div><div class="r"><button class="upbtn" onclick="backToHome()">↑ 回專區首頁</button></div></div>
+    <div class="rep">
+      <div class="pass" id="passBox"><div class="big" id="passBig">✔ 通過</div><div class="sub" id="passSub"></div></div>
+      <div class="radar-wrap" id="radarWrap"><svg id="radar" width="250" height="230" viewBox="0 0 250 230"></svg></div>
+      <div class="fbtext" id="fbText" style="display:none;"></div>
+      <div class="redflag" id="redflagBox" style="display:none;"></div>
+      <div class="scoretbl" id="scoretbl"></div>
+      <div class="repNote" id="repNote"></div>
+      <!-- 完整對話回顧＋存成 PDF（瀏覽器原生列印 → 另存為 PDF；手機選分享→儲存到檔案） -->
+      <div class="convo" id="convoBox" style="display:none;">
+        <h3>💬 完整對話（<span id="convoCount">0</span> 句）</h3>
+        <div class="hint">💾 <b>存成 PDF</b>：按下後會跳出列印視窗，把「目的地／印表機」選成「<b>另存為 PDF</b>」（手機：選「分享」→「儲存到檔案」），即可存下完整對話與點評。</div>
+        <button class="pdfbtn" onclick="saveArchivePdf()">💾 存成 PDF（對話＋點評）</button>
+        <div class="list" id="convoList"></div>
+      </div>
+      <!-- 訓練滿意度調查：只在 A 類（員警／銀行行員）、每人只填一次（第一次演練完填，之後不再出現） -->
+      <div class="sv" id="svBox" style="display:none;">
+        <h3>📋 訓練滿意度調查</h3>
+        <div class="st" id="svSt">只需填這一次（約 1 分鐘），之後再練習不會再問。<span style="color:var(--red)">＊為必填</span></div>
+        <div class="q"><div class="qt">Q1. 練習完這個案例後，你是否覺得自己更有同理心、更能理解對方（民眾）的想法？<span class="req">＊</span></div>
+          <div data-q="q1">
+            <label class="o"><input type="radio" name="sv_q1" value="1"><span>⭐ 非常有感，我更能站在對方的角度想</span></label>
+            <label class="o"><input type="radio" name="sv_q1" value="2"><span>🟡 有一些，比練習前更能體會對方</span></label>
+            <label class="o"><input type="radio" name="sv_q1" value="3"><span>🔴 沒什麼感覺</span></label>
+            <label class="o"><input type="radio" name="sv_q1" value="4"><span>⬛ 不確定</span></label>
+          </div></div>
+        <div class="q"><div class="qt">Q2. 看穩聽問守五步驟中，你覺得哪一步最有挑戰性？<span class="req">＊</span></div>
+          <div data-q="q2">
+            <label class="o"><input type="radio" name="sv_q2" value="1"><span>👁 看（判斷燈號）</span></label>
+            <label class="o"><input type="radio" name="sv_q2" value="2"><span>🧘 穩（穩定情緒）</span></label>
+            <label class="o"><input type="radio" name="sv_q2" value="3"><span>👂 聽（傾聽蒐集）</span></label>
+            <label class="o"><input type="radio" name="sv_q2" value="4"><span>🧭 問（引導提問）</span></label>
+            <label class="o"><input type="radio" name="sv_q2" value="5"><span>🛡 守（鞏固決定）</span></label>
+          </div></div>
+        <div class="q"><div class="qt">Q3. 「AI 阻詐演練」對你理解與掌握看穩聽問守的幫助程度？<span class="req">＊</span></div>
+          <div class="stars" id="svStars"><span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span></div>
+          <div style="font-size:12px;color:var(--muted);">點選星數（可再點一次取消）</div></div>
+        <div class="q"><div class="qt">Q4.（可複選）你覺得還需要加強哪個部分？</div>
+          <div data-q="q4">
+            <label class="o"><input type="checkbox" name="sv_q4" value="1"><span>情境案例的多樣性</span></label>
+            <label class="o"><input type="checkbox" name="sv_q4" value="2"><span>話術／禁句說明</span></label>
+            <label class="o"><input type="checkbox" name="sv_q4" value="3"><span>步驟操作細節</span></label>
+            <label class="o"><input type="checkbox" name="sv_q4" value="4"><span>AI 演練系統的操作方式</span></label>
+            <label class="o"><input type="checkbox" name="sv_q4" value="5"><span>其他（可於下方補充）</span></label>
+          </div>
+          <input class="txt" id="svQ4Other" maxlength="200" placeholder="其他建議（選填）…"></div>
+        <div class="q"><div class="qt">Q5. 學會「看穩聽問守」後，你對未來獨立處理阻詐案件的信心程度？<span class="req">＊</span></div>
+          <div data-q="q5">
+            <label class="o"><input type="radio" name="sv_q5" value="1"><span>有信心，可以獨立完成整套流程</span></label>
+            <label class="o"><input type="radio" name="sv_q5" value="2"><span>大致有信心，但遇到對方激動或堅持匯款時仍會緊張</span></label>
+            <label class="o"><input type="radio" name="sv_q5" value="3"><span>信心不足，需要更多情境演練</span></label>
+          </div></div>
+        <button class="sub" id="svSubmit" onclick="submitSurvey()">📋 提交問卷</button>
+        <div class="msg" id="svMsg"></div>
+      </div>
+      <button class="again" onclick="restart()">再練一次</button>
+    </div>
+  </div>
+</div>
+<!-- 操作指引（員警／銀行行員進入 AI 系統時顯示；右上角 📖 可再開） -->
+<div class="guideOv" id="guideOv" onclick="if(event.target===this)hideGuide()">
+  <div class="guide">
+    <h2>📖 操作指引</h2>
+    <div>練習採<b>漸進式難度</b>，請照下面順序：</div>
+    <div class="stp"><b class="n">1</b><div class="t"><b>先認識三種燈號</b>，照這個順序、每種都練一次：<div style="margin-top:8px;line-height:2.3;">
+      <span class="sigb y">🟡 黃燈</span>民眾半信半疑<br>
+      <span style="color:#9aa7bd;font-weight:800;">　↓</span><br>
+      <span class="sigb r">🔴 紅燈</span>民眾恐懼、堅信對方<br>
+      <span style="color:#9aa7bd;font-weight:800;">　↓</span><br>
+      <span class="sigb b">⚫ 黑燈</span>民眾被教育過、對答如流</div></div></div>
+    <div class="stp"><b class="n">2</b><div class="t"><b>基礎級</b>：有教練指引與建議句，練到通過（80 分：五步技巧 80 ＋ 情緒降溫 20）。</div></div>
+    <div class="stp"><b class="n">3</b><div class="t"><b>實戰級</b>：無教練指引的混合型案例，民眾狀態會轉折，靠自己判斷該進哪一步。</div></div>
+    <div class="tip">
+      🎤 <b>怎麼對話</b>：按麥克風說話（也可打字），<b>一次說一段、100 字以內</b>——說完按 ▶ 送出，再按 🎤 繼續說下一段（一次講太長，辨識容易漏字）→ 看對方回覆 → 左側<b>情緒溫度計</b>會隨你的話升降，<b>降到 30 以下才算穩定</b>。<br>
+      每句話下面會標示你這句講得如何：<span class="achv">穩·做到了 ✓</span> <span class="prin">同理語句</span> <span class="warn">太直接了 ⚠</span><br>
+      五步走完、情緒穩定後，按右上角「結束點評」看成績。
+    </div>
+    <button class="go" onclick="hideGuide()">我知道了，開始練習</button>
+  </div>
+</div>
+
+<script>
+/* ===== 前端常數（顯示用；真實對話與評分由後端 /api/mg/* 決定） ===== */
+const ROLE_META={
+ police:{group:'A',label:'員警',icon:'🛡️',short:'練看穩聽問守勸阻技巧',mode:'intervene',sceneIc:'🏦'},
+ bank:{group:'A',label:'銀行行員',icon:'🏦',short:'練臨櫃關懷攔阻',mode:'intervene',sceneIc:'🏧'},
+ elder:{group:'B',label:'長輩民眾',icon:'👴',short:'練辨識與拒絕：假檢警／假投資／假親友',mode:'refuse',sceneIc:'📞'},
+ adult:{group:'B',label:'青壯年民眾',icon:'🧑',short:'練辨識與抵抗：假投資／假交友／假客服',mode:'refuse',sceneIc:'💬'},
+ teen:{group:'B',label:'青少年',icon:'🎒',short:'練辨識與拒絕：車手招募／遊戲代儲／假票券',mode:'refuse',sceneIc:'💸'}
+};
+const TYPE_META={
+ fake_police:{label:'假檢警',tag:'恐懼服從',av:'👵',nm:'陳阿嬤,72歲',ds:'剛接到「檢察官」電話，被告知帳戶涉案需匯款300萬'},
+ investment:{label:'投資詐騙',tag:'高報酬誘惑',av:'👩‍🦳',nm:'李媽媽,65歲',ds:'朋友介紹投資群組，已陸續匯出多筆資金要求「解鎖保證金」'},
+ romance:{label:'感情詐騙',tag:'情感依附',av:'👩',nm:'陳小姐,55歲',ds:'網路認識「男友」半年，從未見面，對方稱急需用錢要她匯款'},
+ arrogant:{label:'強勢防衛型',tag:'自尊防衛',av:'😤',nm:'高先生,55歲',ds:'自認投資經驗豐富，已匯出200多萬仍堅持自己沒事、態度強硬'},
+ suspicious:{label:'主動懷疑型',tag:'半信半疑',av:'👴',nm:'鄭先生,68歲',ds:'已覺得對方怪異、自行查證未果，但仍猶豫要不要相信'}
+};
+/* B 類劇本（與後端 MG_REFUSE 對應；每個劇本都有 黃/紅/黑 三種說詞版本，由後端依燈號帶入） */
+const SCEN_META={
+ elder:{
+  e1:{em:'📞',label:'假檢警來電',ai:'冒充檢察官／書記官的詐騙者',ds:'來電自稱地檢署，說您的帳戶涉入洗錢案，要求把存款轉到「監管帳戶」（高齡被害前三名）'},
+  e2:{em:'📈',label:'假投資（退休金）',ai:'冒充「投資老師／理財專員」的詐騙者',ds:'LINE 群「老師」慫恿把退休金、定存投入「穩賺不賠」平台（高齡被害第一名）'},
+  e3:{em:'👨‍👩‍👧',label:'假親友借錢',ai:'冒充兒女／老朋友的詐騙者',ds:'來電喊「是我啦」換了新號碼，以急事為由要您匯錢（高齡被害前三名）'}},
+ adult:{
+  a1:{em:'📈',label:'假投資群組',ai:'投資群組的「老師／助理」詐騙者',ds:'網路廣告加 LINE 群，「老師」帶單穩賺不賠，鼓吹下載投資 App 入金（財損第一名）'},
+  a2:{em:'💬',label:'假交友詐騙',ai:'交友軟體上的「曖昧對象」詐騙者',ds:'靠每天噓寒問暖建立感情，時機成熟就以急難或投資為由要你的錢（165 前五名）'},
+  a3:{em:'🛒',label:'假客服解除分期',ai:'冒充購物網站／銀行客服的詐騙者',ds:'來電說網購訂單被誤設「分期扣款」，要你照指示操作 ATM／網銀（165 常年前五名）'}},
+ teen:{
+  t1:{em:'💸',label:'車手高薪招募',ai:'「高薪打工」招募者（詐騙集團車手頭）',ds:'打工社團私訊：領錢送包裹、日領現金，實際是找你當詐騙車手（校園宣導首要）'},
+  t2:{em:'🎮',label:'遊戲代儲詐騙',ai:'遊戲社群的「便宜代儲／賣帳號」詐騙者',ds:'喊超便宜代儲點數、賣稀有帳號，收了錢就消失或反過來騙你個資（青少年常見）'},
+  t3:{em:'🎫',label:'假票券網拍',ai:'賣演唱會門票／限量商品的詐騙者',ds:'社群喊有內部票、限量鞋，私訊要你先轉帳，付了就被封鎖（網購詐騙件數第一）'}}
+};
+/* A 類實戰級：5 個混合型案例（與後端 MG_ADV_CASES 對應；燈號由後端決定、不顯示） */
+const ADV_META={
+ a1:{em:'🧑',label:'周先生,54歲',ds:'表面異常冷靜、對答如流，實則已被假檢警深度控制——被拆穿一點就轉為激動防衛。'},
+ a2:{em:'👩‍🦰',label:'林太太,49歲',ds:'投資群組認識的「老師」也在跟她談感情，投資與感情交纏，半信半疑又捨不得。'},
+ a3:{em:'😤',label:'郭先生,58歲',ds:'一開口就強勢趕人「不用你管」，但其實是假檢警案，自尊讓他更難承認。'},
+ a4:{em:'👩',label:'何小姐,46歲',ds:'主動來求助像已有覺察，一被點到與網友的感情就退縮、反覆動搖。'},
+ a5:{em:'👴',label:'曾先生,63歲',ds:'本來已強烈懷疑，卻因「兒子親自來電」又被混淆，信任與懷疑之間拉扯。'}
+};
+const SIG_TEXT={yellow:'🟡 黃燈',red:'🔴 紅燈',black:'⚫ 黑燈'};
+const SCAM_KEY={elder:'elder',adult:'adult',teen:'teen'};
+const STEP_ORDER=['look','calm','listen','ask','guard'];
+const STEP_ZH={look:'看',calm:'穩',listen:'聽',ask:'問',guard:'守'};
+
+/* ===== 狀態 ===== */
+let S={role:null,mode:null,level:'一般',signal:'yellow',fraudType:'fake_police',
+       unit:'',name:'',sessionId:null,actor:'員警',busy:false,ended:false,
+       stepsDone:[],metric:78,startMetric:78,persona:null,typeLabel:'',scamLabel:''};
+
+const $=id=>document.getElementById(id);
+
+/* ===== 個資蒐集同意（必須勾選才能繼續；同意後才會執行入口分流帶來的自動選身分） ===== */
+let _pendingRole=null;
+$('consentCk').addEventListener('change',function(){$('consentBtn').disabled=!this.checked;});
+$('consentBtn').onclick=function(){
+  if(_pendingRole)selectRole(_pendingRole);else go('s-role');
+};
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');}
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function newSid(){return 'mg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
+
+/* ===== 選身分 ===== */
+document.querySelectorAll('.rolecard').forEach(c=>c.onclick=()=>selectRole(c.dataset.role));
+function selectRole(rk){
+  S.role=rk;S.mode=ROLE_META[rk].mode;const r=ROLE_META[rk];
+  $('setupIcon').textContent=r.icon;$('roleBannerIc').textContent=r.icon;
+  $('roleBannerNm').textContent=r.label;$('roleBannerDs').textContent=' — '+r.short;
+  if(S.mode==='intervene'){
+    $('unitInput').style.display='';
+    $('dataTt').textContent='演練者資料（記錄用，姓名可填代號）';
+    $('lvSecTt').style.display='flex';$('segLv').style.display='flex';
+    $('numSig').textContent='3';$('numType').textContent='4';$('pNum').textContent='5';
+    $('sigSecTt').textContent='選擇起步燈號';
+    $('sigSubY').textContent='民眾半信半疑';$('sigSubR').textContent='民眾恐懼、堅信對方';$('sigSubB').textContent='民眾被教育過、對答如流';
+    $('unitInput').placeholder=(rk==='bank')?'單位（必填，例：○○銀行○○分行）':'單位（必填，例：淡水分局偵查隊）';
+    $('lvBadge').textContent=(lvOn()==='高級')?'實戰級':'基礎級';
+    $('sigSection').style.display='block';
+    applyLevelUI();
+    // 員警／銀行行員：每次進入 AI 訓練都先跳出「操作指引」，看完關掉才進設定；右上角 📖 可隨時再開
+    $('guideBtnSetup').style.display='';$('guideBtnChat').style.display='';
+    setTimeout(()=>showGuide(false),200);
+  }else{
+    $('guideBtnSetup').style.display='none';$('guideBtnChat').style.display='none';
+    $('sigSection').style.display='block';
+    $('unitInput').style.display='none';   // B 類自我防護：不需填單位
+    $('dataTt').textContent='演練者資料（請填姓名或代號）';
+    $('lvSecTt').style.display='none';$('segLv').style.display='none';  // B 類固定一般指引（協助辨識）
+    document.querySelectorAll('#segLv button').forEach(b=>b.classList.toggle('on',b.dataset.lv==='一般'));
+    $('lvBadge').textContent='辨識練習';
+    $('numSig').textContent='2';$('numType').textContent='3';$('pNum').textContent='4';
+    $('sigSecTt').textContent='選擇對方手法強度';
+    $('sigSubY').textContent='詐騙者話術粗糙';$('sigSubR').textContent='詐騙者高壓催逼';$('sigSubB').textContent='詐騙者老練、最難拒絕';
+    $('typeSecTt').textContent='選擇劇本（每個劇本都有 黃／紅／黑 不同說詞）';
+    $('personaSecTt').textContent='對方是誰（AI 扮演）';
+    $('archNote').textContent='💡 這次換 AI 扮演詐騙者主動來找您，目的是協助您辨識話術。練習用「查證、拒絕」守住底線，不需配合對方任何要求。';
+  }
+  renderTypeRows();renderPersonaSetup();go('s-setup');
+}
+function typeOn(){const el=document.querySelector('#grpType .trow.on');return el?el.dataset.t:null;}
+function sigOn(){return document.querySelector('#grpSig .lcard.on').dataset.sig;}
+function lvOn(){return document.querySelector('#segLv button.on').dataset.lv;}
+function isAdv(){return S.mode==='intervene'&&lvOn()==='高級';}
+function applyLevelUI(){
+  if(S.mode!=='intervene')return;
+  const adv=isAdv();
+  $('sigSection').style.display=adv?'none':'block';   // 實戰級不給燈號
+  $('numType').textContent=adv?'3':'4';$('pNum').textContent=adv?'4':'5';
+  $('typeSecTt').textContent=adv?'選擇混合型案例':'詐騙類型（決定民眾心理）';
+  $('personaSecTt').textContent=adv?'演練對象（實戰）':'演練對象';
+  $('archNote').textContent=adv
+    ?'🔥 實戰級：無教練指引的混合型案例，民眾狀態會轉折，靠你自己判斷該進哪一步。仍依看穩聽問守評分。'
+    :'💡 基礎級：由「看穩聽問守」真實逐字稿語料驅動，串接真實 AI；每一步有教練卡與 543 場實戰金句陪你練，卡關會自動救援。';
+  renderTypeRows();renderPersonaSetup();
+}
+function renderTypeRows(){
+  const box=$('grpType');box.innerHTML='';
+  const items=(S.mode==='intervene')
+    ? (isAdv()
+        ? Object.entries(ADV_META).map(([k,a])=>({k,em:a.em,main:a.label,tag:'混合實戰'}))
+        : Object.entries(TYPE_META).map(([k,t])=>({k,em:t.av,main:t.label,tag:t.tag})))
+    : Object.entries(SCEN_META[S.role]).map(([k,s])=>({k,em:s.em,main:s.label,tag:'AI 扮演：'+s.ai}));
+  items.forEach((it,i)=>{
+    const d=document.createElement('div');d.className='trow'+(i===0?' on':'');d.dataset.t=it.k;
+    d.innerHTML='<span class="em">'+it.em+'</span><div>'+esc(it.main)+'<span class="tag"> · '+esc(it.tag)+'</span></div>';
+    d.onclick=()=>{document.querySelectorAll('#grpType .trow').forEach(x=>x.classList.remove('on'));d.classList.add('on');renderPersonaSetup();};
+    box.appendChild(d);
+  });
+}
+function renderPersonaSetup(){
+  if(S.mode==='intervene'){
+    if(isAdv()){
+      const a=ADV_META[typeOn()||'a1'];
+      $('personaBox').innerHTML='<div class="av">'+a.em+'</div><div><div class="nm">'+a.label+'</div><div class="ds">'+esc(a.ds)+'</div></div>';
+      return;
+    }
+    const t=TYPE_META[typeOn()||'fake_police'];
+    $('personaBox').innerHTML='<div class="av">'+t.av+'</div><div><div class="nm">'+t.nm+'</div><div class="ds">'+t.ds+'</div></div>';
+  }else{
+    const s=SCEN_META[S.role][typeOn()||Object.keys(SCEN_META[S.role])[0]];
+    $('personaBox').innerHTML='<div class="av">🎭</div><div><div class="nm">AI 扮演：'+esc(s.ai)+'</div><div class="ds">'+esc(s.ds)+'</div></div>';
+  }
+}
+document.querySelectorAll('#segLv button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#segLv button').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('lvBadge').textContent=(b.dataset.lv==='高級')?'實戰級':'基礎級';applyLevelUI();});
+document.querySelectorAll('#grpSig .lcard').forEach(c=>c.onclick=()=>{document.querySelectorAll('#grpSig .lcard').forEach(x=>x.classList.remove('on'));c.classList.add('on');});
+
+/* ===== 進入情境 ===== */
+$('startBtn').onclick=()=>{
+  const unit=$('unitInput').value.trim(),name=$('nameInput').value.trim();
+  if(S.mode==='intervene'&&!unit){$('setupErr').style.display='block';$('setupErr').textContent='請先輸入您的單位（記錄演練用）';$('unitInput').focus();return;}
+  if(!name){$('setupErr').style.display='block';$('setupErr').textContent='請輸入您的姓名或代號（記錄演練與成績用）';$('nameInput').focus();return;}
+  $('setupErr').style.display='none';
+  S.unit=unit;S.name=name;S.signal=sigOn();
+  if(S.mode==='intervene'){
+    S.level=lvOn();S.adv=(S.level==='高級');
+    if(S.adv){S.caseId=typeOn()||'a1';S.fraudType=null;}
+    else{S.fraudType=typeOn()||'fake_police';S.caseId=null;}
+  }
+  else{S.level='一般';S.adv=false;S.caseId=typeOn()||Object.keys(SCEN_META[S.role])[0];}
+  renderScene();go('s-scene');
+};
+/* 情境照片：
+   員警   → 15 張「燈號×案例」各一張（police_scene/{signal}_{fraud}.jpg）
+   銀行行員 → 5 張依案例（bank_scene/{fraud}.jpg，同一案例三燈號共用）
+   實戰級混合案例 → 依後端設定的底層燈號＋案例對應 */
+const ADV_FRAUD={a1:'fake_police',a2:'investment',a3:'arrogant',a4:'romance',a5:'suspicious'};
+const FRAUDS=['fake_police','investment','romance','arrogant','suspicious'];
+// 實戰級（員警）每個混合案例個別指定最貼合人物與情境的照片（性別、年齡、狀態要對得上；不預告真實燈號）
+const ADV_PHOTO_POLICE={
+  a1:'yellow_fake_police',   // 周先生 54：冷靜、對答如流、ATM 前 → 中年男性冷靜按 ATM
+  a2:'black_romance',        // 林太太 49：投資「老師」也在談感情、捨不得 → 女性坐在員警前、若有所思
+  a3:'yellow_arrogant',      // 郭先生 58：強勢趕人「不用你管」 → 抱胸男性面對員警
+  a4:'yellow_romance',       // 何小姐 46：主動求助又退縮、反覆動搖 → 女性看著視訊落淚
+  a5:'red_suspicious'        // 曾先生 63：被「兒子親自來電」混淆、信任與懷疑拉扯 → 男性長者接電話、想著兒子
+};
+// 實戰級（銀行行員）混合案例專屬臨櫃照：有專圖的用專圖，其餘沿用該案例底層類型的臨櫃照
+const ADV_PHOTO_BANK={
+  a1:'adv_a1',   // 周先生 54：冷靜對答如流、實為假檢警深控 → 臨櫃男客戶皺眉看手機、行員關切
+  a2:'adv_a2'    // 林太太 49：投資「老師」也在談感情、半信半疑捨不得 → 臨櫃女客戶握手機、行員指著螢幕訊息
+};
+// 基礎級（員警）照片與人物性別／年齡對齊：原檔人物不符 persona 的格子，暫用同案例中「人物相符」的那張
+//（假檢警＝陳阿嬤72 女、投資＝李媽媽65 女、主動懷疑＝鄭先生68 男）。等重製照片放進 police_scene/ 後把對應項刪掉即可
+const POLICE_PHOTO_FIX={
+  yellow_fake_police:'red_fake_police',   // 原圖：中年男性按 ATM ✗
+  black_fake_police:'red_fake_police',    // 原圖：中年男性臨櫃 ✗
+  yellow_investment:'red_investment',     // 原圖：中年男性看股票圖 ✗
+  yellow_suspicious:'red_suspicious',     // 原圖：中年女性圖書館講電話 ✗
+  black_suspicious:'red_suspicious'       // 原圖：年輕女性在派出所 ✗
+};
+function scenePhotoFor(){
+  // 民眾（B 類）：9 個劇本各一張情境照（public_scene/{e1..t3}.jpg），同一劇本黃／紅／黑共用
+  if(S.mode==='refuse'){
+    return /^[eat][123]$/.test(S.caseId||'')?('/handbook/landing/assets/public_scene/'+S.caseId+'.jpg'):null;
+  }
+  if(S.mode!=='intervene')return null;
+  const ft=S.adv?ADV_FRAUD[S.caseId]:S.fraudType;
+  if(!FRAUDS.includes(ft))return null;
+  if(S.role==='police'){
+    if(S.adv)return '/handbook/landing/assets/police_scene/'+(ADV_PHOTO_POLICE[S.caseId]||('yellow_'+ft))+'.jpg';
+    const pk=S.signal+'_'+ft;
+    return '/handbook/landing/assets/police_scene/'+(POLICE_PHOTO_FIX[pk]||pk)+'.jpg';
+  }
+  if(S.role==='bank'&&S.adv&&ADV_PHOTO_BANK[S.caseId])return '/handbook/landing/assets/bank_scene/'+ADV_PHOTO_BANK[S.caseId]+'.jpg';
+  if(S.role==='bank')return '/handbook/landing/assets/bank_scene/'+ft+'.jpg';
+  return null;
+}
+function renderScene(){
+  const r=ROLE_META[S.role];$('sceneIcon').textContent=r.icon;$('scenePhotoIc').textContent=r.sceneIc;
+  const ph=scenePhotoFor(),box=$('scenePhoto'),img=$('scenePhotoImg');
+  if(ph){img.src=ph;box.classList.add('has-img');}else{img.removeAttribute('src');box.classList.remove('has-img');}
+  $('scChipSig').textContent=S.adv?'❓ 燈號不預告':SIG_TEXT[S.signal];
+  let personaHtml,typeLabel,subLevel;
+  if(S.mode==='intervene'){
+    if(S.adv){
+      const a=ADV_META[S.caseId];typeLabel='混合實戰';subLevel='實戰級';
+      personaHtml='<div class="av">'+a.em+'</div><div><div class="nm">'+a.label+'</div><div class="ds">'+esc(a.ds)+'</div></div>';
+      $('sceneNote').textContent='實戰級：無教練指引的混合型案例。你是'+r.label+'，自己判斷該進哪一步。';
+    }else{
+      const t=TYPE_META[S.fraudType];typeLabel=t.label;subLevel='基礎級';
+      personaHtml='<div class="av">'+t.av+'</div><div><div class="nm">'+t.nm+'</div><div class="ds">'+t.ds+'</div></div>';
+      $('sceneNote').textContent='看清楚眼前的情境與對象，準備好就開始對話。你是'+r.label+'，按 🎤 說出你想說的話。';
+    }
+  }else{
+    const s=SCEN_META[S.role][S.caseId];typeLabel=s.label;subLevel='辨識練習';
+    personaHtml='<div class="av">🎭</div><div><div class="nm">AI 扮演：'+esc(s.ai)+'</div><div class="ds">'+esc(s.ds)+'</div></div>';
+    $('sceneNote').textContent='對方即將主動聯繫您（AI 扮演：'+s.ai+'）。你是'+r.label+'，練習辨識與拒絕，不需配合任何要求，可自由輸入你想回應的話。';
+  }
+  S.typeLabel=typeLabel;
+  $('scChipType').textContent=typeLabel;
+  $('sceneSub').textContent=(S.adv?'':SIG_TEXT[S.signal]+' × ')+typeLabel+'・'+subLevel;
+  $('scenePersona').innerHTML=personaHtml;
+}
+
+/* ===== 開始對話（呼叫後端 /api/mg/start） ===== */
+$('talkBtn').onclick=startChat;
+async function startChat(){
+  if(S.busy)return;S.busy=true;
+  const btn=$('talkBtn');btn.disabled=true;btn.innerHTML='<span class="spin"></span> AI 準備中…';
+  S.sessionId=newSid();S.ended=false;S.stepsDone=[];S.voiceMode=false;
+  const payload={role:S.role,signal:S.signal,level:S.level,sessionId:S.sessionId,unitName:S.unit,userName:S.name};
+  if(S.mode==='intervene'){if(S.adv)payload.caseId=S.caseId;else payload.fraudType=S.fraudType;}
+  else payload.caseId=S.caseId;
+  try{
+    const d=await api('/api/mg/start',payload);
+    S.actor=d.actor;   // 受訓者稱謂（後端提供：員警/銀行行員/長輩民眾…）
+    S.persona=d.persona;
+    prepChat(d);
+    go('s-chat');
+    S.rtHit={};S.convo=[];
+    if(d.mode==='intervene'){S.metric=d.emotion_score;S.startMetric=d.emotion_score;}
+    else{S.metric=d.risk_score;S.startMetric=d.risk_score;}
+    setThermo();
+    addCiv(d.opening);
+    if(d.coach)addCoach(d.coach);
+    scrollLog();
+  }catch(e){alert('無法開始演練：'+e.message);}
+  finally{S.busy=false;btn.disabled=false;btn.textContent='開始對話';}
+}
+function prepChat(d){
+  const r=ROLE_META[S.role];
+  $('cAv').textContent=S.persona.avatar;$('cName').textContent=S.persona.name;
+  if(S.adv){$('cSig').textContent='實戰';$('cSig').style.background='#7a3b33';}
+  else{$('cSig').textContent=SIG_TEXT[S.signal];$('cSig').style.background=S.signal==='red'?'#c94a3f':S.signal==='yellow'?'#e0932b':'#20242e';}
+  $('cSub').textContent=r.label+'｜'+(S.adv?'':SIG_TEXT[S.signal]+' × ')+S.typeLabel;
+  $('ctxLine').textContent=S.typeLabel+' — '+S.persona.desc;
+  $('clog').innerHTML='<div class="sysline">演練開始 — 請自由輸入台詞</div>';
+  $('rounds').textContent='第 0 回合';
+  $('tabs').style.display=(S.mode==='intervene')?'flex':'none';
+  document.querySelectorAll('#tabs .tab').forEach((t,i)=>{t.classList.remove('done');t.classList.toggle('active',i===0);});
+  $('thermoCap').textContent=(S.mode==='intervene')?'情緒':'風險';
+  $('demoHint').textContent=(S.mode==='intervene')?'按 🎤 用說的（也可打字），AI 會依「看穩聽問守」技巧判斷情緒變化':'按 🎤 用說的（也可打字），練習查證與拒絕，AI 會依您的回應調整被騙風險';
+  $('msgBox').value='';$('msgBox').disabled=false;$('send').disabled=false;
+  $('msgBox').placeholder=micPlaceholder();
+}
+
+/* ===== 語音輸入（移植自 V3：按麥克風講話 → 文字送出） ===== */
+/* 語音辨識常見誤聽詞修正——詐騙情境專用詞彙，用詞必須與防詐用語一致 */
+const SPEECH_FIXES=[
+  // 人員/機構
+  [/[園圓原元袁]景/g,'員警'],[/[園圓原元袁]警/g,'員警'],[/員[景井頸]/g,'員警'],
+  [/檢[查察茶差][署數樹書屬]/g,'檢察署'],[/地檢[查茶差署數樹]/g,'地檢署'],[/檢[查茶差]官/g,'檢察官'],
+  [/[書輸舒]記官/g,'書記官'],[/[警景井]察局/g,'警察局'],[/派出[所索鎖]/g,'派出所'],
+  [/[金今]管會/g,'金管會'],[/銀[航行杭]/g,'銀行'],[/[行航]員/g,'行員'],
+  // 詐騙術語
+  [/煮[詐炸]/g,'阻詐'],[/[詐炸榨乍]騙/g,'詐騙'],[/詐騙[集及即]團/g,'詐騙集團'],
+  [/[匯會回悔惠]款/g,'匯款'],[/[匯會回]錢/g,'匯錢'],[/[匯會回]給/g,'匯給'],[/[匯會回]到/g,'匯到'],[/[匯會回]過去/g,'匯過去'],[/轉[帳賬長張]/g,'轉帳'],
+  [/安全[帳賬長張]戶/g,'安全帳戶'],[/監管[帳賬長張]戶/g,'監管帳戶'],[/[帳賬長張]戶/g,'帳戶'],[/[帳賬長張]號/g,'帳號'],
+  [/保[證正政]金/g,'保證金'],[/[凍動棟]結/g,'凍結'],[/[通同桶]緝/g,'通緝'],[/洗[錢前]/g,'洗錢'],
+  [/[劉流][政正證]/g,'留證'],[/留[政正]/g,'留證'],[/查證[、,，\s]*[劉流留][政正]/g,'查證、留證'],
+  [/解除分[期棋齊]/g,'解除分期'],[/分[期棋齊]付款/g,'分期付款'],[/[提體替]款卡/g,'提款卡'],[/[提體替]款/g,'提款'],
+  [/一六五|幺六五|么六五|165 專線/g,'165'],[/反詐騙[專傳]線/g,'反詐騙專線'],
+  // 五步驟
+  [/看[穩溫文]聽[問文]守/g,'看穩聽問守'],
+];
+/* 阿拉伯數字金額 → 台灣口語「N 萬」：200000→20萬、3000000→300萬、1500000→150萬 */
+function humanizeMoney(t){
+  return t.replace(/(\d{1,3}(?:,\d{3})+|\d{5,})/g,m=>{
+    const n=parseInt(m.replace(/,/g,''),10);
+    if(isNaN(n)||n<10000)return m;
+    if(n%10000===0)return (n/10000)+'萬';
+    if(n%1000===0)return (n/10000).toFixed(1).replace(/\.0$/,'')+'萬';
+    return m;
+  });
+}
+function fixSpeech(text){let t=text||'';SPEECH_FIXES.forEach(([re,to])=>{t=t.replace(re,to);});return humanizeMoney(t);}
+function micPlaceholder(){
+  if(!S.mode)return '按 🎤 說話…';
+  return (S.mode==='intervene')?('按 🎤 以'+(S.actor||'員警')+'身份說話…'):'按 🎤 說出你的回應…';
+}
+let recog=null,isRec=false,recTimer=null,recFinal='',recSeq=0;
+const REC_MAX_MS=60000;   // 單次錄音上限 60 秒（超過自動停止送出辨識）
+/* ===== App 內建瀏覽器偵測（LINE／Facebook／Instagram／Messenger／Gmail／Google App…）=====
+   這些 App 內嵌的網頁視窗拿不到麥克風權限，語音辨識一定失敗 → 一進頁面就提醒改用 Safari／Chrome 開啟 */
+const UA=navigator.userAgent||'';
+const IS_IOS=/iPad|iPhone|iPod/.test(UA)&&!window.MSStream;
+const IS_ANDROID=/Android/i.test(UA);
+function inAppBrowser(){
+  if(/\bLine\/|Liff/i.test(UA))return 'LINE';
+  if(/FBAN|FBAV|FB_IAB|FBIOS/i.test(UA))return 'Facebook';
+  if(/Instagram/i.test(UA))return 'Instagram';
+  if(/Messenger/i.test(UA))return 'Messenger';
+  if(/MicroMessenger/i.test(UA))return 'WeChat';
+  if(/\bGSA\/|GoogleApp/i.test(UA))return 'Google App';
+  if(/Twitter|TikTok|musical_ly/i.test(UA))return 'App';
+  // iOS：不是 Safari／Chrome／Firefox／Edge，多半是 App 內嵌視窗（WKWebView）
+  if(IS_IOS&&!/Safari\//.test(UA)&&!/CriOS|FxiOS|EdgiOS/.test(UA))return 'App';
+  // Android：內嵌 WebView 的 UA 會帶 "; wv)"
+  if(IS_ANDROID&&/;\s*wv\)/.test(UA))return 'App';
+  return null;
+}
+/* 直接把本頁丟到系統瀏覽器（iPhone→Safari、Android→Chrome）開啟，不顯示任何提醒：
+   - LINE：網址加 openExternalBrowser=1，LINE 會自動改用外部瀏覽器開（官方支援）
+   - 其他 iOS App 內視窗：x-safari-https:// 協定叫出 Safari
+   - Android App 內視窗：intent:// 叫出 Chrome */
+function openInSystemBrowser(){
+  const app=inAppBrowser();if(!app)return false;
+  const u=new URL(location.href);
+  u.searchParams.set('openExternalBrowser','1');
+  if(app==='LINE'){location.href=u.toString();return true;}
+  if(IS_ANDROID){location.href='intent://'+u.host+u.pathname+u.search+'#Intent;scheme='+u.protocol.replace(':','')+';package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(u.toString())+';end';return true;}
+  if(IS_IOS){location.href='x-safari-'+u.toString();return true;}
+  return false;
+}
+// 從 LINE 點連結進來 → 一載入就自動改用 Safari／Chrome 開（LINE 內視窗拿不到麥克風）
+(function autoJumpFromLine(){
+  if(inAppBrowser()==='LINE'&&!/[?&]openExternalBrowser=1/.test(location.search))openInSystemBrowser();
+})();
+function toggleMic(){
+  if(S.ended||S.busy&&!isRec)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(inAppBrowser()){
+    // App 內建視窗沒有麥克風權限 → 按 🎤 直接把本頁用 Safari／Chrome 打開；萬一該 App 擋住跳轉，退而複製網址讓使用者貼到 Safari
+    openInSystemBrowser();
+    setTimeout(()=>{if(document.visibilityState==='visible'){
+      const u=location.href;
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).catch(()=>{});
+      $('msgBox').placeholder='請用 Safari／Chrome 開啟本頁才能用麥克風（網址已複製）';
+    }},1500);
+    return;
+  }
+  if(!SR){
+    const isSafari=/^((?!chrome|android).)*safari/i.test(UA);
+    if(IS_IOS)alert('這個瀏覽器不支援語音辨識。\n\n請改用 Safari（iPhone 內建）或 Chrome 開啟本網址，\n或直接用打字輸入。');
+    else if(isSafari)alert('這個版本的 Safari 不支援語音辨識，請改用 Chrome 或 Edge');
+    else alert('您的瀏覽器不支援語音辨識，請改用 Chrome 或 Edge');
+    return;
+  }
+  if(isRec){S.voiceMode=false;stopMic();return;}   // 手動按 ■＝使用者想停，之後不再自動開麥（再按 🎤 就恢復）
+  try{
+    // continuous=true：講到一半停頓不會被切斷，可完整說完一段；講完按 ■ 停止（或 60 秒自動停）
+    recog=new SR();recog.lang='zh-TW';recog.continuous=true;recog.interimResults=true;
+    const inp=$('msgBox'),mic=$('micBtn');
+    const isIOSDev=IS_IOS;
+    let gotText=false;recFinal='';const mySeq=++recSeq;
+    recog.onstart=()=>{isRec=true;mic.classList.add('recording');mic.textContent='⏹';
+      inp.placeholder='聆聽中…慢慢說，講完直接按 ▶ 送出';
+      clearTimeout(recTimer);recTimer=setTimeout(()=>{if(isRec)stopMic();},REC_MAX_MS);};
+    recog.onresult=(e)=>{
+      if(mySeq!==recSeq)return;   // 這次錄音已被送出/作廢，遲到的結果丟掉
+      let i='';
+      for(let x=e.resultIndex;x<e.results.length;x++){
+        if(e.results[x].isFinal)recFinal+=e.results[x][0].transcript; else i+=e.results[x][0].transcript;}
+      let t=fixSpeech(recFinal+i);
+      if(t){
+        gotText=true;
+        // 一次限 100 字：太長的句子辨識引擎容易丟字，達上限就自動停錄、請先送出這段
+        if(t.length>=100){
+          t=t.slice(0,100);inp.value=t;
+          if(isRec)stopMic();
+          inp.placeholder='已達 100 字，請先按 ▶ 送出這段，再按 🎤 繼續說';
+        }else{inp.value=t;}
+      }};
+    recog.onerror=(e)=>{stopMic();
+      if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+        alert(isIOSDev?'iPhone 沒有給這個網頁麥克風權限。請依序確認：\n1. 網址列左邊「大小 A」→「網站設定」→ 麥克風 → 允許（Safari）\n2. 設定 → Safari → 麥克風 → 允許\n3. 設定 → 一般 → 鍵盤 → 開啟「啟用聽寫」\n4. 重新整理頁面，按 🎤 時跳出的詢問選「允許」\n\n（若是從 LINE／FB 打開的，請改用 Safari 開啟本網址）'
+          :'請允許麥克風權限（點網址列的 🔒 → 麥克風 → 允許，再重新整理）');}
+      else if(e.error==='no-speech'){$('msgBox').placeholder='沒聽到聲音，請再按 🎤 試一次或改用打字';}
+      else if(e.error==='network'){alert('語音辨識連線失敗，請改用打字輸入');}
+      else if(e.error!=='aborted'){alert('語音輸入發生問題（'+e.error+'），請改用打字');}};
+    recog.onend=()=>{
+      if(mySeq!==recSeq)return;   // 已被送出/作廢的錄音，結束事件不再動 UI
+      stopMic();
+      if(!gotText&&!$('msgBox').value)$('msgBox').placeholder='沒有辨識到文字，請再試一次或改用打字';};
+    recog.start();
+  }catch(err){alert('啟動語音失敗：'+err.message);stopMic();}
+}
+function stopMic(){
+  clearTimeout(recTimer);
+  if(recog){recog.stop();recog=null;}
+  isRec=false;
+  $('micBtn').classList.remove('recording');$('micBtn').textContent='🎤';
+  $('msgBox').placeholder=micPlaceholder();
+}
+
+/* ===== 送出訊息 ===== */
+$('send').onclick=sendMsg;
+$('msgBox').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
+async function sendMsg(){
+  if(S.busy||S.ended)return;
+  const box=$('msgBox'),text=box.value.trim();if(!text)return;
+  // 按送出＝自動結束這次錄音（不必再按 ■），並記住「本場是用語音」
+  const wasVoice=isRec||S.voiceMode;
+  if(isRec)stopMic();
+  S.voiceMode=wasVoice;
+  // 清空輸入框＋錄音累積；停錄後辨識引擎可能還會遲到吐一段 final，用 recSeq 讓它作廢，避免舊話又填回輸入框
+  recFinal='';recSeq++;box.value='';
+  S.busy=true;$('send').disabled=true;
+  addCop(text,[]);
+  document.querySelectorAll('.coach').forEach(c=>c.remove());
+  const tp=document.createElement('div');tp.className='typing';tp.id='typing';tp.textContent='對方輸入中…';
+  $('clog').appendChild(tp);scrollLog();
+  try{
+    const d=await api('/api/mg/chat',{sessionId:S.sessionId,message:text});
+    tp.remove();
+    // 補上剛剛那句的技巧標籤
+    tagLastCop(d);
+    const prevMetric=S.metric;
+    if(d.mode==='intervene'){
+      S.metric=d.emotion_score;S.stepsDone=d.steps_done||S.stepsDone;
+      updateTabs(d.current_step);
+    }else{S.metric=d.risk_score;}
+    setThermo();
+    addCiv(d.reply);
+    realtimeFeedback(prevMetric,S.metric);   // 即時情緒／風險回饋（不必等結束點評）
+    if(d.repeatNote)rtBanner('bad',d.repeatNote);   // 重複口號反制：立刻告訴受訓者這樣講沒有用
+    $('rounds').textContent='第 '+d.turnCount+' 回合';
+    let coachShown=false;
+    if(d.rescue&&d.rescue.length&&!d.ended){addRescue(d.rescue);coachShown=true;}
+    if(d.ended){finishByResult(d.result);}
+    else if(d.coach&&S.level==='一般'){addCoach(d.coach);coachShown=true;}
+    scrollLog();
+    S.lastCoachShown=coachShown;
+  }catch(e){tp.remove();alert('回應失敗：'+e.message);S.lastCoachShown=false;}
+  finally{
+    S.busy=false;$('send').disabled=S.ended;
+    if(!S.ended){
+      // 統一規則（基礎級／實戰級／民眾模式一致）：AI 回覆後麥克風一律關閉，
+      // 使用者先看回覆（與教練指引），想好再自己按 🎤 講；不自動重開麥。
+      if(isRec)stopMic();
+      $('msgBox').placeholder=S.lastCoachShown?'看完教練指引後，按 🎤 說話':'看完對方回覆後，按 🎤 說話';
+    }
+  }
+}
+
+function finishByResult(result){
+  S.ended=true;if(isRec)stopMic();
+  $('msgBox').disabled=true;$('send').disabled=true;
+  let msg;
+  if(result==='green')msg='🎉 民眾情緒已穩定，進入 🟢 綠燈！';
+  else if(result==='success')msg='🎉 對方放棄了，練習成功！';
+  else msg='⚠️ 對方已經在誘導您交付資料／金錢了，演練到此結束。';
+  const s=document.createElement('div');s.className='sysline';s.textContent=msg;$('clog').appendChild(s);
+  // 不自動跳轉：放一顆明顯的按鈕，鼓勵使用者自己按「結束點評」看成績
+  const b=document.createElement('div');b.className='coach done-cta';b.style.textAlign='center';
+  b.innerHTML='<div class="cinstr" style="text-align:center;">演練完成！請按右上角或下方「<b>結束點評</b>」查看你的成績與 AI 教練回饋。</div>'
+    +'<button class="startbtn" style="margin:6px 0 0;width:100%;" onclick="endReport()">📋 結束點評，看我的成績</button>';
+  $('clog').appendChild(b);scrollLog();
+  $('msgBox').placeholder='演練已結束，請按「結束點評」';
+}
+
+/* ===== 對話泡泡 ===== */
+function addCiv(text){
+  const who=(S.mode==='intervene')?'民眾':'對方';
+  // 動作與說話分開：所有「／動作／」段（不論在第幾行）一律渲染成灰底斜體獨立一塊；其餘為說話（去引號）
+  // 先把各種動作標記變體（半形/、混引號、括號）統一成全形「／動作／」，再切分
+  let body=(text||'').replace(/[/／]\s*["「『]?\s*([^/／\n"「」『』]{1,40}?)\s*["」』]?\s*[/／]/g,'／$1／')
+    .replace(/^[（(〔\[]([^（）()〔〕\[\]\n]{1,40})[）)〕\]]\s*$/gm,'／$1／')
+    .replace(/^[「」\s]+|[「」\s]+$/g,'');
+  const parts=body.split(/(／[^／\n]{1,40}／)/g);
+  let html='';
+  parts.forEach(p=>{
+    if(!p)return;
+    if(/^／[^／\n]{1,40}／$/.test(p)){html+='<div class="act">'+esc(p)+'</div>';}
+    else{const t=p.replace(/^[\s「」]+|[\s「」]+$/g,'');if(t)html+='<div class="tx">'+esc(t).replace(/\n/g,'<br>')+'</div>';}
+  });
+  const d=document.createElement('div');d.className='m civ';
+  d.innerHTML='<div class="av">'+(S.persona?S.persona.avatar:'👤')+'</div><div class="bub"><div class="who">'+who+'</div>'+html+'</div>';
+  $('clog').appendChild(d);
+  (S.convo=S.convo||[]).push({me:false,who:who,text:body,tags:[]});
+}
+function addCop(text,tags){
+  const d=document.createElement('div');d.className='m cop';
+  d.innerHTML='<div class="who">'+esc(S.actor||'我')+'</div><div class="bub">'+esc(text)+'</div><div class="tags"></div>';
+  $('clog').appendChild(d);
+  (S.convo=S.convo||[]).push({me:true,who:S.actor||'我',text:text,tags:[]});
+}
+function tagLastCop(d){
+  const el=[...document.querySelectorAll('.m.cop')].pop();if(!el)return;
+  const box=el.querySelector('.tags');let html='';
+  if(d.mode==='intervene'){
+    const neg=(d.phrase_tags||[]).some(t=>['糾正語句','命令語句','質疑語句'].includes(t));
+    if(neg)html+='<span class="warn">太直接了，換個說法更好 ⚠</span>';
+    else if(d.current_step){
+      // 標示不倒退：AI 若把這句歸到比目前進度更早的步驟（例如已到「守」卻標「聽」），只顯示「做得好 ✓」，不寫早期步驟名
+      const doneIdx=Math.max(-1,...(S.stepsDone||[]).map(x=>STEP_ORDER.indexOf(x)));
+      const curIdx=STEP_ORDER.indexOf(d.current_step);
+      html+='<span class="achv">'+((curIdx>=0&&curIdx<doneIdx)?'做得好 ✓':(STEP_ZH[d.current_step]+'·做到了 ✓'))+'</span>';
+    }
+    (d.phrase_tags||[]).forEach(t=>{if(!['糾正語句','命令語句','質疑語句'].includes(t))html+='<span class="prin">'+t+'</span>';});
+    if(S.level==='高級')html='';// 高級不外顯技巧標籤
+  }else{
+    if(d.user_move==='verify'||d.user_move==='refuse')html+='<span class="achv">'+(d.user_move==='verify'?'查證':'拒絕')+'·守得好 ✓</span>';
+    else if(d.user_move==='comply'||d.user_move==='leak')html+='<span class="warn">小心！這樣容易被騙走 ⚠</span>';
+    (d.red_flags||[]).forEach(f=>html+='<span class="prin">🚩 '+esc(f)+'</span>');
+  }
+  box.innerHTML=html;
+  const lastMe=[...(S.convo||[])].reverse().find(x=>x.me);if(lastMe)lastMe.tags=[...box.querySelectorAll('span')].map(sp=>({t:sp.textContent,c:sp.className}));
+}
+function addCoach(c){
+  const d=document.createElement('div');d.className='coach';
+  let inner='<div class="clbl"><span class="lbl">💡 教練指引</span></div>';
+  if(c.stepZh)inner+='<div class="cinstr"><b>指示：</b>現在進入「'+c.stepZh+'」階段：'+esc(c.instr)+'</div>';
+  else inner+='<div class="cinstr"><b>指示：</b>'+esc(c.instr)+'</div>';
+  if(c.say)inner+='<div class="csay" data-fill="say" title="點一下填入輸入框"><b>建議'+((S.mode==='intervene')?'問句':'回應')+'：</b>「'+esc(c.say)+'」</div>';
+  if(c.gold)inner+='<div class="csay" data-fill="gold" title="點一下填入輸入框"><b>⭐ 實戰金句：</b>「'+esc(c.gold)+'」<span style="font-size:10px;color:#a5762a;">（來自真實高分演練）</span></div>';
+  if(c.prin)inner+='<div class="pp">原則：'+esc(c.prin)+'</div>';
+  d.innerHTML=inner;
+  d.querySelectorAll('.csay').forEach(el=>{el.onclick=()=>{$('msgBox').value=(el.dataset.fill==='gold')?c.gold:c.say;$('msgBox').focus();};});
+  $('clog').appendChild(d);
+}
+function addRescue(list){
+  const d=document.createElement('div');d.className='coach';
+  d.innerHTML='<div class="clbl"><span class="lbl" style="background:#c94a3f;color:#fff;">🆘 卡關救援・實戰金句</span></div>'
+    +'<div class="cinstr"><b>剛剛的說法讓民眾更防衛了。</b>試試真實高分演練中有效的說法（點一句填入）：</div>'
+    +list.map((p,i)=>'<div class="csay" data-i="'+i+'">「'+esc(p)+'」</div>').join('')
+    +'<div class="pp">來自 543 場真實演練的高分話術庫</div>';
+  d.querySelectorAll('.csay').forEach(el=>{el.onclick=()=>{$('msgBox').value=list[+el.dataset.i];$('msgBox').focus();};});
+  $('clog').appendChild(d);
+}
+
+/* ===== 操作指引 ===== */
+function showGuide(manual){$('guideOv').classList.add('on');if(!manual)localStorage.setItem('mg_guide_seen_v1','1');}
+function hideGuide(){$('guideOv').classList.remove('on');localStorage.setItem('mg_guide_seen_v1','1');}
+
+/* ===== 即時情緒回饋：情緒（A 類）／風險（B 類）降到一個階段，就在對話中明顯提示，不必等到結束點評 ===== */
+function rtBanner(cls,text){
+  const d=document.createElement('div');d.className='rt '+cls;d.textContent=text;
+  $('clog').appendChild(d);
+  const th=document.querySelector('.thermo');if(th){th.classList.remove('pulse');void th.offsetWidth;th.classList.add('pulse');}
+}
+// 「接下來」提示一律依目前進度往前指，永不倒退（看穩聽問守是固定順序；已到「守」就只講守）
+function nextStepHint(cur){
+  if(S.mode!=='intervene')return '';
+  const nxt=STEP_ORDER.find(st=>!(S.stepsDone||[]).includes(st));
+  const M={look:'先觀察、判斷燈號，不急著說重點',calm:'先接住他的感受，把情緒穩下來',listen:'邀他多說發生什麼事、不打斷',ask:'用提問引導他自己發現破綻',guard:'接住自責、把責任歸給詐騙者、連結家人或 165'};
+  const calm=(cur!=null&&cur<=30);
+  if(nxt)return '接下來：'+M[nxt]+'。'+(calm?'':'目標：情緒降到 30 以下。');
+  // 五步都做到了：情緒還沒到 30 以下 → 繼續同理，不可誤以為已結束；到了才提示可以結束點評
+  return calm?'五步都做到、情緒也降到 30 以下了 🎉 可以按右上角「結束點評」看成績。'
+             :'五步都做到了，一起加油！再多幾句同理與陪伴，讓情緒降到 30 以下就達標。';
+}
+function realtimeFeedback(prev,cur){
+  if(prev==null||cur==null)return;
+  S.rtHit=S.rtHit||{};
+  const start=(S.startMetric==null)?prev:S.startMetric;
+  if(S.mode==='intervene'){
+    // 上升：這句讓對方更激動
+    if(cur-prev>=8){rtBanner('bad','⚠️ 對方情緒升高了（'+prev+' → '+cur+'）。剛剛那句太直接，換個說法、先接住他的感受再說。');return;}
+    // 依階段只提示一次；「接下來」永遠指向目前尚未完成的下一步，不會叫人退回前面的步驟
+    if(cur<=30&&!S.rtHit.calm){S.rtHit.calm=1;rtBanner('great','🎉 情緒已經穩定了（'+start+' → '+cur+'）！降溫達標。'+nextStepHint(cur));return;}
+    if(cur<45&&!S.rtHit.near){S.rtHit.near=1;rtBanner('good','🌡️ 快穩下來了（'+start+' → '+cur+'），對方開始願意聽你說。'+nextStepHint(cur));return;}
+    if(cur<60&&!S.rtHit.mid){S.rtHit.mid=1;rtBanner('good','🌡️ 他的情緒已經降溫了（'+start+' → '+cur+'），你做對了，請繼續！'+nextStepHint(cur));return;}
+    if(start-cur>=10&&!S.rtHit.first){S.rtHit.first=1;rtBanner('good','🌡️ 對方情緒開始降溫（'+start+' → '+cur+'），你這樣說有效！'+nextStepHint(cur));return;}
+  }else{
+    if(cur-prev>=10){rtBanner('bad','⚠️ 被騙風險升高了（'+prev+' → '+cur+'）。先停下來，別照對方的節奏走，查證或直接拒絕。');return;}
+    if(cur<45&&!S.rtHit.safe){S.rtHit.safe=1;rtBanner('great','🛡️ 被騙風險已降到安全區（'+start+' → '+cur+'）！你守得很好，繼續堅持查證與拒絕。');return;}
+    if(start-cur>=10&&!S.rtHit.first){S.rtHit.first=1;rtBanner('good','🛡️ 被騙風險開始下降（'+start+' → '+cur+'），你的回應是對的，繼續！');return;}
+  }
+}
+
+/* ===== 完整對話回顧 ＋ 存成 PDF（V3 做法：乾淨存檔 HTML → 隱藏 iframe → 瀏覽器原生列印，使用者選「另存為 PDF」） ===== */
+function convoRowsHtml(forPrint){
+  return (S.convo||[]).map((m,i)=>{
+    const tg=(m.tags||[]).map(t=>'<span class="'+(t.c==='achv'?'g':t.c==='warn'?'w2':'p')+'"'+(forPrint?(' style="display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px;margin:2px 2px 0 0;background:'+(t.c==='achv'?'#16a34a':t.c==='warn'?'#dc2626':'#0ea5e9')+';color:#fff"'):'')+'>'+esc(t.t)+'</span>').join('');
+    const bubStyle=forPrint?(' style="max-width:80%;border-radius:12px;padding:8px 12px;line-height:1.6;white-space:pre-wrap;page-break-inside:avoid;break-inside:avoid;'+(m.me?'background:#1A3C6E;color:#fff':'background:#fff;border:1px solid #e5e7eb;color:#1f2937')+'"'):'';
+    const rowStyle=forPrint?(' style="display:flex;justify-content:'+(m.me?'flex-end':'flex-start')+';margin:8px 0"'):'';
+    return '<div class="r '+(m.me?'me':'them')+'"'+rowStyle+'><div class="b"'+bubStyle+'><div class="w"'+(forPrint?' style="font-size:10px;opacity:.65;margin-bottom:2px"':'')+'>'+esc(m.who)+' #'+(i+1)+'</div>'+esc(m.text)+(tg?'<div class="tg"'+(forPrint?' style="text-align:right;margin-top:4px"':'')+'>'+tg+'</div>':'')+'</div></div>';
+  }).join('');
+}
+function renderConvoArchive(){
+  const box=$('convoBox');if(!box)return;
+  if(!(S.convo||[]).length){box.style.display='none';return;}
+  $('convoCount').textContent=S.convo.length;
+  $('convoList').innerHTML=convoRowsHtml(false);
+  box.style.display='';
+}
+function saveArchivePdf(){
+  const d=S.lastReport||{};const now=new Date();
+  const pad=x=>String(x).padStart(2,'0');
+  const dstr=now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate())+'_'+pad(now.getHours())+pad(now.getMinutes());
+  const roleLabel=(ROLE_META[S.role]||{}).label||'';
+  const sig=S.adv?'（實戰級，燈號不預告）':(SIG_TEXT[S.signal]||S.signal||'');
+  const persona=S.persona?((S.persona.avatar||'')+' '+(S.persona.name||'')):'';
+  let scoreLine='';
+  if(d.mode==='intervene')scoreLine='<b>總分：</b>'+(d.total!=null?d.total:'-')+' / 100（'+(d.passed?'通過':'未通過')+'；技巧 '+(d.skill_pts||0)+'/80＋情緒降溫 '+(d.emo_pts||0)+'/20；民眾情緒 '+(d.emotion_start||'')+' → '+(d.emotion_end||'')+'）';
+  else if(d.mode==='refuse')scoreLine='<b>結果：</b>'+(d.passed?'守住了':'差點被騙')+'；被騙風險 '+(d.risk_start||'')+' → '+(d.risk_end||'');
+  const fb=(d.feedback?'<h2 style="color:#92400e;border-top:2px solid #eee;padding-top:14px;font-size:17px">📋 AI 教練點評</h2><pre style="white-space:pre-wrap;font-family:inherit;background:#fffdf5;padding:14px;border-radius:8px;line-height:1.8">'+esc(stripAiScoreBlocks(d.feedback))+'</pre>':'');
+  const flags=(d.mode==='refuse'&&(d.flags||[]).length)?'<h2 style="color:#1A3C6E;font-size:17px">🚩 本劇本三個破綻</h2><ol style="line-height:1.9">'+(d.flags||[]).map(f=>'<li>'+esc(f)+'</li>').join('')+'</ol>':'';
+  const inner='<h1 style="color:#1A3C6E;font-size:22px;margin:0 0 12px">🛡️ 新北市政府警察局 AI 阻詐溝通技巧平臺　演練存檔</h1>'
+    +'<div style="background:#f4f6fb;border-radius:10px;padding:14px 18px;line-height:2;font-size:14px;page-break-inside:avoid;break-inside:avoid">'
+    +'<b>身分：</b>'+esc(roleLabel)+'　<b>單位：</b>'+esc(S.unit||'')+'　<b>姓名：</b>'+esc(S.name||'')+'<br>'
+    +'<b>日期：</b>'+now.toLocaleString('zh-TW')+'<br>'
+    +'<b>燈號：</b>'+esc(sig)+'　<b>類型／劇本：</b>'+esc(S.typeLabel||'')+'<br>'
+    +'<b>對象：</b>'+esc(persona)+'　<b>回合數：</b>'+(d.turns||'')+'<br>'+scoreLine+'</div>'
+    +'<h2 style="color:#1A3C6E;font-size:17px">💬 完整對話（'+(S.convo||[]).length+' 句）</h2>'
+    +'<div>'+convoRowsHtml(true)+'</div>'+fb+flags
+    +'<p style="text-align:center;color:#9ca3af;font-size:12px;margin-top:24px">新北市政府警察局 AI 阻詐溝通技巧平臺｜研究設計：田心喬醫師</p>';
+  const doc='<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><title>阻詐演練存檔 '+dstr+'</title>'
+    +'<style>@page{size:A4;margin:12mm 10mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}'
+    +"body{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;color:#1f2937;margin:0}.wrap{max-width:720px;margin:0 auto}</style></head>"
+    +'<body><div class="wrap">'+inner+'</div></body></html>';
+  const iframe=document.createElement('iframe');iframe.setAttribute('aria-hidden','true');
+  iframe.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(iframe);
+  const idoc=iframe.contentWindow.document;idoc.open();idoc.write(doc);idoc.close();
+  const go=()=>{try{iframe.contentWindow.focus();iframe.contentWindow.print();}catch(e){}setTimeout(()=>{try{document.body.removeChild(iframe);}catch(_){}},60000);};
+  if(idoc.readyState==='complete')setTimeout(go,400);else iframe.onload=()=>setTimeout(go,400);
+}
+
+/* ===== 訓練滿意度調查（A 類、每人一次） ===== */
+let svQ3=0,svWired=false,svDone=false,svPending=false;
+function svKey(){return 'mg_survey_done|'+(S.unit||'')+'|'+(S.name||'');}
+async function surveySetup(){
+  // 只有員警／銀行行員（intervene）才問；同一個人（單位＋姓名）只問一次：先看本機記錄，再問伺服器
+  svPending=false;$('svBox').style.display='none';
+  if(S.mode!=='intervene')return;
+  if(localStorage.getItem(svKey()))return;
+  try{
+    const r=await fetch('/api/survey-status?unit='+encodeURIComponent(S.unit||'')+'&name='+encodeURIComponent(S.name||''));
+    const j=await r.json();
+    if(j.done){localStorage.setItem(svKey(),'1');return;}
+  }catch(e){}
+  svPending=true;svDone=false;svQ3=0;
+  document.querySelectorAll('#svBox input').forEach(i=>{i.checked=false;if(i.type==='text')i.value='';});
+  document.querySelectorAll('#svBox label.o').forEach(l=>l.classList.remove('on'));
+  $('svMsg').textContent='';$('svSubmit').disabled=false;$('svSubmit').textContent='📋 提交問卷';
+  svRenderStars();svWire();
+  $('svBox').style.display='';
+}
+function svWire(){
+  if(svWired)return;svWired=true;
+  document.querySelectorAll('#svBox label.o input').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      if(inp.type==='radio')document.querySelectorAll('#svBox input[name="'+inp.name+'"]').forEach(r=>r.closest('label.o').classList.toggle('on',r.checked));
+      else inp.closest('label.o').classList.toggle('on',inp.checked);
+    });
+  });
+  document.querySelectorAll('#svStars span').forEach(sp=>sp.addEventListener('click',()=>{const v=+sp.dataset.v;svQ3=(svQ3===v)?0:v;svRenderStars();}));
+}
+function svRenderStars(){document.querySelectorAll('#svStars span').forEach(sp=>sp.classList.toggle('on',+sp.dataset.v<=svQ3));}
+function svSingle(nm){const e=document.querySelector('#svBox input[name="'+nm+'"]:checked');return e?+e.value:null;}
+async function submitSurvey(){
+  if(svDone)return;
+  const q1=svSingle('sv_q1'),q2=svSingle('sv_q2'),q5=svSingle('sv_q5');
+  const q4=[...document.querySelectorAll('#svBox input[name="sv_q4"]:checked')].map(e=>+e.value);
+  const q4o=$('svQ4Other').value.trim();
+  const miss=[];if(!q1)miss.push('Q1');if(!q2)miss.push('Q2');if(!svQ3)miss.push('Q3');if(!q5)miss.push('Q5');
+  if(miss.length){$('svMsg').style.color='var(--red)';$('svMsg').textContent='還有必填題未作答：'+miss.join('、');return;}
+  $('svMsg').style.color='var(--muted)';$('svMsg').textContent='提交中…';
+  try{
+    await api('/api/submit-survey',{sessionId:S.sessionId,unitName:S.unit,userName:S.name,q1:q1,q2:q2,q3:svQ3,q4:q4,q4_other:q4o,q5:q5});
+    svDone=true;svPending=false;localStorage.setItem(svKey(),'1');
+    $('svMsg').style.color='var(--green)';$('svMsg').textContent='✓ 感謝您的回饋！之後再練習不會再問。';
+    $('svSubmit').disabled=true;$('svSubmit').textContent='✓ 已提交';
+  }catch(e){$('svMsg').style.color='var(--red)';$('svMsg').textContent='✗ 提交失敗：'+e.message;}
+}
+function surveyGate(){
+  // 第一次演練完：填完問卷才離開（只擋這一次；之後不再出現）
+  if(!svPending||svDone)return true;
+  $('svBox').scrollIntoView({behavior:'smooth',block:'start'});
+  $('svMsg').style.color='var(--red)';$('svMsg').textContent='離開前請先完成這份滿意度調查（只需填這一次）🙏';
+  return false;
+}
+
+/* ===== 溫度計 / 分頁 ===== */
+function setThermo(){
+  const v=Math.round(S.metric);
+  $('tMk').style.bottom=v+'%';$('tVal').textContent=v;
+  $('tFace').textContent=v>=70?'😰':v>=50?'😟':v>30?'😐':'🙂';
+  if(S.mode==='intervene')$('tSt').textContent=v>=70?'仍激動':v>=50?'漸緩':v>30?'趨穩':'穩定';
+  else $('tSt').textContent=v>=70?'高風險':v>=55?'偏高':v>=45?'注意':'安全';
+}
+function updateTabs(cur){
+  document.querySelectorAll('#tabs .tab').forEach(t=>{
+    t.classList.toggle('done',S.stepsDone.includes(t.dataset.s));
+  });
+  // 高亮＝「下一個尚未完成的步驟」，只會往前、永不倒退（看穩聽問守是固定順序；
+  // AI 某回合若標回早期步驟，只當作該步驟再度做到，不會把進度拉回去）
+  const nxt=STEP_ORDER.find(s=>!S.stepsDone.includes(s))||'guard';
+  document.querySelectorAll('#tabs .tab').forEach(t=>t.classList.toggle('active',t.dataset.s===nxt));
+}
+
+/* ===== 結束點評 ===== */
+async function endReport(){
+  if(S.busy||S.reporting)return;S.reporting=true;S.busy=true;S.ended=true;if(isRec)stopMic();
+  $('msgBox').disabled=true;$('send').disabled=true;
+  // 立即給回饋：所有「結束點評」按鈕變成載入中、對話區出現進度卡（AI 產生完整評語約需 10–20 秒）
+  const btns=[...document.querySelectorAll('.chdr .end'),...document.querySelectorAll('.done-cta button')];
+  btns.forEach(b=>{b.dataset.txt=b.innerHTML;b.innerHTML='<span class="spin"></span> 產生點評中…';b.disabled=true;b.style.opacity='.7';});
+  const wait=document.createElement('div');wait.className='coach';wait.id='reportWait';
+  wait.innerHTML='<div class="cinstr" style="text-align:center;"><span class="spin" style="border-color:rgba(122,90,26,.3);border-top-color:#a5762a;"></span>　AI 教練正在逐句分析你的對話並評分，約需 10–20 秒，請稍候…</div>';
+  $('clog').appendChild(wait);scrollLog();
+  try{
+    const d=await api('/api/mg/feedback',{sessionId:S.sessionId});
+    renderReport(d);go('s-report');
+    S.lastReport=d;renderConvoArchive();   // 完整對話回顧＋存成 PDF
+    surveySetup();   // 滿意度調查：A 類、每人只問一次
+  }catch(e){
+    alert('點評失敗：'+e.message);go('s-chat');
+    btns.forEach(b=>{b.innerHTML=b.dataset.txt;b.disabled=false;b.style.opacity='';});
+    const w=$('reportWait');if(w)w.remove();
+  }
+  finally{S.busy=false;S.reporting=false;}
+}
+function renderReport(d){
+  $('repSub').textContent=(S.adv?'':SIG_TEXT[S.signal]+' × ')+S.typeLabel+'・'+(S.mode==='intervene'?(S.adv?'實戰級':'基礎級'):'辨識練習');
+  if(d.mode==='intervene'){
+    $('radarWrap').style.display='block';$('redflagBox').style.display='none';$('fbText').style.display='block';
+    // ① 一開始就是「總分」：五步技巧 80 ＋ 民眾情緒降溫 20 ＝ 100，≥ pass_score 通過
+    const total=(d.total!=null)?d.total:0, ps=d.pass_score||80;
+    $('passBox').className='pass'+(d.passed?'':' fail');
+    $('passBig').innerHTML='<span style="font-size:40px;line-height:1;">'+total+'</span><span style="font-size:14px;"> / 100 分</span><br><span style="font-size:17px;">'+(d.passed?'✔ 通過':'✘ 未通過')+'</span>';
+    $('passSub').innerHTML='通過標準：總分 ≥ '+ps+' 分<br>'
+      +'看穩聽問守技巧 <b>'+(d.skill_pts||0)+'</b>／80　＋　民眾情緒降溫 <b>'+(d.emo_pts||0)+'</b>／20'
+      +'<br><span style="font-size:11.5px;">（情緒 '+d.emotion_start+' → '+d.emotion_end+'，降到 30 以下拿滿 20 分）</span>';
+    const sc=d.scores||{look:0,calm:0,listen:0,ask:0,guard:0};
+    drawRadar(STEP_ORDER.map(s=>sc[s]||0));
+    // ② 五步分數直接併進 AI 點評的「五步驟評估」每一行末尾（評語旁邊就是分數），不另列表格
+    const stepPts={};STEP_ORDER.forEach(s=>{stepPts[s]=Math.round((sc[s]||0)*0.16);});
+    // 民眾情緒降溫：說明文字（怎麼降、降到哪）直接寫在點評卡結尾，緊接下方的分數列，不留空白
+    const es=d.emotion_start,ee=d.emotion_end,ep=d.emo_pts||0;
+    const emoNote='<div class="emo-note"><b>民眾情緒降溫　'+ep+' / 20</b><br>'
+      +'民眾情緒從 <b>'+es+'</b> 降到 <b>'+ee+'</b>'
+      +(ee<=30?'，已降到 30 以下、進入穩定綠燈——你的同理與引導確實接住了對方，拿滿 20 分。'
+              :(ee<es?'，有降但還沒到 30 以下的穩定線，只拿到部分分數；多一點「先接住情緒、放慢節奏」再進下一步，會降得更順。'
+                     :'，沒有降下來；回頭看是否有直接糾正／命令的說法讓對方防衛升高。'))
+      +'</div>';
+    $('scoretbl').innerHTML='<div style="font-weight:800;">總分<span class="n">'+total+' / 100</span></div>';
+    $('scoretbl').style.marginTop='0';
+    // AI 點評：拿掉它自算的【評分明細】【總分】段，五步評估改固定表格＋分數靠右，末尾接情緒降溫說明
+    $('fbText').innerHTML=beautifyFeedback(injectStepScores(esc(stripAiScoreBlocks(d.feedback||'')),stepPts))+emoNote;
+    $('fbText').style.marginBottom='0';$('fbText').style.borderBottomLeftRadius='0';$('fbText').style.borderBottomRightRadius='0';
+    $('scoretbl').style.borderTopLeftRadius='0';$('scoretbl').style.borderTopRightRadius='0';$('scoretbl').style.borderTop='none';
+    $('repNote').innerHTML='💡 民眾情緒：數字越低代表越平穩，降到 30 以下＝情緒穩定、進入綠燈。'+(d.neg_hits>0?'<br>⚠️ 本次有 '+d.neg_hits+' 次用了太直接／命令式說法，容易讓民眾防衛心升高。':'');
+  }else{
+    $('radarWrap').style.display='none';$('redflagBox').style.display='block';$('fbText').style.display='block';
+    ['marginBottom','borderBottomLeftRadius','borderBottomRightRadius'].forEach(k=>$('fbText').style[k]='');
+    ['marginTop','borderTopLeftRadius','borderTopRightRadius','borderTop'].forEach(k=>$('scoretbl').style[k]='');
+    $('passBox').className='pass'+(d.passed?'':' fail');
+    $('passBig').textContent=d.passed?'✔ 成功守住':'✘ 差點被騙';
+    $('passSub').textContent=d.passed
+      ?'您成功守住底線：被騙風險 '+d.risk_start+' → '+d.risk_end
+      :'對話中已出現配合／交付資訊的反應，被騙風險升到 '+d.risk_end+'，實際情境中錢或資料可能已經出去了';
+    // ① 先列出低/中/高三區與分數區間 → ② 標示測試者位置 → ③ 給建議
+    const band=d.band||{};
+    let bandBar='<div style="display:flex;gap:6px;margin:10px 0;">';
+    (d.bands||[]).forEach(b=>{
+      const on=band.key===b.key;
+      const color=b.key==='low'?'#3ea173':b.key==='mid'?'#e0932b':'#c94a3f';
+      bandBar+='<div style="flex:1;text-align:center;padding:9px 4px;border-radius:10px;font-weight:800;font-size:12px;'
+        +'background:'+(on?color:'#f1f3f7')+';color:'+(on?'#fff':'#6b7688')+';">'
+        +esc(b.label)+'<br><span style="font-size:10.5px;font-weight:600;">'+b.min+'–'+b.max+' 分</span>'
+        +(on?'<br><span style="font-size:10.5px;">◀ 你在這裡</span>':'')+'</div>';
+    });
+    bandBar+='</div>';
+    $('fbText').innerHTML='<b>被騙風險分區</b>'+bandBar
+      +'<div style="font-size:14px;"><b>你的被騙風險：'+d.risk_end+' 分（'+esc(band.label||'')+'）</b></div>'
+      +'<div style="margin-top:6px;">💬 建議：'+esc(band.advice||'')+'</div>'
+      +(d.feedback?'<div style="margin-top:8px;border-top:1px dashed #e5e9ef;padding-top:8px;">'+esc(d.feedback)+'</div>':'');
+    $('redflagBox').innerHTML='<b>本劇本常見的三個破綻／紅旗警訊：</b><br>'+(d.flags||[]).map((f,i)=>(i+1)+'. '+esc(f)).join('<br>');
+    let rows='<div>對話回合數<span class="n">'+(d.turns||0)+'</span></div>';
+    rows+='<div>被騙風險變化<span class="n">'+d.risk_start+' → '+d.risk_end+'</span></div>';
+    rows+='<div>手法強度加分（'+SIG_TEXT[S.signal]+'）<span class="n">× '+(d.weight||1).toFixed(1)+'</span></div>';
+    rows+='<div>出現配合／洩漏資訊次數<span class="n">'+(d.neg_hits||0)+'</span></div>';
+    $('scoretbl').innerHTML=rows;
+    $('repNote').innerHTML='💡 被騙風險：數字越低代表您越安全。查證、拒絕、掛電話都會讓風險下降；提供帳號密碼、答應轉帳會讓風險快速上升。';
+  }
+}
+function injectStepScores(html,pts){
+  // 把 AI 點評的「①～⑤ 五步驟評估」五行改成固定三欄表格（步驟｜狀態＋評語｜分數靠右），排版一致
+  const map=[['①','look'],['②','calm'],['③','listen'],['④','ask'],['⑤','guard']];
+  const lines=html.split('\n');let out=[],rows=[];
+  const flush=()=>{
+    if(!rows.length)return;
+    out.push('<table class="steptbl">'+rows.map(r=>'<tr><td class="s">'+r.step+'</td><td class="i">'+r.icon+'</td><td class="c">'+r.cmt+'</td><td class="p">'+r.pts+' / 16</td></tr>').join('')+'</table>');
+    rows=[];
+  };
+  for(const raw of lines){
+    const line=raw.trim();let hit=null;
+    for(const [mark,key] of map){if(line.startsWith(mark)){hit=key;break;}}
+    if(hit&&pts[hit]!=null){
+      // 解析：「① 看（觀察燈號）　　✅　說明文字」→ 步驟名 / 圖示 / 評語
+      const m=line.match(/^([①②③④⑤]\s*[^　\s]+(?:（[^）]*）)?)\s*(✅|⚠️|❌|✔|✖)?\s*(.*)$/);
+      rows.push({step:m?m[1]:line,icon:m&&m[2]?m[2]:'',cmt:m?m[3]:'',pts:pts[hit]});
+    }else{flush();out.push(raw);}
+  }
+  flush();
+  return out.join('\n');
+}
+// 點評版面美化：做得好（綠框＋原句黃底 highlight）、最需改善（金框）、整體評語（藍框大字）
+function beautifyFeedback(h){
+  h=h.replace(/【做得好的地方】\s*(?:👍)?\s*\n?([\s\S]*?)(?=\n【|$)/,(m,b)=>'\n<div class="fbGood"><div class="fbT">👍 做得好的地方</div>'+b.trim().replace(/「([^」]{2,60})」/g,'<span class="hl">「$1」</span>')+'</div>');
+  h=h.replace(/【最需改善的一件事】\s*\n?([\s\S]*?)(?=\n【|\n?<div|$)/,(m,b)=>'\n<div class="fbImp"><div class="fbT">🔧 最需改善的一件事</div>'+b.trim()+'</div>');
+  h=h.replace(/【整體評語】\s*\n?([\s\S]*?)(?=\n【|\n?<div|$)/,(m,b)=>'\n<div class="fbSum">💬 '+b.trim()+'</div>');
+  return h;
+}
+function stripAiScoreBlocks(t){
+  // 移除 AI 點評文字中的【評分明細】與【總分】兩段（保留五步評估、禁句、做得好、需改善、整體評語）
+  return t.replace(/【評分明細】[\s\S]*?(?=【)/,'').replace(/【總分】[\s\S]*?(?=【)/,'').replace(/\n{3,}/g,'\n\n').trim();
+}
+function drawRadar(sc){
+  const svg=$('radar'),cx=125,cy=110,R=82,L=['看','穩','聽','問','守'];let h='';
+  for(let g=1;g<=4;g++){let p='';for(let k=0;k<5;k++){const a=-Math.PI/2+k*2*Math.PI/5,r=R*g/4;p+=(cx+r*Math.cos(a))+','+(cy+r*Math.sin(a))+' ';}h+='<polygon points="'+p+'" fill="none" stroke="#e5e9ef" stroke-width="1"/>';}
+  for(let k=0;k<5;k++){const a=-Math.PI/2+k*2*Math.PI/5;h+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+R*Math.cos(a))+'" y2="'+(cy+R*Math.sin(a))+'" stroke="#e5e9ef"/>';}
+  let dp='';for(let k=0;k<5;k++){const a=-Math.PI/2+k*2*Math.PI/5,r=R*(sc[k]||0)/100;dp+=(cx+r*Math.cos(a))+','+(cy+r*Math.sin(a))+' ';}
+  h+='<polygon points="'+dp+'" fill="rgba(62,161,115,.28)" stroke="#3ea173" stroke-width="2"/>';
+  for(let k=0;k<5;k++){const a=-Math.PI/2+k*2*Math.PI/5;h+='<text x="'+(cx+(R+16)*Math.cos(a))+'" y="'+(cy+(R+16)*Math.sin(a)+4)+'" text-anchor="middle" font-size="14" font-weight="800" fill="#1a2c4e">'+L[k]+'</text>';}
+  svg.innerHTML=h;
+}
+function restart(){
+  // 「再練一次」：維持在進來時的身分（員警就留在員警、銀行行員就留在銀行行員），回到該身分的設定頁；
+  // 只有設定頁的「← 上一步」才會退回專區主頁。
+  if(!surveyGate())return;
+  S.ended=false;S.rtHit={};
+  if(S.role){selectRole(S.role);}
+  else go('s-role');
+}
+function leaveChat(){
+  // 對話中要離開：對話尚未結束時提醒一下（避免誤觸丟掉整場），確定才回專區首頁
+  if(!S.ended&&S.sessionId&&!confirm('演練還沒結束，離開會放棄這場對話（不會有點評成績）。確定要回專區首頁嗎？'))return;
+  if(isRec)stopMic();
+  backToHome();
+}
+function backToHome(){
+  // 設定頁「← 上一步」：依進入時的族群回到對應專區主頁（/police、/bank、/public），沒有來源就回總入口
+  if(!surveyGate())return;
+  const r=S.role;
+  const g=(new URLSearchParams(location.search).get('group')||'').toUpperCase();
+  const home=(r==='police')?'/police':(r==='bank')?'/bank':((r&&ROLE_META[r].group==='B')||g==='B')?'/public':'/';
+  location.href=home;
+}
+function scrollLog(){const c=$('clog');c.scrollTop=c.scrollHeight;}
+
+/* ===== 入口分流：/mg?group=A|B 只顯示該族群的身分卡；?role=xxx 直接進入該身分 ===== */
+(function(){
+  const qs=new URLSearchParams(location.search);
+  const g=(qs.get('group')||'').toUpperCase();
+  if(g==='A'||g==='B'){
+    document.querySelectorAll('.rolecard').forEach(c=>{
+      if(ROLE_META[c.dataset.role].group!==g)c.style.display='none';
+    });
+    const hdrs=document.querySelectorAll('.grouphdr');
+    if(hdrs[0]&&g==='B')hdrs[0].style.display='none';
+    if(hdrs[1]&&g==='A')hdrs[1].style.display='none';
+  }
+  const r0=qs.get('role');
+  if(r0&&ROLE_META[r0]){_pendingRole=r0;return;}
+  // 主頁規劃：AI 訓練不是入口。A 類（員警/銀行行員）沒帶 role 直接開 /mg → 導回總入口先選專區、看完看穩聽問守再進來；
+  // B 類（民眾）三個年齡層共用 /public 專區，帶 group=B 進來才顯示長輩/青壯年/青少年選單。
+  if(g!=='B'){location.replace('/');}
+})();
+
+/* ===== API ===== */
+async function api(path,body){
+  const res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await res.json().catch(()=>({error:'伺服器回應異常'}));
+  if(!res.ok)throw new Error(d.error||('HTTP '+res.status));
+  return d;
+}
+</script>
+</body>
+</html>

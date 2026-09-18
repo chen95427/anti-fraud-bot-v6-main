@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>員警阻詐溝通操作手冊 - 看・穩・聽・問・守</title>
+    <style>
+        :root {
+            --primary: #1A3C6E;
+            --secondary: #2B579A;
+            --accent: #F5C518;
+            --red: #DC3545;
+            --green: #28a745;
+            --bg: #f4f6fb;
+            --light: #ffffff;
+            --text: #333333;
+            --gray-light: #f8f9fa;
+            --gray-text: #666666;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: '微軟正黑體', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .page-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--light);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* ===== STICKY TOP BAR ===== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--primary);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .topbar-title {
+            color: var(--light);
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .menu-button {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== SIDE MENU ===== */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: var(--primary);
+            z-index: 200;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            padding-top: 60px;
+        }
+
+        .side-menu.open {
+            right: 0;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+            display: none;
+        }
+
+        .menu-overlay.open {
+            display: block;
+        }
+
+        .menu-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .menu-items {
+            padding: 20px;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 12px 0;
+            color: var(--light);
+            text-decoration: none;
+            font-size: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: opacity 0.2s;
+        }
+
+        .menu-item:hover {
+            opacity: 0.8;
+        }
+
+        .menu-item.external {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--light);
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .hero .subtitle {
+            font-size: 18px;
+            margin-bottom: 20px;
+            opacity: 0.95;
+        }
+
+        .hero .tagline {
+            font-size: 14px;
+            margin-bottom: 20px;
+            opacity: 0.85;
+        }
+
+        .hero .author {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .time-summary {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin: 20px 0 0 0;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ===== CONTENT ===== */
+        .content {
+            padding: 40px 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 35px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        .step-section {
+            scroll-margin-top: 80px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: var(--primary);
+            margin: 25px 0 15px 0;
+            font-weight: bold;
+        }
+
+        h3 {
+            font-size: 15px;
+            color: var(--secondary);
+            margin: 15px 0 10px 0;
+            font-weight: bold;
+        }
+
+        p {
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        /* ===== FLOWCHART NODES ===== */
+        .flowchart-container {
+            margin: 30px 0;
+        }
+
+        .flowchart-node {
+            background: var(--gray-light);
+            border-left: 5px solid var(--primary);
+            padding: 16px;
+            margin: 15px 0;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            animation: slideUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .flowchart-node.red {
+            border-left-color: var(--red);
+            background: #ffe5e5;
+        }
+
+        .flowchart-node.yellow {
+            border-left-color: #FFA500;
+            background: #fff8e5;
+        }
+
+        .flowchart-node.green {
+            border-left-color: var(--green);
+            background: #e5f5e5;
+        }
+
+        .flowchart-node.gray {
+            border-left-color: #999;
+            background: #e8e8e8;
+        }
+
+        /* ===== TRAFFIC LIGHT CARDS ===== */
+        .traffic-lights {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 600px) {
+            .traffic-lights {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .traffic-card {
+            border: 2px solid;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--light);
+        }
+
+        .traffic-card.red {
+            border-color: var(--red);
+            background: #fff5f5;
+        }
+
+        .traffic-card.red:hover {
+            background: #ffecec;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        }
+
+        .traffic-card.yellow {
+            border-color: #FFA500;
+            background: #fffbf0;
+        }
+
+        .traffic-card.yellow:hover {
+            background: #fff9e6;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(255, 165, 0, 0.2);
+        }
+
+        .traffic-card.green {
+            border-color: var(--green);
+            background: #f5fff5;
+        }
+
+        .traffic-card.green:hover {
+            background: #ecffec;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+        }
+
+        .traffic-card.gray {
+            border-color: #999;
+            background: #f8f8f8;
+        }
+
+        .traffic-card.gray:hover {
+            background: #f0f0f0;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(153, 153, 153, 0.2);
+        }
+
+        .traffic-card-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .traffic-card-desc {
+            font-size: 13px;
+            color: var(--gray-text);
+            margin-bottom: 8px;
+        }
+
+        .traffic-card-goal {
+            font-size: 12px;
+            font-style: italic;
+            color: var(--primary);
+        }
+
+        /* ===== DIALOGS ===== */
+        .dialog {
+            background: #f0f4f8;
+            border-left: 4px solid var(--secondary);
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 4px;
+        }
+
+        .dialog-label {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .dialog-text {
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ===== CALLOUTS ===== */
+        .callout {
+            border-left: 4px solid var(--primary);
+            padding: 12px 16px;
+            margin: 15px 0;
+            border-radius: 4px;
+            background: #f0f4f8;
+        }
+
+        .callout-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .callout.warning {
+            border-left-color: #FFA500;
+            background: #fff8e5;
+        }
+
+        .callout.danger {
+            border-left-color: var(--red);
+            background: #ffe5e5;
+        }
+
+        .callout.success {
+            border-left-color: var(--green);
+            background: #e5f5e5;
+        }
+
+        .callout.info {
+            border-left-color: var(--secondary);
+            background: #e8f1f8;
+        }
+
+        .callout p {
+            font-size: 13px;
+            margin: 6px 0;
+        }
+
+        /* ===== TABLES ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        table th {
+            background: var(--primary);
+            color: var(--light);
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        table tr:hover {
+            background: #f5f5f5;
+        }
+
+        table tr.red-row td:first-child {
+            background: #ffecec;
+            font-weight: bold;
+        }
+
+        table tr.yellow-row td:first-child {
+            background: #fff8e5;
+            font-weight: bold;
+        }
+
+        table tr.green-row td:first-child {
+            background: #ecffec;
+            font-weight: bold;
+        }
+
+        table tr.gray-row td:first-child {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+
+        /* ===== EXPANDABLE SECTIONS ===== */
+        .expandable {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+
+        .expandable-header {
+            background: var(--gray-light);
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .expandable-header:hover {
+            background: #e8e8e8;
+        }
+
+        .expandable-header.open {
+            background: var(--secondary);
+            color: var(--light);
+        }
+
+        .expand-icon {
+            display: inline-block;
+            transition: transform 0.3s;
+            font-size: 16px;
+        }
+
+        .expandable-header.open .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .expandable-content {
+            display: none;
+            padding: 16px;
+            background: var(--light);
+            border-top: 1px solid #ddd;
+        }
+
+        .expandable-content.open {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== TABS ===== */
+        .tabs-container {
+            margin: 20px 0;
+        }
+
+        .tabs-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--gray-text);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            margin-bottom: -2px;
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-button:hover {
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ===== STEP CARDS ===== */
+        .step-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .step-card {
+            background: var(--gray-light);
+            border-left: 5px solid var(--primary);
+            padding: 16px;
+            border-radius: 6px;
+            counter-increment: step-counter;
+        }
+
+        .step-counter {
+            counter-reset: step-counter;
+        }
+
+        .step-card::before {
+            content: counter(step-counter);
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        /* ===== LISTS ===== */
+        ul, ol {
+            margin: 12px 0 12px 24px;
+        }
+
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        /* ===== FOOTER/BANNER ===== */
+        .core-reminder {
+            background: var(--primary);
+            color: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .reminder-text {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .author-credit {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        /* ===== PROGRESS INDICATOR ===== */
+        .progress-indicator {
+            position: fixed;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 50;
+        }
+
+        @media (max-width: 600px) {
+            .progress-indicator {
+                display: none;
+            }
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .progress-dot.active {
+            background: var(--primary);
+            transform: scale(1.3);
+        }
+
+        .progress-dot:hover {
+            background: var(--secondary);
+        }
+
+        /* ===== UTILITY ===== */
+        .divider {
+            border: none;
+            height: 2px;
+            background: #e0e0e0;
+            margin: 30px 0;
+        }
+
+        .section-intro {
+            font-size: 15px;
+            font-style: italic;
+            color: var(--gray-text);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* ===== BACK TO TOP ===== */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99;
+            transition: all 0.3s;
+        }
+
+        .back-to-top.show {
+            display: flex;
+        }
+
+        .back-to-top:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+
+        /* ===== MOBILE ADJUSTMENTS ===== */
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 24px;
+            }
+
+            .hero .subtitle {
+                font-size: 16px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 8px;
+            }
+
+            .topbar {
+                padding: 12px 15px;
+            }
+
+            .topbar-title {
+                font-size: 14px;
+            }
+
+            .content {
+                padding: 25px 15px;
+            }
+
+            .traffic-lights {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs-nav {
+                gap: 4px;
+            }
+
+            .tab-button {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- STICKY TOP BAR -->
+        <div class="topbar">
+            <div class="topbar-title">員警阻詐手冊</div>
+            <button class="menu-button" id="menuBtn">☰</button>
+        </div>
+
+        <!-- SIDE MENU -->
+        <div class="menu-overlay" id="menuOverlay"></div>
+        <div class="side-menu" id="sideMenu">
+            <button class="menu-close" id="menuCloseBtn">✕</button>
+            <div class="menu-items">
+                <a href="#step1" class="menu-item">👁 看（觀察）</a>
+                <a href="#step2" class="menu-item">🧘 穩（穩心）</a>
+                <a href="#step3" class="menu-item">👂 聽（傾聽）</a>
+                <a href="#step4" class="menu-item">🧭 問（引導）</a>
+                <a href="#step5" class="menu-item">🛡 守（保護）</a>
+                <hr style="border:none;border-top:1px solid rgba(255,255,255,0.2);margin:15px 0;">
+                <a href="#" class="menu-item external" onclick="alert('檢核表功能準備中'); return false;">✓ 檢核表</a>
+                <a href="#" class="menu-item external" onclick="alert('練習題功能準備中'); return false;">📝 練習題</a>
+                <a href="#" class="menu-item external" onclick="alert('滿意度調查功能準備中'); return false;">⭐ 滿意度調查</a>
+                <a href="#" class="menu-item external" onclick="alert('後台功能準備中'); return false;">⚙ 後台</a>
+            </div>
+        </div>
+
+        <!-- PROGRESS INDICATOR -->
+        <div class="progress-indicator">
+            <div class="progress-dot active" onclick="document.getElementById('step1').scrollIntoView({behavior:'smooth'})"></div>
+            <div class="progress-dot" onclick="document.getElementById('step2').scrollIntoView({behavior:'smooth'})"></div>
+            <div class="progress-dot" onclick="document.getElementById('step3').scrollIntoView({behavior:'smooth'})"></div>
+            <div class="progress-dot" onclick="document.getElementById('step4').scrollIntoView({behavior:'smooth'})"></div>
+            <div class="progress-dot" onclick="document.getElementById('step5').scrollIntoView({behavior:'smooth'})"></div>
+        </div>
+
+        <!-- HERO SECTION -->
+        <div class="hero">
+            <h1>員警阻詐溝通操作手冊</h1>
+            <div class="tagline">「看・穩・聽・問・守」</div>
+            <div class="subtitle">五步驟完整操作手冊</div>
+            <div class="author">田心喬醫師 研究設計｜新光醫院精神科</div>
+            <div class="time-summary">
+                👁 看 5分 + 🧘 穩 8分 + 👂 聽 5分 + 🧭 問 8分 + 🛡 守 4分 = 共約 30 分鐘
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="content">
+
+            <!-- ========== STEP 1: 看 ========== -->
+            <div class="step-section" id="step1">
+                <div class="section-title">👁 第一步：看（觀察）</div>
+                <p><strong>目的：</strong>判斷對方狀態，選對策略。</p>
+                <p><strong>時間：</strong>到場後 5 分鐘內完成。&emsp;<strong>場合：</strong>銀行臨櫃，或受害人家中。</p>
+
+                <h2>開場白</h2>
+                <p>到場後不急著說「你被騙了」，先說這句話，然後<strong>停頓觀察</strong>：</p>
+                <div class="dialog">
+                    <div class="dialog-label">👮 員警說：</div>
+                    <div class="dialog-text">「您好，我是警察，看您好像在處理一件事，方便跟我說說嗎？」</div>
+                </div>
+                <div class="callout warning">
+                    <div class="callout-title">⚠ 說完後停頓 3–5 秒，不要繼續說話</div>
+                    <p>對方的第一個反應，是判斷燈號最重要的資訊。</p>
+                </div>
+
+                <h2>觀察三個面向</h2>
+                <table>
+                    <tr><th>燈號</th><th>① 情緒狀態</th><th>② 溝通意願</th><th>③ 思考清晰度</th></tr>
+                    <tr class="red-row"><td>🔴 紅燈</td><td>激動、恐懼、恐慌</td><td>拒絕理會、不停看手機</td><td>思路混亂、無法回答</td></tr>
+                    <tr class="yellow-row"><td>🟡 黃燈</td><td>任何情緒，有猶豫跡象</td><td>有猶豫但仍要匯款</td><td>時而清醒時而混亂</td></tr>
+                    <tr class="green-row"><td>🟢 綠燈</td><td>平靜、疑惑、主動求助</td><td>主動詢問、願意停下來</td><td>思路清晰、能回答</td></tr>
+                    <tr class="gray-row"><td>⚫ 特殊</td><td>異常冷靜、流暢自然</td><td>表面配合但催你離開</td><td>對答如流、有備好說詞</td></tr>
+                </table>
+
+                <div class="callout danger">
+                    <div class="callout-title">🚫 禁止</div>
+                    <p>這個階段禁止說「你被騙了」「先停下來」「這是詐騙」。任何判斷性話語都會讓對方立刻關閉溝通。</p>
+                </div>
+
+                <h2>判斷燈號</h2>
+                <table>
+                    <tr><th>燈號</th><th>組合條件</th><th>穩的目標</th></tr>
+                    <tr class="red-row"><td>🔴 紅燈</td><td>激動／恐懼＋拒絕理會＋思路混亂</td><td>願意暫時離開臨櫃坐下來</td></tr>
+                    <tr class="yellow-row"><td>🟡 黃燈</td><td>任何情緒＋有猶豫但仍要匯款</td><td>願意聽你說明 2 分鐘</td></tr>
+                    <tr class="green-row"><td>🟢 綠燈</td><td>平靜疑惑＋主動詢問說「感覺怪」</td><td>直接進入聽</td></tr>
+                    <tr class="gray-row"><td>⚫ 特殊</td><td>異常冷靜＋有備好說詞＋要你離開</td><td>多留幾分鐘繼續觀察</td></tr>
+                </table>
+
+                <div class="callout info">
+                    <div class="callout-title">📋 小提醒</div>
+                    <p>三個面向混雜時，以「溝通意願」為主要判斷依據。燈號不是固定的，隨時重新判斷。</p>
+                </div>
+
+                <h2>交通燈號對應策略</h2>
+                <p>點擊下方燈號卡，查看詳細策略：</p>
+                <div class="traffic-lights">
+                    <div class="traffic-card red" onclick="document.getElementById('step2').scrollIntoView({behavior:'smooth'}); setTimeout(() => { const header = document.querySelector('[data-tab=red]'); if (header) header.click(); }, 500);">
+                        <div class="traffic-card-header">🔴 紅燈</div>
+                        <div class="traffic-card-desc">激動／恐懼＋拒絕理會＋思路混亂</div>
+                        <div class="traffic-card-goal">目標：坐下來</div>
+                    </div>
+                    <div class="traffic-card yellow" onclick="document.getElementById('step2').scrollIntoView({behavior:'smooth'}); setTimeout(() => { const header = document.querySelector('[data-tab=yellow]'); if (header) header.click(); }, 500);">
+                        <div class="traffic-card-header">🟡 黃燈</div>
+                        <div class="traffic-card-desc">有猶豫但仍要匯款</div>
+                        <div class="traffic-card-goal">目標：聽我2分鐘</div>
+                    </div>
+                    <div class="traffic-card green" onclick="document.getElementById('step2').scrollIntoView({behavior:'smooth'}); setTimeout(() => { const header = document.querySelector('[data-tab=green]'); if (header) header.click(); }, 500);">
+                        <div class="traffic-card-header">🟢 綠燈</div>
+                        <div class="traffic-card-desc">平靜疑惑＋主動詢問</div>
+                        <div class="traffic-card-goal">目標：直接進入聽</div>
+                    </div>
+                    <div class="traffic-card gray" onclick="document.getElementById('step2').scrollIntoView({behavior:'smooth'}); setTimeout(() => { const header = document.querySelector('[data-tab=special]'); if (header) header.click(); }, 500);">
+                        <div class="traffic-card-header">⚫ 特殊</div>
+                        <div class="traffic-card-desc">異常冷靜＋催你離開</div>
+                        <div class="traffic-card-goal">目標：多留幾分鐘</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== STEP 2: 穩 ========== -->
+            <div class="step-section" id="step2">
+                <div class="section-title">🧘 第二步：穩（穩心）</div>
+                <p><strong>目的：</strong>讓對方情緒穩定，才能聽進任何話。</p>
+                <p><strong>時間：</strong>約 5–8 分鐘。&emsp;<strong>原則：</strong>不說教、不提詐騙、只處理情緒。</p>
+
+                <div class="callout danger">
+                    <div class="callout-title">🚫 禁止</div>
+                    <p>「你冷靜一點」「你不要急」——空泛要求讓人更焦急。</p>
+                    <p>「這是詐騙」「你被騙了」——說了對方立刻關閉溝通。</p>
+                </div>
+
+                <!-- TABS FOR STRATEGIES -->
+                <div class="tabs-container">
+                    <div class="tabs-nav">
+                        <button class="tab-button active" data-tab="red" onclick="switchTab(this, 'red')">🔴 紅燈</button>
+                        <button class="tab-button" data-tab="yellow" onclick="switchTab(this, 'yellow')">🟡 黃燈</button>
+                        <button class="tab-button" data-tab="green" onclick="switchTab(this, 'green')">🟢 綠燈</button>
+                        <button class="tab-button" data-tab="special" onclick="switchTab(this, 'special')">⚫ 特殊</button>
+                    </div>
+
+                    <!-- RED LIGHT STRATEGY -->
+                    <div class="tab-content active" data-content="red">
+                        <h3>🔴 紅燈策略</h3>
+                        <p><strong>目標：</strong>讓他願意暫時離開臨櫃坐下來。</p>
+
+                        <h2>步驟一：靠近，放低語氣</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「先生／小姐，您好，我是○○派出所的警察。我不是來阻止您的，只是看您好像有點不舒服，想過來關心一下。」</div>
+                        </div>
+                        <p style="font-size:12px;color:#666">對方說「你不要管我！」→ 不對抗，退半步，繼續步驟二。</p>
+
+                        <h2>步驟二：邀請坐下</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「好，我不會擋您，也不會強迫您做任何事。但您的手在發抖，我有點擔心。要不要先到旁邊坐一下？」</div>
+                        </div>
+
+                        <h2>步驟三：化解時間壓力</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「如果這件事是正當的，晚五分鐘絕對不會有任何影響。真正重要的事情，不會因為晚幾分鐘就出問題。我們先坐下來，好嗎？」</div>
+                        </div>
+
+                        <h2>步驟四：靜待 2–3 分鐘，不要說話</h2>
+                        <div class="callout success">
+                            <div class="callout-title">✅ 達成訊號</div>
+                            <p>對方願意坐下 ／ 語速變慢 ／ 開始主動問你問題 → 進入聽</p>
+                        </div>
+                    </div>
+
+                    <!-- YELLOW LIGHT STRATEGY -->
+                    <div class="tab-content" data-content="yellow">
+                        <h3>🟡 黃燈策略</h3>
+                        <p><strong>目標：</strong>讓對方願意聽你說明 2 分鐘。</p>
+
+                        <h2>步驟一：說明查證對他有利</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「先生／小姐，我看得出來您是很謹慎的人，有自己的判斷。我不會質疑您的決定。但最近有很多跟您情況很像的案件。我可以花兩分鐘跟您說一件事，您聽完再自己判斷，好嗎？」</div>
+                        </div>
+
+                        <h2>對方說「我很忙，沒時間」</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「兩分鐘而已，如果您聽完覺得沒問題，我馬上走。但如果有問題，這兩分鐘可以幫您留住這筆錢。」</div>
+                        </div>
+
+                        <h2>對方說「這是我自己的錢，你管不著」</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「您說得對，最終決定權在您。我只是想幫您多確認一下，確認完您再決定，這樣您自己也比較安心。」</div>
+                        </div>
+
+                        <div class="callout success">
+                            <div class="callout-title">✅ 達成訊號</div>
+                            <p>對方停下來聽你說話 ／ 主動問「你說的是什麼情況？」→ 進入聽</p>
+                        </div>
+                    </div>
+
+                    <!-- GREEN LIGHT STRATEGY -->
+                    <div class="tab-content" data-content="green">
+                        <h3>🟢 綠燈策略</h3>
+                        <p><strong>目標：</strong>肯定他的直覺，直接進入聽。</p>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「您好，我是○○派出所的警察，銀行請我過來關心一下。不是要干涉您的決定，只是想幫您多確認一下，這樣您自己也比較安心。您的感覺很重要——我們一起來看看發生什麼事。」</div>
+                        </div>
+                    </div>
+
+                    <!-- SPECIAL STRATEGY -->
+                    <div class="tab-content" data-content="special">
+                        <h3>⚫ 特殊策略</h3>
+                        <p><strong>目標：</strong>多留幾分鐘，找機會切入。</p>
+
+                        <div class="callout warning">
+                            <div class="callout-title">⚠ 注意</div>
+                            <p>這種人可能已被詐騙者事先教過如何應對警察，不能正面衝突。</p>
+                        </div>
+
+                        <h2>迂迴方式一：以做紀錄為由</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「先生／小姐，我不會質疑您的決定。但因為工作關係，我需要跟您聊幾分鐘做個紀錄，這樣我也好交差。」</div>
+                        </div>
+
+                        <h2>迂迴方式二：假裝不懂，請他說明流程</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「不好意思，我對這個不太熟。您可以跟我說說，這個流程是怎麼運作的嗎？對方怎麼跟您聯絡的？」</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMMON CHECK FOR ALL LIGHTS -->
+                <hr class="divider">
+                <h2>所有燈號共同確認</h2>
+                <p><strong>有沒有被要求「不能告訴任何人」？</strong></p>
+                <p style="font-size:12px;color:#555">觀察跡象：一直看手機不放下 ／ 說「這是偵查不公開」／ 迴避回答保密問題</p>
+                <div class="dialog">
+                    <div class="dialog-label">👮 員警說：</div>
+                    <div class="dialog-text">「我注意到您一直看手機，是不是對方有交代什麼不方便說的？沒關係，您不需要現在告訴我全部。但我想讓您知道一件很重要的事——真正的司法機關，不會禁止您跟家人說話。真正的投資公司，不會要求您對任何人保密。光是這一點，就值得我們一起確認一下。」</div>
+                </div>
+            </div>
+
+            <!-- ========== STEP 3: 聽 ========== -->
+            <div class="step-section" id="step3">
+                <div class="section-title">👂 第三步：聽（傾聽）</div>
+                <p><strong>目的：</strong>蒐集資訊，找出矛盾點，為問做準備。</p>
+                <p><strong>時間：</strong>約 5 分鐘。&emsp;<strong>原則：</strong>不打斷、不糾正、不露出「你被騙了」的表情。</p>
+
+                <h2>開場</h2>
+                <div class="dialog">
+                    <div class="dialog-label">👮 員警說：</div>
+                    <div class="dialog-text">「方便跟我說說發生什麼事嗎？說您願意說的就好。」</div>
+                </div>
+                <div class="dialog" style="background:#f8f9fa;border-left-color:#888">
+                    <div class="dialog-label" style="color:#444">👮 員警做：</div>
+                    <div class="dialog-text" style="color:#444">點頭、「嗯」「我了解」，讓他知道你在聽。</div>
+                </div>
+
+                <h2>心裡記住這四件事</h2>
+                <div class="callout info">
+                    <div class="callout-title">🔑 聽的重點</div>
+                    <p>🕐 <strong>時間線</strong> — 什麼時候開始的？持續多久了？</p>
+                    <p>💰 <strong>金錢流向</strong> — 投入多少？實際拿回多少？</p>
+                    <p>🔒 <strong>保密要求</strong> — 有沒有「不能告訴別人」？</p>
+                    <p>❗ <strong>矛盾點</strong> — 敘述中有什麼地方前後不一致？</p>
+                </div>
+
+                <h2>同理回應，不糾正</h2>
+                <table>
+                    <tr><th>❌ 錯誤（糾正）</th><th>✅ 正確（同理）</th></tr>
+                    <tr><td>「那是假的，你被騙了。」</td><td>「聽起來真的很嚇人，換成是我接到這種電話，我也會很緊張。」</td></tr>
+                    <tr><td>「你怎麼會相信這種事？」</td><td>「他知道你的個資，確實會讓人覺得是真的。任何人都會這樣。」</td></tr>
+                    <tr><td>「這種手法我們見多了。」</td><td>「你一個人扛這件事這麼久，壓力一定很大。」</td></tr>
+                </table>
+
+                <h2>追問細節（挑 2–3 個，不要像審訊）</h2>
+                <ul>
+                    <li>「他是什麼時候開始聯繫你的？」</li>
+                    <li>「中間有讓你掛過電話嗎？」</li>
+                    <li>「你有見過本人嗎？有視訊通話過嗎？」</li>
+                    <li>「你總共投入多少？實際拿回多少？」</li>
+                    <li>「對方有沒有說不能跟任何人講？」</li>
+                </ul>
+
+                <h2>聽完後：判斷詐騙類型</h2>
+                <table>
+                    <tr><th>類型</th><th>心理驅動</th><th>對方常說的話</th></tr>
+                    <tr><td><strong>假檢警詐騙</strong></td><td>嗔（恐懼憤怒）</td><td>「帳戶被凍結，不能告訴家人」</td></tr>
+                    <tr><td><strong>投資詐騙</strong></td><td>貪（追求獲利）</td><td>「繳稅就能提領，老師保證穩賺」</td></tr>
+                    <tr><td><strong>感情詐騙</strong></td><td>癡（深信信任）</td><td>「他對我很好，只是需要我幫忙」</td></tr>
+                    <tr><td><strong>傲慢拒絕型</strong></td><td>傲（我比你懂）</td><td>「這是我的錢，我自己決定」</td></tr>
+                    <tr><td><strong>主動懷疑型</strong></td><td>疑（不確定）</td><td>「感覺怪，可以幫我確認嗎？」</td></tr>
+                </table>
+            </div>
+
+            <!-- ========== STEP 4: 問 ========== -->
+            <div class="step-section" id="step4">
+                <div class="section-title">🧭 第四步：問（引導）</div>
+                <p><strong>目的：</strong>讓他自己發現問題，不是被你說服。</p>
+                <p><strong>時間：</strong>約 8 分鐘。&emsp;<strong>原則：</strong>用提問代替說教，不說「你被騙了」。</p>
+
+                <div class="callout info">
+                    <div class="callout-title">💡 對方不配合時</div>
+                    <p>說「好，您不想聊沒關係。」停頓後再用另一個問題繞回來，不正面衝突。</p>
+                </div>
+
+                <!-- TABS FOR FRAUD TYPES -->
+                <div class="tabs-container">
+                    <div class="tabs-nav">
+                        <button class="tab-button active" data-tab="typeA" onclick="switchTab(this, 'typeA')">A. 假檢警</button>
+                        <button class="tab-button" data-tab="typeB" onclick="switchTab(this, 'typeB')">B. 投資詐騙</button>
+                        <button class="tab-button" data-tab="typeC" onclick="switchTab(this, 'typeC')">C. 感情詐騙</button>
+                        <button class="tab-button" data-tab="typeD" onclick="switchTab(this, 'typeD')">D. 傲慢拒絕</button>
+                        <button class="tab-button" data-tab="typeE" onclick="switchTab(this, 'typeE')">E. 主動懷疑</button>
+                    </div>
+
+                    <!-- TYPE A: FAKE POLICE -->
+                    <div class="tab-content active" data-content="typeA">
+                        <h3>A. 假檢警詐騙（嗔：恐懼憤怒）</h3>
+                        <p style="font-size:12px;color:#666"><strong>辨識：</strong>極度恐懼、提到檢察官／警察／法院、說帳戶被凍結、說不能告訴任何人。</p>
+
+                        <h2>提問一（必問）：挑戰「方式」的合理性</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「您剛才提到他說是偵查不公開。我想請教您一個問題——如果真的是檢察官辦案，為什麼不是寄一份正式的傳票通知您到地檢署，而是用電話叫您去操作 ATM？」</div>
+                        </div>
+
+                        <h2>提問二（必問）：挑戰「保密」的合理性</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「真正的檢察官辦案，會不會禁止您跟家人討論？司法機關有沒有權力不讓您跟自己的家人說話？」</div>
+                        </div>
+
+                        <h2>提問三：提供驗證行動</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「要不要我幫您查一下那個地檢署的總機號碼，由您自己打過去問一句就好？如果真的有這個案子，打過去確認反而表示您很配合，對不對？」</div>
+                        </div>
+
+                        <h2>對方說「不要！萬一他知道了會更嚴重。」</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「好，我們不打。決定權在您。那我可以問您一件事嗎？您剛才說『他知道了會更嚴重』——您覺得他會怎麼樣？」</div>
+                        </div>
+                    </div>
+
+                    <!-- TYPE B: INVESTMENT SCAM -->
+                    <div class="tab-content" data-content="typeB">
+                        <h3>B. 投資詐騙（貪：追求獲利）</h3>
+                        <p style="font-size:12px;color:#666"><strong>辨識：</strong>過度樂觀、展示 APP 獲利數字、提到群組或老師。</p>
+
+                        <h2>提問一：區分帳面數字和口袋裡的錢</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「您總共投入多少，實際拿回來放在口袋裡的有多少？APP 上的數字和您口袋裡的錢，是兩回事。」</div>
+                        </div>
+
+                        <h2>提問二：挑戰「繳稅才能提領」的邏輯</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「您在銀行買基金的時候，有沒有被要求先繳稅才能贖回？正規的投資平台，稅金一定是從獲利裡直接扣除，絕對不會要您另外匯一筆錢。」</div>
+                        </div>
+
+                        <h2>提問三：提供驗證行動</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「我們可以一起做一件事——上金管會的網站查一下這家公司有沒有合法登記。如果有，那就沒問題。這一分鐘就可以查到。」</div>
+                        </div>
+
+                        <h2>對方說「我都投了這麼多了，不能放棄。」</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「我理解您的心情，要停下來很難。但如果這是一個坑，再投下去，坑只會越來越深。您已經投入的部分我們可以想辦法，但現在最重要的是不要再投入新的。」</div>
+                        </div>
+                    </div>
+
+                    <!-- TYPE C: LOVE SCAM -->
+                    <div class="tab-content" data-content="typeC">
+                        <h3>C. 感情詐騙（癡：深信信任）</h3>
+
+                        <div class="callout danger">
+                            <div class="callout-title">🚫 禁止</div>
+                            <p>絕對不要說「他根本不喜歡你」「那是假的」。否定這段關係，等於否定他的情感。</p>
+                        </div>
+
+                        <h2>提問一：不否定關係，提出驗證建議</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「我不懷疑你們之間的感情。如果他是真的，他一定願意跟你見面，或者用視訊通話證明他是他。你要不要試試看？」</div>
+                        </div>
+
+                        <h2>提問二：挑戰「借錢」的合理性</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「如果他真的受傷了，正常的做法是聯繫當地醫院和保險公司，而不是要你從台灣匯錢。你要不要問他醫院的名字，我們幫你確認一下？」</div>
+                        </div>
+
+                        <h2>對方說「他不會騙我，他對我很好。」</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「我不是說他在騙你。我們一起確認一下，如果沒問題，你也更安心，對不對？一段好的關係不怕被檢驗的。」</div>
+                        </div>
+
+                        <h2>對方完全拒絕，態度敵對</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「我完全尊重你，我不會再說了。但你想一想——如果今天你的家人遇到這種狀況，你會不會希望有人多問一句？我只是那個多問一句的人。這是我的名片，如果你之後想聊，隨時打給我。」</div>
+                        </div>
+                    </div>
+
+                    <!-- TYPE D: ARROGANT REFUSAL -->
+                    <div class="tab-content" data-content="typeD">
+                        <h3>D. 傲慢拒絕型（傲：我比你懂）</h3>
+
+                        <h2>提問一：肯定他的判斷力，再提出一個小問題</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「看得出來您在這方面做了很多功課，比大多數人謹慎。正因為您這麼謹慎，我才想請教您一件事——這家公司，您有查過它在金管會的登記資料嗎？」</div>
+                        </div>
+
+                        <h2>提問二：用「您來幫我解釋」取代「讓我告訴你」</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「我有個疑問想請教您——正規的投資平台為什麼需要您匯款到私人帳戶，而不是公司戶？您怎麼看這件事？」</div>
+                        </div>
+                    </div>
+
+                    <!-- TYPE E: PROACTIVE DOUBT -->
+                    <div class="tab-content" data-content="typeE">
+                        <h3>E. 主動懷疑型（疑：不確定）</h3>
+
+                        <h2>步驟一：肯定他的直覺</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「您的感覺是對的。我們一起來把幾個地方確認清楚。對方說這筆錢是要做什麼用的？」</div>
+                        </div>
+
+                        <h2>步驟二：驗證清單</h2>
+                        <ul>
+                            <li>對方的身分有沒有辦法查證（地檢署電話、金管會網站）？</li>
+                            <li>對方有沒有要求保密？</li>
+                            <li>對方有沒有說「現在不做就來不及了」？</li>
+                            <li>你有沒有見過本人或視訊通話？</li>
+                        </ul>
+
+                        <h2>步驟三：陪他一起查證</h2>
+                        <div class="dialog">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「我們現在可以馬上查——我陪您一起打電話到那個單位確認，好嗎？」</div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="divider">
+                <div class="callout success">
+                    <div class="callout-title">✅ 進入下一步的訊號</div>
+                    <p>對方開始猶豫 ／ 同意先暫停匯款 ／ 表示願意再確認一下 → 進入守（保護）</p>
+                </div>
+            </div>
+
+            <!-- ========== STEP 5: 守 ========== -->
+            <div class="step-section" id="step5">
+                <div class="section-title">🛡 第五步：守（保護）</div>
+                <p><strong>目的：</strong>鞏固對方的決定，防止他事後動搖。</p>
+                <p><strong>時間：</strong>約 4 分鐘。&emsp;<strong>原則：</strong>不讓他一個人面對後續。</p>
+
+                <div class="step-cards step-counter">
+                    <div class="step-card">
+                        <strong>接住羞恥感（搶在自責之前說）</strong>
+                        <p style="margin-top:10px; font-size:12px;">被害人發現真相的那一刻，羞恥感和自責會立刻湧上來，必須在他說「我好笨」之前先接住他。</p>
+                        <div class="dialog" style="margin-top:10px;">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「你剛才做了一個非常勇敢的決定。能在這種壓力下停下來確認，大部分人做不到。」</div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <strong>歸因給詐騙者，不歸因給他的智商</strong>
+                        <div class="dialog" style="margin-top:10px;">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「這些打電話的人是專門受過訓練的，他們每天就在研究怎麼讓人害怕、怎麼讓人來不及思考。醫生、老師、銀行經理都遇過一模一樣的事。這不是判斷力的問題，是他們太專業了。」</div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <strong>連結支持網絡</strong>
+                        <div class="dialog" style="margin-top:10px;">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「你方便打個電話讓家人知道嗎？不是要他們來罵你，是讓身邊有個人陪你。你覺得誰比較適合？」</div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <strong>提醒詐騙者可能再次施壓</strong>
+                        <div class="dialog" style="margin-top:10px;">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「最後有一件很重要的事要提醒你。接下來那個人很可能還會再打來，而且會比之前更用力施壓。他可能會說：『你被警察騙了，那個警察才是詐騙的。』這些全部都是標準話術——如果他再打來，直接掛掉，不需要回應，也不需要解釋。」</div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <strong>留下安全網</strong>
+                        <div class="dialog" style="margin-top:10px;">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「這是我的名片。如果你之後有任何不安，或者那個人又聯繫你，隨時打給我。你也可以直接撥 165 反詐騙專線。」</div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <strong>預告心理反應</strong>
+                        <div class="dialog" style="margin-top:10px;">
+                            <div class="dialog-label">👮 員警說：</div>
+                            <div class="dialog-text">「接下來幾天你可能會反覆想這件事，會覺得不舒服、睡不好、對自己生氣，這都是正常的反應，會慢慢過去的。你不需要一個人扛。」</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== APPENDIX ========== -->
+            <div class="step-section">
+                <div class="section-title">附錄　現場快速查找卡</div>
+                <p class="section-intro">遇到以下狀況時，快速查詢對應的回應方式：</p>
+
+                <table>
+                    <tr><th>對方說……</th><th>你可以回……</th><th>步驟</th></tr>
+                    <tr>
+                        <td>「這是我的錢，你管不著。」</td>
+                        <td>「您說得對，最終決定權在您。我只是想幫您多確認一下，確認完您再決定。」</td>
+                        <td><strong>穩（黃燈）</strong></td>
+                    </tr>
+                    <tr>
+                        <td>「他不會騙我的。」</td>
+                        <td>「我不是說他在騙你。我們一起確認一下，如果沒問題，你也更安心，對不對？」</td>
+                        <td><strong>問（感情）</strong></td>
+                    </tr>
+                    <tr>
+                        <td>「我很急，不要浪費我的時間。」</td>
+                        <td>「如果這件事是真的，晚三分鐘不會有任何影響。但如果不是真的，這三分鐘可以幫你留住這筆錢。」</td>
+                        <td><strong>穩（紅燈）</strong></td>
+                    </tr>
+                    <tr>
+                        <td>「檢察官說不能告訴別人。」</td>
+                        <td>「真正的檢察官不會用電話辦案，也不會禁止你跟家人說。光是這一點，就值得我們一起確認一下。」</td>
+                        <td><strong>穩（保密）</strong></td>
+                    </tr>
+                    <tr>
+                        <td>「我已經賺到錢了。」</td>
+                        <td>「你實際拿回來的有多少？APP 上的數字和你口袋裡的錢是兩回事。」</td>
+                        <td><strong>問（投資）</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- CORE REMINDER -->
+            <div class="core-reminder">
+                <div class="reminder-text">核心提醒</div>
+                <div style="font-size:14px; margin-bottom: 10px;">你是在跟詐騙者搶人，不是在跟被害人對抗。</div>
+                <div class="author-credit">田心喬醫師 研究設計｜新光醫院精神科</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- BACK TO TOP BUTTON -->
+    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+
+    <script>
+        // ===== MENU TOGGLE =====
+        const menuBtn = document.getElementById('menuBtn');
+        const menuCloseBtn = document.getElementById('menuCloseBtn');
+        const sideMenu = document.getElementById('sideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+
+        menuBtn.addEventListener('click', () => {
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('open');
+        });
+
+        menuCloseBtn.addEventListener('click', () => {
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('open');
+        });
+
+        menuOverlay.addEventListener('click', () => {
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('open');
+        });
+
+        // Close menu when a link is clicked
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (item.getAttribute('href').startsWith('#')) {
+                    sideMenu.classList.remove('open');
+                    menuOverlay.classList.remove('open');
+                }
+            });
+        });
+
+        // ===== TAB SWITCHING =====
+        function switchTab(button, tabName) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Add active class to clicked button
+            button.classList.add('active');
+
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // Show the selected tab content
+            document.querySelector(`[data-content="${tabName}"]`).classList.add('active');
+        }
+
+        // ===== EXPANDABLE SECTIONS =====
+        document.querySelectorAll('.expandable-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                this.classList.toggle('open');
+                content.classList.toggle('open');
+            });
+        });
+
+        // ===== PROGRESS INDICATOR =====
+        window.addEventListener('scroll', () => {
+            const dots = document.querySelectorAll('.progress-dot');
+            const sections = document.querySelectorAll('.step-section');
+
+            sections.forEach((section, index) => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+                    dots.forEach(dot => dot.classList.remove('active'));
+                    if (dots[index]) dots[index].classList.add('active');
+                }
+            });
+        });
+
+        // ===== BACK TO TOP BUTTON =====
+        const backToTopBtn = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('show');
+            } else {
+                backToTopBtn.classList.remove('show');
+            }
+        });
+
+        // ===== ANIMATION ON SCROLL =====
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.flowchart-node').forEach(node => {
+            observer.observe(node);
+        });
+
+        // ===== SMOOTH SCROLL FOR MENU LINKS =====
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize all tabs (first tab should be active by default)
+        document.querySelectorAll('.tabs-container').forEach(container => {
+            const firstBtn = container.querySelector('.tab-button');
+            const firstContent = container.querySelector('.tab-content');
+            if (firstBtn && firstContent) {
+                firstBtn.classList.add('active');
+                firstContent.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>

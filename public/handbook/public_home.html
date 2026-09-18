@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>民眾防詐專區 · 看穩聽問守</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{--teal:#0e7a5f;--teal2:#0a5c48;--tealbg:#e6f4ef;--ink:#1c2536;--muted:#6b7688;--line:#e5e9ef;--soft:#f4f6f9;--red:#c94a3f;--navy:#1a2c4e;--green:#3ea173;--amber:#d7a854;--blue:#2f6fb5;}
+  body{font-family:"Noto Sans TC","Microsoft JhengHei","微軟正黑體",sans-serif;background:var(--soft);color:var(--ink);min-height:100dvh;}
+  .topbar{background:var(--teal);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+  .topbar .l{display:flex;align-items:center;gap:10px;}
+  .topbar .shield{width:32px;height:32px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;}
+  .topbar .tt{font-size:16px;font-weight:800;}
+  .topbar .tt small{display:block;font-size:10.5px;font-weight:500;color:#c8e8dc;margin-top:1px;}
+  .switch{display:flex;align-items:center;gap:8px;background:#fff;color:var(--teal2);font-size:14px;font-weight:800;text-decoration:none;border-radius:30px;padding:9px 16px 9px 12px;box-shadow:0 3px 10px rgba(0,0,0,.15);}
+  .switch .av span{width:26px;height:26px;border-radius:50%;background:var(--tealbg);border:2px solid #fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;margin-left:-8px;}
+  .switch .av span:first-child{margin-left:0;}
+  /* hero（比照員警版主打） */
+  .hero{position:relative;background:linear-gradient(135deg,#0a5c48 0%,#0e7a5f 55%,#14926f 100%);color:#fff;padding:36px 20px 30px;overflow:hidden;}
+  .hero::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06);}
+  .hero .in{max-width:900px;margin:0 auto;position:relative;}
+  .hero .pill{display:inline-block;background:var(--amber);color:var(--navy);font-size:12.5px;font-weight:800;padding:6px 16px;border-radius:20px;margin-bottom:14px;}
+  .hero h1{font-size:28px;font-weight:800;line-height:1.35;letter-spacing:.5px;}
+  .hero .sub{font-size:14px;color:#d5efe5;margin-top:10px;letter-spacing:1px;}
+  .hero .sub b{color:#fff;font-size:16px;letter-spacing:4px;}
+  .hero p{font-size:13.5px;color:#d5efe5;margin-top:12px;line-height:1.8;max-width:600px;}
+  .hero .cta{display:inline-block;margin-top:16px;background:#fff;color:var(--teal2);font-size:15px;font-weight:800;border-radius:12px;padding:13px 26px;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.18);}
+  .hero .mic{font-size:11.5px;color:#c8e8dc;margin-top:10px;}
+  .wrap{max-width:900px;margin:0 auto;padding:6px 18px 96px;}
+  .sect{font-size:18px;font-weight:800;color:var(--ink);margin:26px 0 4px;}
+  .sect small{display:block;font-size:12.5px;color:var(--muted);font-weight:500;margin-top:4px;line-height:1.6;}
+  /* 五步卡（比照員警版 STEP 卡） */
+  .steps{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+  @media(max-width:640px){.steps{grid-template-columns:1fr;}}
+  .step{background:#fff;border-radius:16px;padding:22px 18px 18px;text-align:center;border-top:7px solid var(--c);}
+  .step .n{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:2px;}
+  .step .em{font-size:36px;margin:12px 0 8px;}
+  .step h3{font-size:19px;font-weight:800;}
+  .step .you{font-size:12px;font-weight:700;color:var(--c);margin-top:4px;}
+  .step p{font-size:13px;color:#40506a;line-height:1.75;margin-top:10px;text-align:left;}
+  .step.wide{grid-column:1/-1;display:flex;align-items:center;gap:18px;text-align:left;padding:18px 20px;}
+  .step.wide .em{font-size:40px;margin:0;flex:none;}
+  .step.wide h3{display:inline;}
+  .step.wide .you{display:inline;margin-left:8px;}
+  .step.wide p{margin-top:6px;}
+  /* 圖鑑：改為圖形分類，不再滿版文字 */
+  .grp{margin-top:20px;background:#fff;border-radius:16px;padding:16px 16px 12px;border-left:6px solid var(--gc);}
+  .grp .gt{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800;}
+  .grp .gt .em{font-size:28px;}
+  .grp .gt .tag{font-size:11px;font-weight:700;color:var(--gc);background:var(--soft);border-radius:20px;padding:3px 11px;margin-left:auto;}
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;}
+  @media(max-width:560px){.tiles{grid-template-columns:1fr;}}
+  .tile{background:var(--soft);border-radius:13px;padding:14px 12px 12px;text-align:center;cursor:pointer;border:1.5px solid transparent;transition:.15s;}
+  .tile:active{transform:scale(.98);}
+  .tile.open{border-color:var(--gc);background:#fff;}
+  .tile .ic{width:54px;height:54px;border-radius:50%;background:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .tile.open .ic{background:var(--soft);}
+  .tile h4{font-size:14px;font-weight:800;margin-top:9px;}
+  .tile .ai{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4;}
+  .tile .flags{display:none;}   /* 卡面不放三個小圖，保持清爽 */
+  .tile .more{font-size:12px;color:var(--gc);font-weight:700;margin-top:10px;}
+  /* 點開後：一次只顯示一項紅旗——大圖示＋一句大字，按「下一個」逐項翻，長輩看得清 */
+  .tile .detail{display:none;margin-top:12px;border-top:1px dashed var(--line);padding-top:12px;}
+  .tile.open .detail{display:block;}
+  .tile .detail div{display:none;font-size:15px;color:#243049;line-height:1.7;padding:0;text-align:center;font-weight:700;}
+  .tile .detail div.on{display:block;}
+  .tile .detail div::before{content:attr(data-ic);display:block;font-size:52px;line-height:1;margin-bottom:10px;}
+  .tile .nav{display:none;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;}
+  .tile.open .nav{display:flex;}
+  .tile .nav button{flex:1;border:none;border-radius:10px;padding:11px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;background:var(--gc);color:#fff;}
+  .tile .nav button.ghost{background:#fff;color:var(--gc);border:1.5px solid var(--gc);}
+  .tile .nav .pos{font-size:12.5px;color:var(--muted);font-weight:700;white-space:nowrap;}
+  .kswd{font-size:11.5px;color:var(--muted);text-align:center;margin-top:10px;}
+  .bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:10;}
+  .bottom a{width:min(100%,500px);text-align:center;background:var(--teal);color:#fff;font-size:16px;font-weight:800;border-radius:13px;padding:15px;text-decoration:none;box-shadow:0 6px 18px rgba(14,122,95,.3);}
+  .src{font-size:11px;color:#8a94a6;text-align:center;margin-top:26px;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="l"><div class="shield">👨‍👩‍👧‍👦</div><div class="tt">民眾防詐專區<small>自我保護 · 看穩聽問守</small></div></div>
+  <a class="switch" href="/"><span class="av"><span>👮</span><span>🏦</span><span>👨‍👩‍👧</span></span>切換身分</a>
+</div>
+
+<div class="hero"><div class="in">
+  <span class="pill">全民防詐自我保護</span>
+  <h1>詐騙先動搖人心，<br>再奪走財產</h1>
+  <div class="sub">自我保護五大技巧：<b>看・穩・聽・問・守</b></div>
+  <p>員警攔阻詐騙用這五步，你保護自己也用同一套——差別只是這次「要穩住的人是你自己」。先學五步，再讓 AI 扮演詐騙者來找你，實際對打一場。</p>
+  <a class="cta" href="/mg?group=B">🎯 開始 AI 詐騙演練</a>
+  <div class="mic">🎤 演練中按麥克風說話就好，AI 用文字回應你</div>
+</div></div>
+
+<div class="wrap">
+  <div class="sect">五步驟自我保護<small>對方越急、你越要慢。每一步都是幫自己爭取「想清楚」的時間</small></div>
+  <div class="steps">
+    <div class="step" style="--c:#c94a3f"><div class="n">STEP 1</div><div class="em">👁️</div><h3>看・看清警訊</h3><div class="you">先看，不要急著回應</div>
+      <p>對方是不是<b>來歷不明</b>（陌生來電、私訊加好友）？是不是一開口就講到<b>錢、帳戶、個資、限時</b>？看到這些警訊，這通電話／訊息就先當可疑。</p></div>
+    <div class="step" style="--c:#1a2c4e"><div class="n">STEP 2</div><div class="em">🧘</div><h3>穩・穩住自己</h3><div class="you">深呼吸，先掛斷</div>
+      <p>詐騙全靠「急」和「怕」讓你來不及想。心跳加速、手心冒汗的時候就是被操控的時候——<b>先掛斷、離開對話</b>，真正重要的事永遠等得起十分鐘。</p></div>
+    <div class="step" style="--c:#3ea173"><div class="n">STEP 3</div><div class="em">👂</div><h3>聽・聽出破綻</h3><div class="you">聽他要什麼，不聽他說什麼</div>
+      <p>不管故事多逼真，注意他<b>最後要你做什麼</b>：轉帳、給密碼、寄卡、操作 ATM、下載 App、不能告訴家人——只要出現任何一項，就是詐騙。</p></div>
+    <div class="step" style="--c:#d7a854"><div class="n">STEP 4</div><div class="em">🧭</div><h3>問・問對的人</h3><div class="you">掛掉，找別人問</div>
+      <p>不要問對方、不要打他給的電話。掛斷後<b>撥 165 或 110</b>，或打給家人、回撥原本認識的號碼查證。真的公家機關、銀行、親友，都禁得起你回頭查。</p></div>
+    <div class="step wide" style="--c:#0e7a5f"><div class="em">🛡️</div><div><h3>STEP 5・守・守住底線</h3><span class="you">三不：不匯款・不交卡・不給密碼</span>
+      <p>不照任何人指示操作 ATM／網銀，不寄提款卡、不給帳號密碼、不匯款給陌生帳戶。守住這一步，錢就還在你身上。發現被騙也不是你笨，是他們太專業——立刻撥 165 止付、告訴家人。</p></div></div>
+  </div>
+
+  <div class="sect">常見詐騙手法圖鑑<small>依 165 打詐儀錶板統計，各年齡層最常遇到的九種劇本。點一張看破綻紅旗，先看過一次、遇到就不會慌</small></div>
+
+  <div class="grp" style="--gc:#c94a3f">
+    <div class="gt"><span class="em">👴</span>長輩最常遇到<span class="tag">165 高齡被害前三名</span></div>
+    <div class="tiles">
+      <div class="tile" onclick="tg(this)"><div class="ic">📞</div><h4>假檢警來電</h4><div class="ai">AI 扮演：冒充檢察官／書記官</div>
+        <div class="flags"><span>⚖️</span><span>🤫</span><span>⏰</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="⚖️">真檢警不會用電話辦案，更不會要你把錢轉到「監管帳戶」</div><div data-ic="🤫">以「偵查不公開」要求保密、不能告訴家人</div><div data-ic="⏰">用「凍結帳戶／通緝」製造恐懼、限時逼你處理</div></div></div>
+      <div class="tile" onclick="tg(this)"><div class="ic">📈</div><h4>假投資（退休金）</h4><div class="ai">AI 扮演：冒充「投資老師／理財專員」</div>
+        <div class="flags"><span>💯</span><span>🏦</span><span>🎣</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="💯">「穩賺不賠／保證配息」——合法投資不可能保證獲利</div><div data-ic="🏦">要你解定存、把退休金轉到不明平台</div><div data-ic="🎣">前期小額配息是餌，大額投入就領不出來</div></div></div>
+      <div class="tile" onclick="tg(this)"><div class="ic">👨‍👩‍👧</div><h4>假親友借錢</h4><div class="ai">AI 扮演：冒充兒女／老朋友</div>
+        <div class="flags"><span>❓</span><span>📱</span><span>🚑</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="❓">只喊「是我啦」，等你自己喊出名字再冒充那個人</div><div data-ic="📱">用「換號碼／聲音怪」合理化各種不對勁</div><div data-ic="🚑">急用錢＋不讓其他家人知道——回撥原號碼就破解</div></div></div>
+    </div>
+  </div>
+
+  <div class="grp" style="--gc:#2f6fb5">
+    <div class="gt"><span class="em">🧑</span>青壯年最常遇到<span class="tag">165 件數財損前五名</span></div>
+    <div class="tiles">
+      <div class="tile" onclick="tg(this)"><div class="ic">📈</div><h4>假投資群組</h4><div class="ai">AI 扮演：投資群組的「老師／助理」</div>
+        <div class="flags"><span>💯</span><span>📲</span><span>🎭</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="💯">「穩賺不賠／保證獲利」一定是詐騙</div><div data-ic="📲">要求下載不明 App、匯款到個人帳戶</div><div data-ic="🎭">獲利截圖、群組成員、小額出金都可造假</div></div></div>
+      <div class="tile" onclick="tg(this)"><div class="ic">💬</div><h4>假交友詐騙</h4><div class="ai">AI 扮演：交友軟體上的「曖昧對象」</div>
+        <div class="flags"><span>💘</span><span>🙈</span><span>🎣</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="💘">沒見過面就談感情、天天噓寒問暖建立依賴</div><div data-ic="🙈">以急難／投資為由要錢，卻拒絕視訊或見面</div><div data-ic="🎣">帶你「小額試水溫」，嘗到甜頭再誘導大額加碼</div></div></div>
+      <div class="tile" onclick="tg(this)"><div class="ic">🛒</div><h4>假客服解除分期</h4><div class="ai">AI 扮演：冒充購物網站／銀行客服</div>
+        <div class="flags"><span>🏧</span><span>📦</span><span>⏰</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="🏧">ATM 和網銀都沒有「解除分期」功能</div><div data-ic="📦">講得出你的訂單是因為個資外洩，不代表是真客服</div><div data-ic="⏰">假銀行專員「接力演出」＋限時結算製造緊張</div></div></div>
+    </div>
+  </div>
+
+  <div class="grp" style="--gc:#d7a854">
+    <div class="gt"><span class="em">🎒</span>青少年最常遇到<span class="tag">校園宣導重點</span></div>
+    <div class="tiles">
+      <div class="tile" onclick="tg(this)"><div class="ic">💸</div><h4>車手高薪招募</h4><div class="ai">AI 扮演：「高薪打工」招募者</div>
+        <div class="flags"><span>💰</span><span>💳</span><span>⚖️</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="💰">高薪、免經驗、日領現金——天下沒有這種好事</div><div data-ic="💳">要你領錢、交卡、借帳戶＝車手與人頭帳戶</div><div data-ic="⚖️">「只是借帳戶」也構成幫助詐欺罪，會留案底</div></div></div>
+      <div class="tile" onclick="tg(this)"><div class="ic">🎮</div><h4>遊戲代儲詐騙</h4><div class="ai">AI 扮演：「便宜代儲／賣帳號」的人</div>
+        <div class="flags"><span>🏷️</span><span>💸</span><span>👻</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="🏷️">價格低於官方行情太多，一定有鬼</div><div data-ic="💸">只收私下轉帳／超商代碼，不走官方金流</div><div data-ic="👻">先小額取信，大額付款後就封鎖消失</div></div></div>
+      <div class="tile" onclick="tg(this)"><div class="ic">🎫</div><h4>假票券網拍</h4><div class="ai">AI 扮演：賣演唱會門票／限量商品的人</div>
+        <div class="flags"><span>🔒</span><span>⏰</span><span>🪪</span></div><div class="more">點看紅旗 ▾</div>
+        <div class="detail"><div data-ic="🔒">只能私下轉帳，不走有保障的平台交易</div><div data-ic="⏰">限時催促付款，不給你查證時間</div><div data-ic="🪪">票券截圖、購買證明、證件照都可能偽造盜用</div></div></div>
+    </div>
+  </div>
+
+  <div class="src">資料來源：內政部警政署 165 打詐儀錶板・警政統計｜研究設計：田心喬醫師（新光醫院精神科）<br>遇到疑似詐騙：撥打 165 反詐騙諮詢專線（24 小時）或 110</div>
+</div>
+<div class="bottom"><a href="/mg?group=B">🎯 開始 AI 詐騙演練（按 🎤 說話）</a></div>
+<script>
+// 卡片：點卡面展開／收合；展開後一次只看一項紅旗（大圖＋一句話），用「上一個／下一個」逐項翻
+function tg(el){
+  const open=!el.classList.contains('open');
+  el.classList.toggle('open',open);
+  el.querySelector('.more').textContent=open?'收合 ▴':'點看紅旗 ▾';
+  if(open){
+    const items=el.querySelectorAll('.detail div');
+    if(!el.querySelector('.nav')){
+      const nav=document.createElement('div');nav.className='nav';
+      nav.innerHTML='<button class="ghost" onclick="event.stopPropagation();step(this,-1)">◂ 上一個</button><span class="pos"></span><button onclick="event.stopPropagation();step(this,1)">下一個 ▸</button>';
+      el.querySelector('.detail').after(nav);
+    }
+    el.dataset.i=0;showItem(el);
+  }
+}
+function showItem(el){
+  const items=el.querySelectorAll('.detail div'),i=+el.dataset.i||0;
+  items.forEach((d,k)=>d.classList.toggle('on',k===i));
+  el.querySelector('.nav .pos').textContent='第 '+(i+1)+' 個 / 共 '+items.length+' 個';
+  const btns=el.querySelectorAll('.nav button');
+  btns[0].disabled=(i===0);btns[0].style.opacity=i===0?'.4':'';
+  btns[1].textContent=(i===items.length-1)?'看完了 ✓':'下一個 ▸';
+}
+function step(btn,dir){
+  const el=btn.closest('.tile'),items=el.querySelectorAll('.detail div');
+  let i=(+el.dataset.i||0)+dir;
+  if(i>=items.length){tg(el);return;}   // 最後一項再按 → 收合
+  if(i<0)i=0;
+  el.dataset.i=i;showItem(el);
+}
+</script>
+</body>
+</html>

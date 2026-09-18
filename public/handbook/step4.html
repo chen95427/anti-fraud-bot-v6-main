@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>問・讓他自己發現問題</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#1a2c4e;
+    --navy-700:#24406b;
+    --gold-500:#d7a854;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --line:#e5e9ef;
+    --text-900:#1c2536;
+    --text-700:#3b4658;
+    --text-500:#6b7688;
+    --red:#c94a3f;
+    --red-bg:#fbebe9;
+    --green:#3ea173;
+    --green-bg:#e9f6ef;
+    --blue-bg:#eaf1fb;
+    --blue-line:#c7dbf3;
+    --font:'Noto Sans TC', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--font); background:var(--bg); color:var(--text-900); -webkit-font-smoothing:antialiased;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
+
+  .app{max-width:720px; margin:0 auto; min-height:100vh; background:var(--bg);}
+
+  .header{background:var(--navy-900); color:#fff; padding:16px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .shield{width:28px; height:28px; border-radius:7px; background:var(--gold-500); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .brand-name{font-size:15px; font-weight:700;}
+  .badge{background:var(--gold-500); color:var(--navy-900); font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px;}
+
+  .tabs{display:flex; background:#fff; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:14px 8px; font-size:14px; font-weight:700; color:var(--text-500); cursor:pointer;}
+  .tab.active{color:var(--navy-900); border-bottom:2.5px solid var(--navy-900);}
+
+  .breadcrumb{padding:14px 22px 0; font-size:12.5px; color:var(--text-500); display:flex; align-items:center; gap:6px;}
+  .breadcrumb b{color:var(--navy-700); font-weight:700;}
+
+  .content{padding:18px 22px 60px;}
+
+  .title-row{display:flex; align-items:center; gap:10px; margin:6px 0 16px;}
+  .title-icon{font-size:24px;}
+  .title-text{font-size:21px; font-weight:900; color:var(--navy-900);}
+  .hr{height:1px; background:var(--line); margin-bottom:20px;}
+
+  .section-label{font-size:14.5px; font-weight:900; color:var(--navy-900); margin:0 0 10px;}
+  .section-sub{font-size:12.5px; color:var(--text-500); margin:-6px 0 12px; line-height:1.7;}
+
+  .principle-box{
+    background:var(--blue-bg); border:1px solid var(--blue-line); border-radius:10px;
+    padding:14px 16px; margin-bottom:26px; font-size:13.5px; line-height:1.75; color:#233a5c;
+    display:flex; gap:10px; align-items:flex-start;
+  }
+  .principle-box .ic{font-size:16px; flex-shrink:0;}
+  .principle-box b{color:var(--navy-900);}
+
+  table.ref-table{width:100%; border-collapse:collapse; background:var(--card); border-radius:10px; overflow:hidden; margin-bottom:30px; box-shadow:0 1px 2px rgba(20,30,50,0.05);}
+  table.ref-table th{background:var(--navy-900); color:#fff; font-size:12.5px; font-weight:700; text-align:left; padding:11px 14px;}
+  table.ref-table td{padding:11px 14px; font-size:12.5px; color:var(--text-700); border-bottom:1px solid var(--line); line-height:1.65;}
+  table.ref-table tr:last-child td{border-bottom:none;}
+  .dim-cell{font-weight:700; color:var(--text-900); white-space:nowrap;}
+
+  /* ---- case practice ---- */
+  .case-section{margin-top:8px;}
+  .case-heading{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+  .case-heading .n{width:24px; height:24px; border-radius:50%; background:var(--navy-900); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .case-heading b{font-size:15.5px; color:var(--navy-900);}
+  .case-sub{font-size:13px; color:var(--text-500); margin:0 0 18px 32px; line-height:1.7;}
+
+  .case-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(20,30,50,0.05);}
+  .case-tag{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--navy-700); background:var(--blue-bg); padding:4px 10px; border-radius:999px; margin-bottom:10px;}
+  .case-text{font-size:14.5px; line-height:1.8; color:var(--text-900); margin-bottom:6px;}
+  .case-said{background:var(--bg); border-left:3px solid var(--text-500); border-radius:6px; padding:9px 12px; font-size:13px; color:var(--text-700); margin-bottom:14px; line-height:1.6;}
+
+  .case-prompt{font-size:12.5px; font-weight:700; color:var(--text-500); margin-bottom:9px;}
+  .resp-list{display:flex; flex-direction:column; gap:8px;}
+  .opt-wrap{display:flex; flex-direction:column;}
+  .resp-btn{text-align:left; background:#fff; border:1.5px solid var(--line); border-radius:9px; padding:11px 13px; font-family:var(--font); font-size:13.5px; line-height:1.65; color:var(--text-900); cursor:pointer; transition:border-color 0.15s;}
+  .resp-btn:active{transform:scale(0.995);}
+  .resp-btn:disabled{cursor:default;}
+  .resp-btn.correct{border-color:var(--green); background:var(--green-bg); border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .resp-btn.wrong{border-color:var(--red); background:var(--red-bg); border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .resp-btn.faded{opacity:0.55;}
+
+  .opt-explain{display:none; font-size:12.5px; line-height:1.65; padding:9px 13px 11px; border:1.5px solid var(--line); border-top:none; border-radius:0 0 9px 9px;}
+  .opt-explain.show{display:flex; gap:7px; align-items:flex-start;}
+  .opt-explain.correct{border-color:var(--green); background:var(--green-bg); color:#1d5c40;}
+  .opt-explain.wrong{border-color:var(--red); background:var(--red-bg); color:#7a2b23;}
+  .opt-explain .mark{flex-shrink:0; font-weight:900; font-size:12px; margin-top:1px;}
+
+  .case-done-note{text-align:center; font-size:12.5px; color:var(--text-500); padding:16px; background:var(--card); border:1px dashed var(--line); border-radius:10px; margin-top:6px; line-height:1.7;}
+  .congrats-line{font-size:15px; font-weight:900; color:var(--green); margin-bottom:6px;}
+
+  .continue-btn{display:block; width:100%; margin-top:22px; background:var(--navy-900); color:#fff; border:none; padding:14px; border-radius:10px; font-family:var(--font); font-weight:700; font-size:14.5px; cursor:pointer;}
+
+.step-nav{
+  display:flex; gap:6px; padding:12px 16px; background:#fff; border-bottom:1px solid var(--line);
+  overflow-x:auto;
+}
+.step-pill{
+  display:flex; align-items:center; gap:6px; flex-shrink:0; text-decoration:none;
+  background:var(--bg); border:1.5px solid var(--line); border-radius:999px;
+  padding:7px 14px 7px 8px; font-family:'Noto Sans TC', sans-serif; font-size:12.5px; font-weight:700;
+  color:var(--text-500); cursor:pointer; transition:all 0.15s;
+}
+.step-pill .sp-num{
+  width:20px; height:20px; border-radius:50%; background:var(--line); color:var(--text-500);
+  font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.step-pill.active{background:var(--navy-900); border-color:var(--navy-900); color:#fff;}
+.step-pill.active .sp-num{background:var(--gold-500); color:var(--navy-900);}
+.back-link{
+  display:inline-flex; align-items:center; gap:4px; text-decoration:none;
+  color:var(--text-500); font-size:12.5px; font-weight:700;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="shield">🛡️</div>
+      <div class="brand-name">員警阻詐溝通技巧</div>
+    </div>
+    <a href="/handbook/index.html" class="badge" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;">↑ 回上一層</a>
+  </div>
+
+  <div class="tabs">
+    <a class="tab active" href="index.html" style="text-decoration:none;">操作手冊</a>
+    <a class="tab" href="index.html#tools" style="text-decoration:none;">工具資源</a>
+    <a class="tab" href="javascript:void(0)" onclick="goPractice()" style="text-decoration:none;">AI 阻詐教練</a>
+  </div>
+
+    <div class="step-nav">
+    <a class="step-pill" href="step1.html"><span class="sp-num">1</span><span class="sp-name">看</span></a><a class="step-pill" href="step2.html"><span class="sp-num">2</span><span class="sp-name">穩</span></a><a class="step-pill" href="step3.html"><span class="sp-num">3</span><span class="sp-name">聽</span></a><a class="step-pill active" href="step4.html"><span class="sp-num">4</span><span class="sp-name">問</span></a><a class="step-pill" href="step5.html"><span class="sp-num">5</span><span class="sp-name">守</span></a>
+  </div>
+  <div class="breadcrumb"><a class="back-link" href="index.html">← 返回總覽</a></div>
+
+  <div class="content">
+    <div class="title-row">
+      <span class="title-icon">🧭</span>
+      <span class="title-text">問（引導）－讓他自己發現問題</span>
+    </div>
+    <div class="hr"></div>
+
+    <div class="section-label">核心原則</div>
+    <div class="principle-box">
+      <span class="ic">💡</span>
+      <span><b>不說「你被騙了」，用提問帶他自己想。</b>對方不配合時：說「好，您不想聊沒關係。」停頓後再用另一個問題繞回來，不要追問到底。</span>
+    </div>
+
+    <div class="section-label">提問方向</div>
+    <p class="section-sub">不同類型的破綻不一樣，但邏輯都一樣：挑一個對方敘述裡「不合理的地方」，用問題讓他自己說出矛盾，而不是你來下結論。</p>
+    <table class="ref-table">
+      <tr><th>類型</th><th>挑戰方向</th><th>提問角度</th></tr>
+      <tr><td class="dim-cell">假檢警詐騙</td><td>方式與保密的合理性</td><td>為什麼不是正式公文，而是電話叫你操作 ATM？真正機關會不會禁止你跟家人講？</td></tr>
+      <tr><td class="dim-cell">投資詐騙</td><td>穩賺與先繳費的合理性</td><td>真的保證穩賺，為什麼還要你先繳保證金或稅金？</td></tr>
+      <tr><td class="dim-cell">感情詐騙</td><td>見面與金錢流向的合理性</td><td>你們真的見過面、視訊過嗎？他跟你要錢的理由合理嗎？</td></tr>
+      <tr><td class="dim-cell">傲慢拒絕型</td><td>不反駁，問「如果」</td><td>如果最後真的是一場空，你覺得他們現在人會在哪裡？</td></tr>
+      <tr><td class="dim-cell">主動懷疑型</td><td>順著懷疑追問細節</td><td>你自己覺得哪裡怪？是什麼時候開始覺得不對勁的？</td></tr>
+    </table>
+
+    <!-- ===== 案例練習 ===== -->
+    <div class="case-section" id="caseSection">
+      <div class="case-heading"><div class="n">✓</div><b>案例練習</b></div>
+      <p class="case-sub">3 個情境，練「用提問帶他自己發現矛盾」，而不是直接告訴他答案。答完每題，選項下方會直接顯示原因。</p>
+
+      <div id="caseList"></div>
+
+      <div class="case-done-note" id="doneNote" style="display:none;">
+        <div class="congrats-line">🎉 恭喜您答對了，我們一起進入下一個步驟</div>
+        「問」的關鍵不是問得多，是問得準——挑一個最不合理的地方，讓他自己說出答案。
+      </div>
+    </div>
+
+    <a class="continue-btn" href="step5.html" style="text-decoration:none; text-align:center; display:block;">繼續 STEP 5・守 →</a>
+  </div>
+</div>
+
+<script>
+const cases = [
+  {
+    tag:'假檢警詐騙情境',
+    text:"民眾說對方自稱檢察官，正在辦案，並提到：",
+    said:"「他說這是偵查不公開，不能讓別人知道。」",
+    options:[
+      {text:"「這是詐騙集團最常用的話術，您不要相信。」", correct:false, why:"直接下判斷「這是詐騙」，等於幫他做了結論，他沒有自己想過就被要求接受，容易引發防衛。"},
+      {text:"「真正的檢察官辦案，會不會禁止您跟家人討論？司法機關有沒有權力不讓您跟自己的家人說話？」", correct:true, why:"用提問讓他自己去想「真正的司法機關會不會這樣做」，答案他自己講出來，比你告訴他更有說服力。"},
+      {text:"「您怎麼會相信這種說法？」", correct:false, why:"聽起來像在質疑他的判斷力，容易讓人感覺被指責，反而更想證明自己是對的。"},
+      {text:"「先不要理他，我們去做別的事。」", correct:false, why:"迴避問題本身，沒有引導他去思考矛盾點，等於什麼都沒問。"}
+    ]
+  },
+  {
+    tag:'投資詐騙情境',
+    text:"民眾提到有一位「老師」在指導投資：",
+    said:"「老師說這檔穩賺不賠，只是要先繳一筆保證金才能出金。」",
+    options:[
+      {text:"「哪有什麼投資是穩賺不賠的，這就是詐騙。」", correct:false, why:"直接否定並下結論，沒有讓他自己去檢視「穩賺」跟「先繳費」這兩件事本身的矛盾。"},
+      {text:"「如果真的穩賺不賠，為什麼還需要您先繳保證金才能把錢領出來？」", correct:true, why:"精準指出敘述裡最不合理的地方——「穩賺」跟「還要先繳費」邏輯上矛盾，讓他自己發現問題所在。"},
+      {text:"「這個老師是誰？把資料給我，我幫您查。」", correct:false, why:"跳過引導思考，直接進入查證動作，錯過了讓他自己意識到矛盾的機會。"},
+      {text:"「投資本來就有風險，您要小心一點。」", correct:false, why:"講的是通用道理，沒有針對他描述的具體矛盾點提問，力道太弱。"}
+    ]
+  },
+  {
+    tag:'感情詐騙情境',
+    text:"民眾描述一段感情，語氣很堅定：",
+    said:"「他對我很好，只是最近手頭緊，需要我幫忙周轉一下。」",
+    options:[
+      {text:"「這聽起來就是感情詐騙的典型套路。」", correct:false, why:"直接貼標籤，會讓正在信任這段感情的人立刻產生防衛，拒絕繼續談。"},
+      {text:"「你們認識多久了？有實際見過面、視訊通話過嗎？」", correct:true, why:"用具體、可查證的問題（見面、視訊）讓他自己檢視這段關係的真實性，而不是被動接受你的判斷。"},
+      {text:"「網路上認識的都靠不住，你要小心。」", correct:false, why:"用概括性的說法否定他的經驗，沒有針對他自己的狀況提問，容易被當成說教。"},
+      {text:"「他要多少錢？先不要給。」", correct:false, why:"直接跳到金額和阻止的動作，沒有引導他自己去看這段關係裡不合理的地方。"}
+    ]
+  }
+];
+
+const caseList = document.getElementById('caseList');
+const doneNote = document.getElementById('doneNote');
+
+function renderCase(i){
+  const c = cases[i];
+  const card = document.createElement('div');
+  card.className = 'case-card';
+  card.innerHTML = `
+    <div class="case-tag">案例 ${i+1} · ${c.tag}</div>
+    <div class="case-text">${c.text}</div>
+    <div class="case-said">💬 ${c.said}</div>
+    <div class="case-prompt">你會怎麼提問？</div>
+    <div class="resp-list"></div>
+  `;
+  caseList.appendChild(card);
+
+  const list = card.querySelector('.resp-list');
+  c.options.forEach(opt=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'opt-wrap';
+
+    const btn = document.createElement('button');
+    btn.className = 'resp-btn';
+    btn.textContent = opt.text;
+    btn.onclick = ()=> pick(card, c, btn);
+
+    const explain = document.createElement('div');
+    explain.className = 'opt-explain';
+    explain.innerHTML = `<span class="mark">${opt.correct ? '✓' : '✗'}</span><span>${opt.why}</span>`;
+
+    wrap.appendChild(btn);
+    wrap.appendChild(explain);
+    list.appendChild(wrap);
+  });
+}
+
+function pick(card, c, chosenBtn){
+  const wraps = card.querySelectorAll('.opt-wrap');
+  wraps.forEach((wrap, idx)=>{
+    const opt = c.options[idx];
+    const btn = wrap.querySelector('.resp-btn');
+    const explain = wrap.querySelector('.opt-explain');
+    btn.disabled = true;
+    if(opt.correct){
+      btn.classList.add('correct');
+      explain.classList.add('show', 'correct');
+    } else {
+      if(btn === chosenBtn) btn.classList.add('wrong');
+      else btn.classList.add('faded');
+      explain.classList.add('show', 'wrong');
+    }
+  });
+
+  const i = cases.indexOf(c);
+  if(i < cases.length - 1){
+    setTimeout(()=>{ renderCase(i+1); }, 700);
+  } else {
+    doneNote.style.display = 'block';
+  }
+}
+
+renderCase(0);
+</script>
+<script>
+(function(){var ua=navigator.userAgent,inApp=false;
+if(/Line\//i.test(ua)||/FBAN|FBAV|FB_IAB/i.test(ua)||/Instagram/i.test(ua)||/Messenger/i.test(ua))inApp=true;
+window.__inApp=inApp;})();
+function goPractice(){var url='/mg?group=A&role=police',ua=navigator.userAgent,abs=location.origin+url;
+if(window.__inApp){
+ if(/Line\//i.test(ua)){location.href=abs+'&openExternalBrowser=1';return;}
+ if(/Android/i.test(ua)){location.href='intent://'+abs.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return;}
+ if(/iPad|iPhone|iPod/i.test(ua)){location.href='x-safari-https://'+abs.replace(/^https?:\/\//,'');
+  setTimeout(function(){if(navigator.clipboard)navigator.clipboard.writeText(abs).catch(function(){});alert('請點右上角 ⋯ →「在 Safari 開啟」，網址已複製，可貼到 Safari');},800);return;}
+}
+location.href=url;}
+</script>
+</body>
+</html>

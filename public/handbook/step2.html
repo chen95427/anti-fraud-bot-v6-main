@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>穩・讓對方情緒平穩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#1a2c4e;
+    --navy-700:#24406b;
+    --gold-500:#d7a854;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --line:#e5e9ef;
+    --text-900:#1c2536;
+    --text-700:#3b4658;
+    --text-500:#6b7688;
+    --red:#c94a3f;
+    --red-bg:#fbebe9;
+    --amber:#d99a2b;
+    --amber-bg:#fdf3dc;
+    --green:#3ea173;
+    --green-bg:#e9f6ef;
+    --black:#20242c;
+    --blue-bg:#eaf1fb;
+    --blue-line:#c7dbf3;
+    --font:'Noto Sans TC', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--font); background:var(--bg); color:var(--text-900); -webkit-font-smoothing:antialiased;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
+
+  .app{max-width:720px; margin:0 auto; min-height:100vh; background:var(--bg);}
+
+  .header{background:var(--navy-900); color:#fff; padding:16px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .shield{width:28px; height:28px; border-radius:7px; background:var(--gold-500); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .brand-name{font-size:15px; font-weight:700;}
+  .badge{background:var(--gold-500); color:var(--navy-900); font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px;}
+
+  .tabs{display:flex; background:#fff; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:14px 8px; font-size:14px; font-weight:700; color:var(--text-500); cursor:pointer;}
+  .tab.active{color:var(--navy-900); border-bottom:2.5px solid var(--navy-900);}
+
+  .breadcrumb{padding:14px 22px 0; font-size:12.5px; color:var(--text-500); display:flex; align-items:center; gap:6px;}
+  .breadcrumb b{color:var(--navy-700); font-weight:700;}
+
+  .content{padding:18px 22px 60px;}
+
+  .title-row{display:flex; align-items:center; gap:10px; margin:6px 0 16px;}
+  .title-icon{font-size:24px;}
+  .title-text{font-size:21px; font-weight:900; color:var(--navy-900);}
+  .hr{height:1px; background:var(--line); margin-bottom:20px;}
+
+  .section-label{font-size:14.5px; font-weight:900; color:var(--navy-900); margin:0 0 10px;}
+  .section-sub{font-size:12.5px; color:var(--text-500); margin:-6px 0 12px; line-height:1.7;}
+
+  table.ref-table{width:100%; border-collapse:collapse; background:var(--card); border-radius:10px; overflow:hidden; margin-bottom:16px; box-shadow:0 1px 2px rgba(20,30,50,0.05);}
+  table.ref-table th{background:var(--navy-900); color:#fff; font-size:12.5px; font-weight:700; text-align:left; padding:11px 14px;}
+  table.ref-table td{padding:11px 14px; font-size:12.5px; color:var(--text-700); border-bottom:1px solid var(--line); line-height:1.65;}
+  table.ref-table tr:last-child td{border-bottom:none;}
+  .light-cell{display:flex; align-items:center; gap:7px; font-weight:700; color:var(--text-900); white-space:nowrap;}
+  .ld{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .ld.red{background:var(--red);} .ld.amber{background:var(--amber);} .ld.green{background:var(--green);} .ld.black{background:var(--black);}
+
+  .tip-box{background:var(--blue-bg); border:1px solid var(--blue-line); border-radius:10px; padding:14px 16px; display:flex; gap:10px; align-items:flex-start; font-size:12.5px; line-height:1.75; color:#233a5c; margin-bottom:30px;}
+  .tip-box .ic{font-size:15px; flex-shrink:0;}
+  .tip-box .tt{font-weight:900; display:block; margin-bottom:4px; color:var(--navy-900); font-size:13px;}
+
+  /* ---- case practice ---- */
+  .case-section{margin-top:8px;}
+  .case-heading{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+  .case-heading .n{width:24px; height:24px; border-radius:50%; background:var(--navy-900); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .case-heading b{font-size:15.5px; color:var(--navy-900);}
+  .case-sub{font-size:13px; color:var(--text-500); margin:0 0 18px 32px; line-height:1.7;}
+
+  .case-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(20,30,50,0.05);}
+  .case-tag{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--navy-700); background:var(--blue-bg); padding:4px 10px; border-radius:999px; margin-bottom:10px;}
+  .case-tag .ld{width:8px; height:8px;}
+  .case-text{font-size:14.5px; line-height:1.8; color:var(--text-900); margin-bottom:6px;}
+  .case-said{background:var(--bg); border-left:3px solid var(--text-500); border-radius:6px; padding:9px 12px; font-size:13px; color:var(--text-700); margin-bottom:14px; line-height:1.6;}
+
+  .case-prompt{font-size:12.5px; font-weight:700; color:var(--text-500); margin-bottom:9px;}
+  .resp-list{display:flex; flex-direction:column; gap:8px;}
+  .opt-wrap{display:flex; flex-direction:column;}
+  .resp-btn{text-align:left; background:#fff; border:1.5px solid var(--line); border-radius:9px; padding:11px 13px; font-family:var(--font); font-size:13.5px; line-height:1.65; color:var(--text-900); cursor:pointer; transition:border-color 0.15s;}
+  .resp-btn:active{transform:scale(0.995);}
+  .resp-btn:disabled{cursor:default;}
+  .resp-btn.correct{border-color:var(--green); background:var(--green-bg); border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .resp-btn.wrong{border-color:var(--red); background:var(--red-bg); border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .resp-btn.faded{opacity:0.55;}
+
+  .opt-explain{
+    display:none; font-size:12.5px; line-height:1.65; padding:9px 13px 11px;
+    border:1.5px solid var(--line); border-top:none; border-radius:0 0 9px 9px;
+  }
+  .opt-explain.show{display:flex; gap:7px; align-items:flex-start;}
+  .opt-explain.correct{border-color:var(--green); background:var(--green-bg); color:#1d5c40;}
+  .opt-explain.wrong{border-color:var(--red); background:var(--red-bg); color:#7a2b23;}
+  .opt-explain .mark{flex-shrink:0; font-weight:900; font-size:12px; margin-top:1px;}
+
+  .case-done-note{text-align:center; font-size:12.5px; color:var(--text-500); padding:16px; background:var(--card); border:1px dashed var(--line); border-radius:10px; margin-top:6px; line-height:1.7;}
+  .congrats-line{font-size:15px; font-weight:900; color:var(--green); margin-bottom:6px;}
+
+  .continue-btn{display:block; width:100%; margin-top:22px; background:var(--navy-900); color:#fff; border:none; padding:14px; border-radius:10px; font-family:var(--font); font-weight:700; font-size:14.5px; cursor:pointer;}
+
+.step-nav{
+  display:flex; gap:6px; padding:12px 16px; background:#fff; border-bottom:1px solid var(--line);
+  overflow-x:auto;
+}
+.step-pill{
+  display:flex; align-items:center; gap:6px; flex-shrink:0; text-decoration:none;
+  background:var(--bg); border:1.5px solid var(--line); border-radius:999px;
+  padding:7px 14px 7px 8px; font-family:'Noto Sans TC', sans-serif; font-size:12.5px; font-weight:700;
+  color:var(--text-500); cursor:pointer; transition:all 0.15s;
+}
+.step-pill .sp-num{
+  width:20px; height:20px; border-radius:50%; background:var(--line); color:var(--text-500);
+  font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.step-pill.active{background:var(--navy-900); border-color:var(--navy-900); color:#fff;}
+.step-pill.active .sp-num{background:var(--gold-500); color:var(--navy-900);}
+.back-link{
+  display:inline-flex; align-items:center; gap:4px; text-decoration:none;
+  color:var(--text-500); font-size:12.5px; font-weight:700;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="shield">🛡️</div>
+      <div class="brand-name">員警阻詐溝通技巧</div>
+    </div>
+    <a href="/handbook/index.html" class="badge" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;">↑ 回上一層</a>
+  </div>
+
+  <div class="tabs">
+    <a class="tab active" href="index.html" style="text-decoration:none;">操作手冊</a>
+    <a class="tab" href="index.html#tools" style="text-decoration:none;">工具資源</a>
+    <a class="tab" href="javascript:void(0)" onclick="goPractice()" style="text-decoration:none;">AI 阻詐教練</a>
+  </div>
+
+    <div class="step-nav">
+    <a class="step-pill" href="step1.html"><span class="sp-num">1</span><span class="sp-name">看</span></a><a class="step-pill active" href="step2.html"><span class="sp-num">2</span><span class="sp-name">穩</span></a><a class="step-pill" href="step3.html"><span class="sp-num">3</span><span class="sp-name">聽</span></a><a class="step-pill" href="step4.html"><span class="sp-num">4</span><span class="sp-name">問</span></a><a class="step-pill" href="step5.html"><span class="sp-num">5</span><span class="sp-name">守</span></a>
+  </div>
+  <div class="breadcrumb"><a class="back-link" href="index.html">← 返回總覽</a></div>
+
+  <div class="content">
+    <div class="title-row">
+      <span class="title-icon">🧘</span>
+      <span class="title-text">穩（穩心）－讓對方情緒平穩</span>
+    </div>
+    <div class="hr"></div>
+
+    <div class="section-label">核心原則</div>
+    <p class="section-sub">不管哪個燈號，「穩」的本質都一樣：不對抗、多說關心的話、把時間留給對方自己轉彎。差別只在做法輕重。</p>
+    <table class="ref-table">
+      <tr><th>燈號</th><th>目標</th><th>核心作法</th></tr>
+      <tr><td class="light-cell"><span class="ld red"></span>紅燈</td><td>願意暫時離開臨櫃坐下來</td><td>多說關心的話，少說阻止的話，讓對方自己冷靜下來</td></tr>
+      <tr><td class="light-cell"><span class="ld amber"></span>黃燈</td><td>願意聽你說明 2 分鐘</td><td>先讓他知道你不是要阻止他，只要求聽兩分鐘，聽完讓他自己判斷</td></tr>
+      <tr><td class="light-cell"><span class="ld green"></span>綠燈</td><td>肯定直覺，直接進入聽</td><td>順著他的懷疑走，不搶話，直接開始聽他說</td></tr>
+      <tr><td class="light-cell"><span class="ld black"></span>特殊</td><td>多留幾分鐘，找機會切入</td><td>不直接戳破，找個理由（要做紀錄、請他說明）先留住他</td></tr>
+    </table>
+
+    <div class="tip-box">
+      <span class="ic">🔍</span>
+      <span>
+        <span class="tt">所有燈號都要做的共同確認</span>
+        觀察對方是否被要求「不能告訴任何人」——一直看手機不放下、說「這是偵查不公開」、迴避保密問題，都是跡象。可以說：「我注意到您一直看手機，是不是對方交代什麼不方便說的？真正的司法機關不會禁止您跟家人說話，真正的投資公司也不會要求保密——光是這一點，就值得我們一起確認一下。」
+      </span>
+    </div>
+
+    <!-- ===== 案例練習 ===== -->
+    <div class="case-section" id="caseSection">
+      <div class="case-heading"><div class="n">✓</div><b>案例練習</b></div>
+      <p class="case-sub">原則記住了嗎？用 4 個真實情境試試看——民眾會反駁你，你要選出「不對抗、多說關心話」的回應。每題答完，四個選項的原因都會列出來給你對照。</p>
+
+      <div id="caseList"></div>
+
+      <div class="case-done-note" id="doneNote" style="display:none;">
+        <div class="congrats-line">🎉 恭喜您答對了，我們一起進入下一個步驟</div>
+        你會發現「穩」的四種策略，其實都在做同一件事：不對抗，多說關心的話，把時間留給對方自己轉彎。
+      </div>
+    </div>
+
+    <a class="continue-btn" href="step3.html" style="text-decoration:none; text-align:center; display:block;">繼續 STEP 3・聽 →</a>
+  </div>
+</div>
+
+<script>
+const cases = [
+  {
+    light:'red', tag:'紅燈情境 ①',
+    text:"民眾情緒激動，一直催促要匯款，你靠近想關心，他立刻拉高聲音：",
+    said:"「你不要管我！」",
+    options:[
+      {text:"「先生您這樣一直匯款真的很危險，您先冷靜一下好嗎？」", correct:false, why:"「你先冷靜」是阻止性語言，會讓情緒更激動的人感覺被否定、被指揮，反而升高對立。"},
+      {text:"「好，我不會擋您，也不會強迫您做任何事。但您的手在發抖，我有點擔心。要不要先到旁邊坐一下？」", correct:true, why:"用關心對方身體狀態的話，取代「先冷靜」這種阻止性語言，同時給了一個具體、無壓力的下一步（坐下）。"},
+      {text:"「這是詐騙啦，大家都知道，你先聽我講。」", correct:false, why:"直接下判斷「這是詐騙」，違反了看／穩階段最基本的禁止用語，會讓對方立刻關閉溝通。"},
+      {text:"（不說話，直接站在旁邊等）", correct:false, why:"完全沉默雖然不對抗，但沒有具體的關心動作，對方不知道你想做什麼，反而增加不安。"}
+    ]
+  },
+  {
+    light:'amber', tag:'黃燈情境',
+    text:"民眾已經猶豫，你提出想花兩分鐘說明，他皺眉回你：",
+    said:"「我很忙，沒時間。」",
+    options:[
+      {text:"「您不忙也要聽，這攸關您的錢，很重要。」", correct:false, why:"用「攸關你的錢」施加壓力，聽起來像是在說教或強迫，容易激起防衛心，反而更不想聽。"},
+      {text:"「好，那我不打擾您了。」", correct:false, why:"太快退讓等於放棄了黃燈階段最關鍵的兩分鐘介入機會——這是最容易被說服回頭的時刻，不該輕易放棄。"},
+      {text:"「我不是要阻止你，只是想跟你講 2 分鐘，講完你再自己判斷。」", correct:true, why:"先說明不是來阻止他的，降低他的防衛心，同時把決定交還給他自己判斷，而不是被說教。"},
+      {text:"「先生，這種案件很多都是詐騙，你要小心一點。」", correct:false, why:"直接下判斷「是詐騙」，一樣違反了禁止用語原則，會讓還在猶豫的人立刻防衛起來。"}
+    ]
+  },
+  {
+    light:'red', tag:'紅燈情境 ②',
+    text:"民眾在 ATM 前操作，你走近，他立刻用身體擋住螢幕，語氣很衝：",
+    said:"「你們是不是要騙我的錢？我知道你們這些人的手法！」",
+    options:[
+      {text:"「先生我們是警察，不是騙子，你先聽我說。」", correct:false, why:"急著澄清自己、反駁對方的指控，聽起來像在跟他辯論，反而讓對立升高。"},
+      {text:"「我知道現在很多詐騙集團真的很誇張，會讓人不知道該相信誰。你會這樣想我完全理解，要不要我們先到旁邊坐著聊，我不會碰您的手機或提款卡。」", correct:true, why:"先承認他的懷疑是合理的（用關心的話代替反駁），再用具體承諾（不碰手機/提款卡）降低他的防衛，最後給一個無壓力的下一步。"},
+      {text:"「你不相信我沒關係，那我在旁邊等你操作完。」", correct:false, why:"表面上不對抗，但完全放棄了介入的機會，等於什麼都沒做。"},
+      {text:"「你如果不聽我的，等一下錢匯出去就拿不回來了喔。」", correct:false, why:"用後果恐嚇施壓，是另一種形式的阻止性語言，容易讓已經很緊繃的人更抗拒。"}
+    ]
+  },
+  {
+    light:'black', tag:'特殊情境',
+    text:"民眾態度非常客氣、對答如流，但每隔幾句就低頭看一次手機，你問他在忙什麼，他很快回答：",
+    said:"「沒事沒事，我自己的事，你不用擔心，我等一下就要走了。」",
+    options:[
+      {text:"「先生你手機一直在看，是不是有人在教你怎麼回答我？」", correct:false, why:"直接戳破，對方（或電話那頭指導的人）會立刻警覺，接下來只會得到制式、防衛性的回答，甚至直接切斷對話。"},
+      {text:"「好，不好意思打擾您了，那您忙。」", correct:false, why:"太快放行，錯過了特殊燈號最需要的「多留幾分鐘觀察」的機會。"},
+      {text:"「不好意思，我這邊需要跟您確認幾個資料做個紀錄，大概兩三分鐘，麻煩配合一下。」", correct:true, why:"用「做紀錄」這個中性、公務性質的理由，不涉及懷疑，爭取到繼續留住他、繼續觀察的時間。"},
+      {text:"「你是不是不方便講，眨個眼睛就好，我懂。」", correct:false, why:"聽起來謹慎，但這種暗示性動作太戲劇化、不切實際，也可能被電話那頭聽到而引起懷疑。"}
+    ]
+  }
+];
+
+const caseList = document.getElementById('caseList');
+const doneNote = document.getElementById('doneNote');
+
+function renderCase(i){
+  const c = cases[i];
+  const card = document.createElement('div');
+  card.className = 'case-card';
+  card.innerHTML = `
+    <div class="case-tag"><span class="ld ${c.light}"></span>案例 ${i+1} · ${c.tag}</div>
+    <div class="case-text">${c.text}</div>
+    <div class="case-said">💬 ${c.said}</div>
+    <div class="case-prompt">你會怎麼回應？</div>
+    <div class="resp-list"></div>
+  `;
+  caseList.appendChild(card);
+
+  const list = card.querySelector('.resp-list');
+  c.options.forEach(opt=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'opt-wrap';
+
+    const btn = document.createElement('button');
+    btn.className = 'resp-btn';
+    btn.textContent = opt.text;
+    btn.onclick = ()=> pick(card, c, btn);
+
+    const explain = document.createElement('div');
+    explain.className = 'opt-explain';
+    explain.innerHTML = `<span class="mark">${opt.correct ? '✓' : '✗'}</span><span>${opt.why}</span>`;
+
+    wrap.appendChild(btn);
+    wrap.appendChild(explain);
+    list.appendChild(wrap);
+  });
+}
+
+function pick(card, c, chosenBtn){
+  const wraps = card.querySelectorAll('.opt-wrap');
+  wraps.forEach((wrap, idx)=>{
+    const opt = c.options[idx];
+    const btn = wrap.querySelector('.resp-btn');
+    const explain = wrap.querySelector('.opt-explain');
+    btn.disabled = true;
+    if(opt.correct){
+      btn.classList.add('correct');
+      explain.classList.add('show', 'correct');
+    } else {
+      if(btn === chosenBtn) btn.classList.add('wrong');
+      else btn.classList.add('faded');
+      explain.classList.add('show', 'wrong');
+    }
+  });
+
+  const i = cases.indexOf(c);
+  if(i < cases.length - 1){
+    setTimeout(()=>{ renderCase(i+1); }, 700);
+  } else {
+    doneNote.style.display = 'block';
+  }
+}
+
+renderCase(0);
+</script>
+<script>
+(function(){var ua=navigator.userAgent,inApp=false;
+if(/Line\//i.test(ua)||/FBAN|FBAV|FB_IAB/i.test(ua)||/Instagram/i.test(ua)||/Messenger/i.test(ua))inApp=true;
+window.__inApp=inApp;})();
+function goPractice(){var url='/mg?group=A&role=police',ua=navigator.userAgent,abs=location.origin+url;
+if(window.__inApp){
+ if(/Line\//i.test(ua)){location.href=abs+'&openExternalBrowser=1';return;}
+ if(/Android/i.test(ua)){location.href='intent://'+abs.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return;}
+ if(/iPad|iPhone|iPod/i.test(ua)){location.href='x-safari-https://'+abs.replace(/^https?:\/\//,'');
+  setTimeout(function(){if(navigator.clipboard)navigator.clipboard.writeText(abs).catch(function(){});alert('請點右上角 ⋯ →「在 Safari 開啟」，網址已複製，可貼到 Safari');},800);return;}
+}
+location.href=url;}
+</script>
+</body>
+</html>

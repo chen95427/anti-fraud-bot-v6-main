@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>守・鞏固決定，防止動搖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#1a2c4e;
+    --navy-700:#24406b;
+    --gold-500:#d7a854;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --line:#e5e9ef;
+    --text-900:#1c2536;
+    --text-700:#3b4658;
+    --text-500:#6b7688;
+    --red:#c94a3f;
+    --red-bg:#fbebe9;
+    --green:#3ea173;
+    --green-bg:#e9f6ef;
+    --blue-bg:#eaf1fb;
+    --blue-line:#c7dbf3;
+    --font:'Noto Sans TC', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--font); background:var(--bg); color:var(--text-900); -webkit-font-smoothing:antialiased;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
+
+  .app{max-width:720px; margin:0 auto; min-height:100vh; background:var(--bg);}
+
+  .header{background:var(--navy-900); color:#fff; padding:16px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .shield{width:28px; height:28px; border-radius:7px; background:var(--gold-500); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .brand-name{font-size:15px; font-weight:700;}
+  .badge{background:var(--gold-500); color:var(--navy-900); font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px;}
+
+  .tabs{display:flex; background:#fff; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:14px 8px; font-size:14px; font-weight:700; color:var(--text-500); cursor:pointer;}
+  .tab.active{color:var(--navy-900); border-bottom:2.5px solid var(--navy-900);}
+
+  .breadcrumb{padding:14px 22px 0; font-size:12.5px; color:var(--text-500); display:flex; align-items:center; gap:6px;}
+  .breadcrumb b{color:var(--navy-700); font-weight:700;}
+
+  .content{padding:18px 22px 60px;}
+
+  .title-row{display:flex; align-items:center; gap:10px; margin:6px 0 16px;}
+  .title-icon{font-size:24px;}
+  .title-text{font-size:21px; font-weight:900; color:var(--navy-900);}
+  .hr{height:1px; background:var(--line); margin-bottom:20px;}
+
+  .intro-box{
+    background:var(--blue-bg); border:1px solid var(--blue-line); border-radius:10px;
+    padding:14px 16px; margin-bottom:22px; font-size:13px; line-height:1.75; color:#233a5c;
+  }
+  .intro-box b{color:var(--navy-900);}
+
+  .section-label{font-size:14.5px; font-weight:900; color:var(--navy-900); margin:0 0 10px;}
+
+  .principle-list{display:flex; flex-direction:column; gap:8px; margin-bottom:26px;}
+  .principle-row{
+    display:flex; align-items:flex-start; gap:12px;
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; box-shadow:0 1px 2px rgba(20,30,50,0.05);
+  }
+  .principle-row .num{
+    width:22px; height:22px; border-radius:50%; background:var(--navy-900); color:#fff;
+    font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; margin-top:1px;
+  }
+  .principle-row .body{flex:1; min-width:0;}
+  .principle-row .name{font-size:13.5px; font-weight:700; color:var(--text-900); margin-bottom:2px;}
+  .principle-row .purpose{font-size:12px; color:var(--text-500); line-height:1.6;}
+
+  .case-heading{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+  .case-heading b{font-size:15.5px; color:var(--navy-900);}
+  .case-sub{font-size:13px; color:var(--text-500); margin:0 0 16px; line-height:1.7;}
+
+  .progress{display:flex; gap:6px; margin-bottom:18px;}
+  .progress .dot{flex:1; height:4px; border-radius:3px; background:var(--line); transition:background 0.25s;}
+  .progress .dot.done{background:var(--green);}
+  .progress .dot.current{background:var(--gold-500);}
+
+  .case-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(20,30,50,0.05);}
+  .case-tag{display:block; font-size:19px; font-weight:900; color:var(--navy-900); margin-bottom:12px; letter-spacing:0.01em;}
+  .case-text{font-size:14.5px; line-height:1.8; color:var(--text-900); margin-bottom:6px;}
+  .case-said{background:var(--bg); border-left:3px solid var(--text-500); border-radius:6px; padding:9px 12px; font-size:13px; color:var(--text-700); margin-bottom:14px; line-height:1.6;}
+
+  .case-prompt{font-size:12.5px; font-weight:700; color:var(--text-500); margin-bottom:9px;}
+  .resp-list{display:flex; flex-direction:column; gap:8px;}
+  .opt-wrap{display:flex; flex-direction:column;}
+  .resp-btn{text-align:left; background:#fff; border:1.5px solid var(--line); border-radius:9px; padding:11px 13px; font-family:var(--font); font-size:13.5px; line-height:1.65; color:var(--text-900); cursor:pointer; transition:border-color 0.15s;}
+  .resp-btn:active{transform:scale(0.995);}
+  .resp-btn:disabled{cursor:default;}
+  .resp-btn.correct{border-color:var(--green); background:var(--green-bg); border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .resp-btn.wrong{border-color:var(--red); background:var(--red-bg); border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .resp-btn.faded{opacity:0.55;}
+
+  .opt-explain{display:none; font-size:12.5px; line-height:1.65; padding:9px 13px 11px; border:1.5px solid var(--line); border-top:none; border-radius:0 0 9px 9px;}
+  .opt-explain.show{display:flex; gap:7px; align-items:flex-start;}
+  .opt-explain.correct{border-color:var(--green); background:var(--green-bg); color:#1d5c40;}
+  .opt-explain.wrong{border-color:var(--red); background:var(--red-bg); color:#7a2b23;}
+  .opt-explain .mark{flex-shrink:0; font-weight:900; font-size:12px; margin-top:1px;}
+
+  .case-done-note{text-align:center; font-size:12.5px; color:var(--text-500); padding:16px; background:var(--card); border:1px dashed var(--line); border-radius:10px; margin-top:6px; line-height:1.7;}
+  .congrats-line{font-size:15px; font-weight:900; color:var(--green); margin-bottom:6px;}
+
+  .continue-btn{display:block; width:100%; margin-top:22px; background:var(--navy-900); color:#fff; border:none; padding:14px; border-radius:10px; font-family:var(--font); font-weight:700; font-size:14.5px; cursor:pointer;}
+
+.step-nav{
+  display:flex; gap:6px; padding:12px 16px; background:#fff; border-bottom:1px solid var(--line);
+  overflow-x:auto;
+}
+.step-pill{
+  display:flex; align-items:center; gap:6px; flex-shrink:0; text-decoration:none;
+  background:var(--bg); border:1.5px solid var(--line); border-radius:999px;
+  padding:7px 14px 7px 8px; font-family:'Noto Sans TC', sans-serif; font-size:12.5px; font-weight:700;
+  color:var(--text-500); cursor:pointer; transition:all 0.15s;
+}
+.step-pill .sp-num{
+  width:20px; height:20px; border-radius:50%; background:var(--line); color:var(--text-500);
+  font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.step-pill.active{background:var(--navy-900); border-color:var(--navy-900); color:#fff;}
+.step-pill.active .sp-num{background:var(--gold-500); color:var(--navy-900);}
+.back-link{
+  display:inline-flex; align-items:center; gap:4px; text-decoration:none;
+  color:var(--text-500); font-size:12.5px; font-weight:700;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="shield">🛡️</div>
+      <div class="brand-name">員警阻詐溝通技巧</div>
+    </div>
+    <a href="/handbook/index.html" class="badge" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;">↑ 回上一層</a>
+  </div>
+
+  <div class="tabs">
+    <a class="tab active" href="index.html" style="text-decoration:none;">操作手冊</a>
+    <a class="tab" href="index.html#tools" style="text-decoration:none;">工具資源</a>
+    <a class="tab" href="javascript:void(0)" onclick="goPractice()" style="text-decoration:none;">AI 阻詐教練</a>
+  </div>
+
+    <div class="step-nav">
+    <a class="step-pill" href="step1.html"><span class="sp-num">1</span><span class="sp-name">看</span></a><a class="step-pill" href="step2.html"><span class="sp-num">2</span><span class="sp-name">穩</span></a><a class="step-pill" href="step3.html"><span class="sp-num">3</span><span class="sp-name">聽</span></a><a class="step-pill" href="step4.html"><span class="sp-num">4</span><span class="sp-name">問</span></a><a class="step-pill active" href="step5.html"><span class="sp-num">5</span><span class="sp-name">守</span></a>
+  </div>
+  <div class="breadcrumb"><a class="back-link" href="index.html">← 返回總覽</a></div>
+
+  <div class="content">
+    <div class="title-row">
+      <span class="title-icon">🛡️</span>
+      <span class="title-text">守（保護）－鞏固決定，防止動搖</span>
+    </div>
+    <div class="hr"></div>
+
+    <div class="section-label">六個原則大方向</div>
+    <div class="principle-list">
+      <div class="principle-row"><span class="num">1</span><div class="body"><div class="name">接住羞恥感</div><div class="purpose">搶在潛在被害人說「我好笨」之前，先肯定他停下來的決定</div></div></div>
+      <div class="principle-row"><span class="num">2</span><div class="body"><div class="name">歸因給詐騙者，不歸因給智商</div><div class="purpose">讓潛在被害人知道這是對方太專業，不是他判斷力有問題</div></div></div>
+      <div class="principle-row"><span class="num">3</span><div class="body"><div class="name">連結支持網絡</div><div class="purpose">陪潛在被害人打電話讓家人知道，身邊有人陪比較安全</div></div></div>
+      <div class="principle-row"><span class="num">4</span><div class="body"><div class="name">提醒詐騙者可能再次施壓</div><div class="purpose">預告對方可能編故事回撥，教潛在被害人直接掛掉不回應</div></div></div>
+      <div class="principle-row"><span class="num">5</span><div class="body"><div class="name">留下安全網</div><div class="purpose">給名片、告知 165 反詐騙專線，讓潛在被害人知道之後可以找誰</div></div></div>
+      <div class="principle-row"><span class="num">6</span><div class="body"><div class="name">預告心理反應</div><div class="purpose">讓潛在被害人知道接下來幾天反覆想、自責、睡不好都是正常的</div></div></div>
+    </div>
+
+    <div class="section-label">案例練習</div>
+    <div class="intro-box">
+      <b>陳太太剛在銀行櫃檯前，跟員警談完之後，驚覺自己被騙了。</b>接下來這段對話會走完整個收尾過程——每一步她的反應都不一樣，你要選出當下最合適的回應。
+    </div>
+
+    <div class="case-heading"><b>完整情境・陳太太</b></div>
+    <p class="case-sub">6 個步驟依序進行，每答完一題才會出現下一題。</p>
+
+    <div class="progress" id="progress"></div>
+    <div id="caseList"></div>
+
+    <div class="case-done-note" id="doneNote" style="display:none;">
+      <div class="congrats-line">🎉 恭喜您答對了，我們一起進入下一個步驟</div>
+      回頭看你選的 6 句話，其實就是「守」的完整收尾邏輯——不用背順序，走過一次案例就記得了。
+    </div>
+
+    <a class="continue-btn" href="javascript:void(0)" onclick="goPractice()" style="text-decoration:none; text-align:center; display:block;">前往 AI 阻詐教練練習 →</a>
+  </div>
+</div>
+
+<script>
+const cases = [
+  {
+    tag:'① 接住羞恥感',
+    text:"陳太太剛在銀行櫃檯前跟員警談完，員警說明後，她才驚覺自己被騙，低著頭小聲說：",
+    said:"「我怎麼會這麼笨……」",
+    options:[
+      {text:"「對啊，這真的很扯，怎麼會相信這種話。」", correct:false, why:"附和她「很扯」，等於默認她的自我否定，會讓羞恥感更重。"},
+      {text:"「你剛才做了一個非常勇敢的決定。能在這種壓力下停下來確認，大部分人做不到。」", correct:true, why:"搶在她繼續自責之前，先肯定她「停下來確認」這個動作本身，把焦點從『我很笨』拉回『我做對了一件事』。"},
+      {text:"「沒關係啦，很多人都被騙，你不是特別笨。」", correct:false, why:"雖然是安慰，但還是圍繞著「笨不笨」在討論，等於間接承認這是個笨問題，沒有真正接住她的羞恥感。"},
+      {text:"「你現在先去做筆錄，晚點再說。」", correct:false, why:"完全略過情緒、直接跳到辦事，會讓她覺得自己的感受不重要。"}
+    ]
+  },
+  {
+    tag:'② 歸因給詐騙者',
+    text:"陳太太情緒稍微平復，但還是很自責：",
+    said:"「我到底是哪裡有問題，才會相信這種事……」",
+    options:[
+      {text:"「這些打電話的人是專門受過訓練的，他們每天就在研究怎麼讓人害怕、怎麼讓人來不及思考。醫生、老師、銀行經理都遇過一模一樣的事。這不是判斷力的問題，是他們太專業了。」", correct:true, why:"把「為什麼會被騙」的原因從她自己身上，轉移到對方的專業手法上——這是歸因轉移，能有效減輕自責。"},
+      {text:"「可能是你最近比較累，判斷力下降了。」", correct:false, why:"還是把原因歸在她自己身上（判斷力下降），沒有真正做到「歸因給詐騙者」。"},
+      {text:"「這種事很常見啦，別想太多。」", correct:false, why:"只是輕描淡寫帶過，沒有具體說明「為什麼不是她的問題」，說服力不足。"},
+      {text:"「你要記取教訓，以後小心一點。」", correct:false, why:"聽起來像在說教，暗示這次是她該檢討的地方，會強化而不是減輕自責。"}
+    ]
+  },
+  {
+    tag:'③ 連結支持網絡',
+    text:"陳太太情緒穩定了一些，抬起頭問：",
+    said:"「那……我現在該怎麼辦？」",
+    options:[
+      {text:"「你先自己冷靜一下，想清楚再說。」", correct:false, why:"讓她一個人面對，錯過了連結支持網絡的時機，反而增加孤立感。"},
+      {text:"「你方便打個電話讓家人知道嗎？不是要他們來罵你，是讓身邊有個人陪你。你覺得誰比較適合？」", correct:true, why:"主動提議連結家人，並先打預防針「不是要罵你」降低她的顧慮，同時把選擇權留給她（你覺得誰比較適合）。"},
+      {text:"「這件事先不要告訴家人，免得他們擔心。」", correct:false, why:"鼓勵隱瞞，正好跟「連結支持網絡」的方向相反，會讓她獨自承擔。"},
+      {text:"「你自己一個人應該可以處理。」", correct:false, why:"暗示不需要別人幫忙，等於勸退她尋求支持。"}
+    ]
+  },
+  {
+    tag:'④ 提醒再次施壓',
+    text:"家人知道後，陳太太看起來安心不少，她說：",
+    said:"「好，那應該沒事了吧？」",
+    options:[
+      {text:"「應該沒事了，你放心。」", correct:false, why:"給了空泛的保證，卻沒有提醒她接下來最可能發生的事——對方可能回撥施壓。"},
+      {text:"「最後有一件很重要的事要提醒你。接下來那個人很可能還會再打來，而且會比之前更用力施壓。他可能會說：『你被警察騙了，那個警察才是詐騙的。』這些全部都是標準話術——如果他再打來，直接掛掉，不需要回應，也不需要解釋。」", correct:true, why:"具體預告可能發生的情境（回撥、反咬警察），並給出明確可執行的應對方式（直接掛掉），讓她有心理準備，不會措手不及。"},
+      {text:"「如果他再打來，你就跟他理論清楚。」", correct:false, why:"鼓勵她繼續跟對方互動，反而增加被再次說服或動搖的風險。"},
+      {text:"「如果他再打來，記得先問清楚他是誰。」", correct:false, why:"同樣是鼓勵繼續對話，而不是切斷聯繫，方向錯誤。"}
+    ]
+  },
+  {
+    tag:'⑤ 留下安全網',
+    text:"陳太太點點頭，但眼神還是有點不安：",
+    said:"（沉默了一下，沒有說話，看起來還在猶豫什麼）",
+    options:[
+      {text:"「好，那我先走了，有事再打 110。」", correct:false, why:"太籠統，沒有給她一個具體、隨時能聯繫到的對象，安全感不足。"},
+      {text:"「這是我的名片。如果你之後有任何不安，或者那個人又聯繫你，隨時打給我。你也可以直接撥 165 反詐騙專線。」", correct:true, why:"給出具體、雙重的求助管道（個人名片 + 165 專線），讓保護不只是口頭承諾，而是看得到、拿得到的資源。"},
+      {text:"「你自己上網查詐騙專線就好。」", correct:false, why:"把查資源的責任丟回給她，在她還處於不安的狀態下，這樣做太冷漠。"},
+      {text:"「有事你再去派出所問。」", correct:false, why:"門檻比留一張名片高很多，不夠即時、不夠具體。"}
+    ]
+  },
+  {
+    tag:'⑥ 預告心理反應',
+    text:"陳太太露出一點笑容，說：",
+    said:"「謝謝你……我現在覺得好一點了。」",
+    options:[
+      {text:"「那就好，沒事就好。」", correct:false, why:"聽起來像是結案了，錯過了預告她接下來幾天可能會反覆情緒起伏的機會。"},
+      {text:"「接下來幾天你可能會反覆想這件事，會覺得不舒服、睡不好、對自己生氣，這都是正常的反應，會慢慢過去的。你不需要一個人扛。」", correct:true, why:"提前告訴她之後可能會有的心理反應，讓她之後真的出現這些狀況時不會慌張，知道這是正常的、會過去的。"},
+      {text:"「現在好一點就代表沒事了，不用想太多。」", correct:false, why:"暗示情緒已經結束，反而會讓她之後如果又難過，覺得自己「怎麼還沒好」。"},
+      {text:"「你要趕快振作起來，不要一直想。」", correct:false, why:"要求她壓抑情緒，跟「正常化她未來可能的反應」方向相反。"}
+    ]
+  }
+];
+
+const progressEl = document.getElementById('progress');
+const caseList = document.getElementById('caseList');
+const doneNote = document.getElementById('doneNote');
+let step = 0;
+
+function renderProgress(){
+  progressEl.innerHTML = '';
+  cases.forEach((_, i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < step ? ' done' : (i === step ? ' current' : ''));
+    progressEl.appendChild(d);
+  });
+}
+
+function renderCase(i){
+  renderProgress();
+  const c = cases[i];
+  const card = document.createElement('div');
+  card.className = 'case-card';
+  card.innerHTML = `
+    <div class="case-tag">${c.tag}</div>
+    <div class="case-text">${c.text}</div>
+    <div class="case-said">💬 ${c.said}</div>
+    <div class="case-prompt">你會怎麼回應？</div>
+    <div class="resp-list"></div>
+  `;
+  caseList.appendChild(card);
+
+  const list = card.querySelector('.resp-list');
+  c.options.forEach(opt=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'opt-wrap';
+
+    const btn = document.createElement('button');
+    btn.className = 'resp-btn';
+    btn.textContent = opt.text;
+    btn.onclick = ()=> pick(card, c, btn);
+
+    const explain = document.createElement('div');
+    explain.className = 'opt-explain';
+    explain.innerHTML = `<span class="mark">${opt.correct ? '✓' : '✗'}</span><span>${opt.why}</span>`;
+
+    wrap.appendChild(btn);
+    wrap.appendChild(explain);
+    list.appendChild(wrap);
+  });
+}
+
+function pick(card, c, chosenBtn){
+  const wraps = card.querySelectorAll('.opt-wrap');
+  wraps.forEach((wrap, idx)=>{
+    const opt = c.options[idx];
+    const btn = wrap.querySelector('.resp-btn');
+    const explain = wrap.querySelector('.opt-explain');
+    btn.disabled = true;
+    if(opt.correct){
+      btn.classList.add('correct');
+      explain.classList.add('show', 'correct');
+    } else {
+      if(btn === chosenBtn) btn.classList.add('wrong');
+      else btn.classList.add('faded');
+      explain.classList.add('show', 'wrong');
+    }
+  });
+
+  step++;
+  renderProgress();
+
+  if(step < cases.length){
+    setTimeout(()=>{ renderCase(step); }, 700);
+  } else {
+    doneNote.style.display = 'block';
+  }
+}
+
+renderCase(0);
+</script>
+<script>
+(function(){var ua=navigator.userAgent,inApp=false;
+if(/Line\//i.test(ua)||/FBAN|FBAV|FB_IAB/i.test(ua)||/Instagram/i.test(ua)||/Messenger/i.test(ua))inApp=true;
+window.__inApp=inApp;})();
+function goPractice(){var url='/mg?group=A&role=police',ua=navigator.userAgent,abs=location.origin+url;
+if(window.__inApp){
+ if(/Line\//i.test(ua)){location.href=abs+'&openExternalBrowser=1';return;}
+ if(/Android/i.test(ua)){location.href='intent://'+abs.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return;}
+ if(/iPad|iPhone|iPod/i.test(ua)){location.href='x-safari-https://'+abs.replace(/^https?:\/\//,'');
+  setTimeout(function(){if(navigator.clipboard)navigator.clipboard.writeText(abs).catch(function(){});alert('請點右上角 ⋯ →「在 Safari 開啟」，網址已複製，可貼到 Safari');},800);return;}
+}
+location.href=url;}
+</script>
+</body>
+</html>

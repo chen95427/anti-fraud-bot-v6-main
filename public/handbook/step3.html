@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聽・蒐集資訊，找出矛盾點</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#1a2c4e;
+    --navy-700:#24406b;
+    --gold-500:#d7a854;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --line:#e5e9ef;
+    --text-900:#1c2536;
+    --text-700:#3b4658;
+    --text-500:#6b7688;
+    --red:#c94a3f;
+    --red-bg:#fbebe9;
+    --amber:#d99a2b;
+    --amber-bg:#fdf3dc;
+    --green:#3ea173;
+    --green-bg:#e9f6ef;
+    --black:#20242c;
+    --blue-bg:#eaf1fb;
+    --blue-line:#c7dbf3;
+    --purple:#7a5fb0;
+    --purple-bg:#f0ecf8;
+    --font:'Noto Sans TC', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--font); background:var(--bg); color:var(--text-900); -webkit-font-smoothing:antialiased;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
+
+  .app{max-width:720px; margin:0 auto; min-height:100vh; background:var(--bg);}
+
+  .header{background:var(--navy-900); color:#fff; padding:16px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .shield{width:28px; height:28px; border-radius:7px; background:var(--gold-500); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .brand-name{font-size:15px; font-weight:700;}
+  .badge{background:var(--gold-500); color:var(--navy-900); font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px;}
+
+  .tabs{display:flex; background:#fff; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:14px 8px; font-size:14px; font-weight:700; color:var(--text-500); cursor:pointer;}
+  .tab.active{color:var(--navy-900); border-bottom:2.5px solid var(--navy-900);}
+
+  .breadcrumb{padding:14px 22px 0; font-size:12.5px; color:var(--text-500); display:flex; align-items:center; gap:6px;}
+  .breadcrumb b{color:var(--navy-700); font-weight:700;}
+
+  .content{padding:18px 22px 60px;}
+
+  .title-row{display:flex; align-items:center; gap:10px; margin:6px 0 16px;}
+  .title-icon{font-size:24px;}
+  .title-text{font-size:21px; font-weight:900; color:var(--navy-900);}
+  .hr{height:1px; background:var(--line); margin-bottom:20px;}
+
+  .section-label{font-size:14.5px; font-weight:900; color:var(--navy-900); margin:0 0 10px;}
+  .section-sub{font-size:12.5px; color:var(--text-500); margin:-6px 0 12px; line-height:1.7;}
+
+  .quote-box{background:var(--blue-bg); border-radius:10px; padding:16px 18px; display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; font-size:14.5px; line-height:1.75; color:var(--text-900);}
+  .quote-box .ic{font-size:18px; flex-shrink:0;}
+  .quote-note{font-size:12px; color:var(--text-500); margin:0 0 26px; line-height:1.7;}
+
+  table.ref-table{width:100%; border-collapse:collapse; background:var(--card); border-radius:10px; overflow:hidden; margin-bottom:16px; box-shadow:0 1px 2px rgba(20,30,50,0.05);}
+  table.ref-table th{background:var(--navy-900); color:#fff; font-size:12.5px; font-weight:700; text-align:left; padding:11px 14px;}
+  table.ref-table td{padding:11px 14px; font-size:12.5px; color:var(--text-700); border-bottom:1px solid var(--line); line-height:1.65;}
+  table.ref-table tr:last-child td{border-bottom:none;}
+  .dim-cell{font-weight:700; color:var(--text-900); white-space:nowrap;}
+
+  .principle-box{
+    background:var(--purple-bg); border:1px solid #ddd2ef; border-radius:10px;
+    padding:14px 16px; margin-bottom:16px; font-size:13.5px; line-height:1.7; color:#3d2f5c;
+    display:flex; gap:10px; align-items:flex-start;
+  }
+  .principle-box .ic{font-size:16px; flex-shrink:0;}
+  .principle-box b{color:#2e2247;}
+
+  .section-margin{margin-bottom:30px;}
+
+  /* ---- case practice ---- */
+  .case-section{margin-top:8px;}
+  .case-heading{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+  .case-heading .n{width:24px; height:24px; border-radius:50%; background:var(--navy-900); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .case-heading b{font-size:15.5px; color:var(--navy-900);}
+  .case-sub{font-size:13px; color:var(--text-500); margin:0 0 18px 32px; line-height:1.7;}
+
+  .case-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(20,30,50,0.05);}
+  .case-tag{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--navy-700); background:var(--blue-bg); padding:4px 10px; border-radius:999px; margin-bottom:10px;}
+  .case-tag.purple{color:#4c3a72; background:var(--purple-bg);}
+  .case-text{font-size:14.5px; line-height:1.8; color:var(--text-900); margin-bottom:6px;}
+  .case-said{background:var(--bg); border-left:3px solid var(--text-500); border-radius:6px; padding:9px 12px; font-size:13px; color:var(--text-700); margin-bottom:14px; line-height:1.6;}
+
+  .case-prompt{font-size:12.5px; font-weight:700; color:var(--text-500); margin-bottom:9px;}
+  .resp-list{display:flex; flex-direction:column; gap:8px;}
+  .opt-wrap{display:flex; flex-direction:column;}
+  .resp-btn{text-align:left; background:#fff; border:1.5px solid var(--line); border-radius:9px; padding:11px 13px; font-family:var(--font); font-size:13.5px; line-height:1.65; color:var(--text-900); cursor:pointer; transition:border-color 0.15s;}
+  .resp-btn:active{transform:scale(0.995);}
+  .resp-btn:disabled{cursor:default;}
+  .resp-btn.correct{border-color:var(--green); background:var(--green-bg); border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .resp-btn.wrong{border-color:var(--red); background:var(--red-bg); border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .resp-btn.faded{opacity:0.55;}
+  .resp-btn .type-name{font-weight:700; display:block;}
+  .resp-btn .type-driver{font-size:11.5px; color:var(--text-500); display:block; margin-top:2px;}
+  .resp-btn.correct .type-driver, .resp-btn.wrong .type-driver{color:inherit; opacity:0.8;}
+
+  .opt-explain{display:none; font-size:12.5px; line-height:1.65; padding:9px 13px 11px; border:1.5px solid var(--line); border-top:none; border-radius:0 0 9px 9px;}
+  .opt-explain.show{display:flex; gap:7px; align-items:flex-start;}
+  .opt-explain.correct{border-color:var(--green); background:var(--green-bg); color:#1d5c40;}
+  .opt-explain.wrong{border-color:var(--red); background:var(--red-bg); color:#7a2b23;}
+  .opt-explain .mark{flex-shrink:0; font-weight:900; font-size:12px; margin-top:1px;}
+
+  .case-done-note{text-align:center; font-size:12.5px; color:var(--text-500); padding:16px; background:var(--card); border:1px dashed var(--line); border-radius:10px; margin-top:6px; line-height:1.7;}
+  .congrats-line{font-size:15px; font-weight:900; color:var(--green); margin-bottom:6px;}
+
+  .continue-btn{display:block; width:100%; margin-top:22px; background:var(--navy-900); color:#fff; border:none; padding:14px; border-radius:10px; font-family:var(--font); font-weight:700; font-size:14.5px; cursor:pointer;}
+
+.step-nav{
+  display:flex; gap:6px; padding:12px 16px; background:#fff; border-bottom:1px solid var(--line);
+  overflow-x:auto;
+}
+.step-pill{
+  display:flex; align-items:center; gap:6px; flex-shrink:0; text-decoration:none;
+  background:var(--bg); border:1.5px solid var(--line); border-radius:999px;
+  padding:7px 14px 7px 8px; font-family:'Noto Sans TC', sans-serif; font-size:12.5px; font-weight:700;
+  color:var(--text-500); cursor:pointer; transition:all 0.15s;
+}
+.step-pill .sp-num{
+  width:20px; height:20px; border-radius:50%; background:var(--line); color:var(--text-500);
+  font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.step-pill.active{background:var(--navy-900); border-color:var(--navy-900); color:#fff;}
+.step-pill.active .sp-num{background:var(--gold-500); color:var(--navy-900);}
+.back-link{
+  display:inline-flex; align-items:center; gap:4px; text-decoration:none;
+  color:var(--text-500); font-size:12.5px; font-weight:700;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="shield">🛡️</div>
+      <div class="brand-name">員警阻詐溝通技巧</div>
+    </div>
+    <a href="/handbook/index.html" class="badge" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;">↑ 回上一層</a>
+  </div>
+
+  <div class="tabs">
+    <a class="tab active" href="index.html" style="text-decoration:none;">操作手冊</a>
+    <a class="tab" href="index.html#tools" style="text-decoration:none;">工具資源</a>
+    <a class="tab" href="javascript:void(0)" onclick="goPractice()" style="text-decoration:none;">AI 阻詐教練</a>
+  </div>
+
+    <div class="step-nav">
+    <a class="step-pill" href="step1.html"><span class="sp-num">1</span><span class="sp-name">看</span></a><a class="step-pill" href="step2.html"><span class="sp-num">2</span><span class="sp-name">穩</span></a><a class="step-pill active" href="step3.html"><span class="sp-num">3</span><span class="sp-name">聽</span></a><a class="step-pill" href="step4.html"><span class="sp-num">4</span><span class="sp-name">問</span></a><a class="step-pill" href="step5.html"><span class="sp-num">5</span><span class="sp-name">守</span></a>
+  </div>
+  <div class="breadcrumb"><a class="back-link" href="index.html">← 返回總覽</a></div>
+
+  <div class="content">
+    <div class="title-row">
+      <span class="title-icon">👂</span>
+      <span class="title-text">聽（傾聽）－蒐集資訊，找出矛盾點</span>
+    </div>
+    <div class="hr"></div>
+
+    <div class="section-label">開場</div>
+    <div class="quote-box">
+      <span class="ic">👮</span>
+      <span>「方便跟我說說發生什麼事嗎？說您願意說的就好。」</span>
+    </div>
+    <p class="quote-note">做：點頭、「嗯」「我了解」，讓他知道你在聽。</p>
+
+    <div class="section-label">問話架構</div>
+    <p class="section-sub">聽的時候，心裡抓 4 個面向；問的時候，就用對應的問句挑 2–3 個問，不要像審訊。</p>
+    <table class="ref-table">
+      <tr><th>面向</th><th>要抓什麼</th><th>可以怎麼問</th></tr>
+      <tr><td class="dim-cell">⏱ 時間線</td><td>什麼時候開始的？持續多久了？</td><td>「他是什麼時候開始聯繫你的？」「中間有讓你掛過電話嗎？」</td></tr>
+      <tr><td class="dim-cell">💰 金錢流向</td><td>投入多少？實際拿回多少？</td><td>「你總共投入多少？實際拿回多少？」</td></tr>
+      <tr><td class="dim-cell">🔒 保密要求</td><td>有沒有「不能告訴別人」？</td><td>「對方有沒有說不能跟任何人講？」</td></tr>
+      <tr><td class="dim-cell">❗ 矛盾點</td><td>敘述中有什麼地方前後不一致？</td><td>「你有見過本人嗎？有視訊通話過嗎？」</td></tr>
+    </table>
+    <div class="section-margin"></div>
+
+    <div class="section-label">同理原則</div>
+    <div class="principle-box">
+      <span class="ic">💬</span>
+      <span><b>只同理，不糾正，不下判斷。</b>民眾在描述的當下，需要的是被理解，不是被指正邏輯錯誤——糾正只會讓他覺得你在說他很笨，反而關閉溝通。</span>
+    </div>
+    <table class="ref-table">
+      <tr><th>❌ 錯誤（糾正）</th><th>✅ 正確（同理）</th></tr>
+      <tr><td>「那是假的，你被騙了。」</td><td>「聽起來真的很嚇人，換成是我接到這種電話，我也會很緊張。」</td></tr>
+      <tr><td>「這種手法我們見多了。」</td><td>「你一個人扛這件事這麼久，壓力一定很大。」</td></tr>
+    </table>
+    <div class="section-margin"></div>
+
+    <div class="section-label">判斷詐騙類型</div>
+    <table class="ref-table">
+      <tr><th>類型</th><th>心理驅動</th><th>對方常說的話</th></tr>
+      <tr><td class="dim-cell">假檢警詐騙</td><td>嗔（恐懼憤怒）</td><td>「帳戶被凍結，不能告訴家人」</td></tr>
+      <tr><td class="dim-cell">投資詐騙</td><td>貪（追求獲利）</td><td>「繳稅就能提領，老師保證穩賺」</td></tr>
+      <tr><td class="dim-cell">感情詐騙</td><td>癡（深信信任）</td><td>「他對我很好，只是需要我幫忙」</td></tr>
+      <tr><td class="dim-cell">傲慢拒絕型</td><td>傲（我比你懂）</td><td>「這是我的錢，我自己決定」</td></tr>
+      <tr><td class="dim-cell">主動懷疑型</td><td>疑（不確定）</td><td>「感覺怪，可以幫我確認嗎？」</td></tr>
+    </table>
+
+    <!-- ===== 案例練習 ===== -->
+    <div class="case-section" id="caseSection">
+      <div class="case-heading"><div class="n">✓</div><b>案例練習</b></div>
+      <p class="case-sub">3 個情境都在練「同理不糾正」——民眾會有害怕、掙扎、自責等不同反應，你要選出接住情緒的回應。答完每題，選項下方會直接顯示原因。</p>
+
+      <div id="caseList"></div>
+
+      <div class="case-done-note" id="doneNote" style="display:none;">
+        <div class="congrats-line">🎉 恭喜您答對了，我們一起進入下一個步驟</div>
+        「聽」的重點只有兩件事：先同理接住情緒，再用四個面向的問句蒐集資訊。
+      </div>
+    </div>
+
+    <a class="continue-btn" href="step4.html" style="text-decoration:none; text-align:center; display:block;">繼續 STEP 4・問 →</a>
+  </div>
+</div>
+
+<script>
+const cases = [
+  {
+    kind:'empathy', tag:'同理情境 ①',
+    text:"民眾一邊哭一邊說，聲音發抖：",
+    said:"「我真的很怕，對方說我涉及洗錢，我已經好幾天沒睡好了……」",
+    options:[
+      {text:"「那是假的，你被騙了，不用怕。」", correct:false, why:"急著糾正、否定他的恐懼，會讓他覺得自己很笨，反而不敢繼續說下去。"},
+      {text:"「聽起來真的很嚇人，換成是我接到這種電話，我也會很緊張。你已經好幾天沒睡好，一定很不好受。」", correct:true, why:"先承認情境本身確實嚇人，再點出他這幾天承受的壓力——同理他的感受，而不是評論這件事的真假。"},
+      {text:"「這種手法我們警察都看膩了，詐騙集團都這樣講。」", correct:false, why:"聽起來像在說「這沒什麼」，會讓他覺得自己的害怕不被重視。"},
+      {text:"「你不要自己嚇自己啦，冷靜點。」", correct:false, why:"「不要嚇自己」等於否定他的情緒是不合理的，容易讓人更防衛。"}
+    ]
+  },
+  {
+    kind:'empathy', tag:'同理情境 ②',
+    text:"民眾知道可能有問題，但語氣很掙扎：",
+    said:"「我知道可能是詐騙，但我已經投了 80 萬，如果現在停手，前面的錢不就白花了？」",
+    options:[
+      {text:"「你都知道是詐騙了還投，真的很奇怪。」", correct:false, why:"帶著評價語氣，會讓他覺得被指責，反而更不想繼續談。"},
+      {text:"「現在停手才能保住剩下的錢啊，繼續下去只會更慘。」", correct:false, why:"雖然道理沒錯，但一開口就講道理、沒有先接住他的情緒，聽起來像在說教。"},
+      {text:"「已經投入 80 萬，現在要喊停真的很不甘心，這種感覺我完全能理解。」", correct:true, why:"先同理「不甘心、捨不得」這個最真實的感受，而不是急著糾正他的決定——這樣他才聽得下接下來的話。"},
+      {text:"「你就是貪心才會被騙。」", correct:false, why:"直接下判斷、貼標籤，是最容易讓人防衛、拒絕溝通的說法。"}
+    ]
+  },
+  {
+    tag:'同理情境 ③',
+    text:"民眾發現自己被騙後，聲音充滿自責：",
+    said:"「我怎麼這麼笨，連這種都會被騙，我先生知道一定會罵死我。」",
+    options:[
+      {text:"「你會被騙也不是你笨啦，很多人都被騙。」", correct:false, why:"急著講道理反駁「你不笨」，聽起來像在說服她，但沒有真正接住她此刻自責的感受。"},
+      {text:"「會這樣想很正常，發現被騙的當下，很多人第一個念頭都是怪自己。你先生會怎麼反應我們沒辦法控制，但接下來要怎麼處理，我在這裡陪你一起想。」", correct:true, why:"先同理「自責」這個當下最真實的感受，同時誠實地不去承諾她無法控制的事（先生的反應），最後給出具體的陪伴與下一步。"},
+      {text:"「你先生人很好，一定不會罵你的，你不用擔心。」", correct:false, why:"對一個你根本不認識的人做出保證，是不切實際的安慰，反而可能顯得不夠真誠。"},
+      {text:"「現在難過也沒用，我們先處理正事比較重要。」", correct:false, why:"完全略過她的情緒，直接跳到辦事，會讓人覺得自己的感受不重要。"}
+    ]
+  }
+];
+
+const caseList = document.getElementById('caseList');
+const doneNote = document.getElementById('doneNote');
+
+function renderCase(i){
+  const c = cases[i];
+  const card = document.createElement('div');
+  card.className = 'case-card';
+  const tagClass = c.kind === 'type' ? 'case-tag purple' : 'case-tag';
+  card.innerHTML = `
+    <div class="${tagClass}">案例 ${i+1} · ${c.tag}</div>
+    <div class="case-text">${c.text}</div>
+    <div class="case-said">💬 ${c.said}</div>
+    <div class="case-prompt">${c.kind === 'type' ? '這是哪一種詐騙類型？' : '你會怎麼回應？'}</div>
+    <div class="resp-list"></div>
+  `;
+  caseList.appendChild(card);
+
+  const list = card.querySelector('.resp-list');
+  c.options.forEach(opt=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'opt-wrap';
+
+    const btn = document.createElement('button');
+    btn.className = 'resp-btn';
+    if(c.kind === 'type'){
+      btn.innerHTML = `<span class="type-name">${opt.text}</span><span class="type-driver">${opt.driver}</span>`;
+    } else {
+      btn.textContent = opt.text;
+    }
+    btn.onclick = ()=> pick(card, c, btn);
+
+    const explain = document.createElement('div');
+    explain.className = 'opt-explain';
+    explain.innerHTML = `<span class="mark">${opt.correct ? '✓' : '✗'}</span><span>${opt.why}</span>`;
+
+    wrap.appendChild(btn);
+    wrap.appendChild(explain);
+    list.appendChild(wrap);
+  });
+}
+
+function pick(card, c, chosenBtn){
+  const wraps = card.querySelectorAll('.opt-wrap');
+  wraps.forEach((wrap, idx)=>{
+    const opt = c.options[idx];
+    const btn = wrap.querySelector('.resp-btn');
+    const explain = wrap.querySelector('.opt-explain');
+    btn.disabled = true;
+    if(opt.correct){
+      btn.classList.add('correct');
+      explain.classList.add('show', 'correct');
+    } else {
+      if(btn === chosenBtn) btn.classList.add('wrong');
+      else btn.classList.add('faded');
+      explain.classList.add('show', 'wrong');
+    }
+  });
+
+  const i = cases.indexOf(c);
+  if(i < cases.length - 1){
+    setTimeout(()=>{ renderCase(i+1); }, 700);
+  } else {
+    doneNote.style.display = 'block';
+  }
+}
+
+renderCase(0);
+</script>
+<script>
+(function(){var ua=navigator.userAgent,inApp=false;
+if(/Line\//i.test(ua)||/FBAN|FBAV|FB_IAB/i.test(ua)||/Instagram/i.test(ua)||/Messenger/i.test(ua))inApp=true;
+window.__inApp=inApp;})();
+function goPractice(){var url='/mg?group=A&role=police',ua=navigator.userAgent,abs=location.origin+url;
+if(window.__inApp){
+ if(/Line\//i.test(ua)){location.href=abs+'&openExternalBrowser=1';return;}
+ if(/Android/i.test(ua)){location.href='intent://'+abs.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return;}
+ if(/iPad|iPhone|iPod/i.test(ua)){location.href='x-safari-https://'+abs.replace(/^https?:\/\//,'');
+  setTimeout(function(){if(navigator.clipboard)navigator.clipboard.writeText(abs).catch(function(){});alert('請點右上角 ⋯ →「在 Safari 開啟」，網址已複製，可貼到 Safari');},800);return;}
+}
+location.href=url;}
+</script>
+</body>
+</html>

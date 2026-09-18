@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 阻詐訓練平台 · 選擇身分</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{--navy:#1a2c4e;--navy2:#24406b;--gold:#c9973a;--gold2:#a87a24;--goldbg:#fff6e3;--teal:#0e7a5f;--teal2:#0a5c48;--tealbg:#e6f4ef;--ink:#1c2536;--muted:#6b7688;--line:#e5e9ef;}
+  body{font-family:"Noto Sans TC","Microsoft JhengHei","微軟正黑體",sans-serif;background:linear-gradient(160deg,#f7f9fc 0%,#eef3fa 50%,#f5f1e8 100%);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 18px;color:var(--ink);}
+  .wrap{width:min(100%,960px);}
+  .logo{text-align:center;margin-bottom:26px;}
+  .logo .shield{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--navy),var(--navy2));display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:12px;box-shadow:0 8px 24px rgba(26,44,78,.25);}
+  .logo h1{font-size:28px;font-weight:800;letter-spacing:1px;color:var(--navy);}
+  .logo p{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.7;}
+  .zones{display:grid;grid-template-columns:3fr 2fr;gap:18px;}
+  @media(max-width:820px){.zones{grid-template-columns:1fr;}}
+  .zone{background:#fff;border-radius:22px;padding:22px 20px 20px;box-shadow:0 8px 28px rgba(26,44,78,.08);border:1px solid var(--line);}
+  .zone .zh{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .zone .zh .ic{font-size:26px;}
+  .zone .zh h2{font-size:20px;font-weight:800;}
+  .zone .zs{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px;}
+  /* 第一線：員警／銀行行員 兩個等大區塊 */
+  .roles{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:520px){.roles{grid-template-columns:1fr;}}
+  .role{border-radius:18px;padding:22px 16px 18px;text-decoration:none;color:#fff;display:flex;flex-direction:column;align-items:center;text-align:center;transition:.15s;position:relative;overflow:hidden;min-height:250px;}
+  .role:active{transform:scale(.985);}
+  .role::after{content:"";position:absolute;right:-30px;bottom:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.08);}
+  .role.police{background:linear-gradient(160deg,#1a2c4e 0%,#24406b 100%);}
+  .role.bank{background:linear-gradient(160deg,#c9973a 0%,#e0b45a 100%);color:#3a2a08;}
+  .role .em{font-size:46px;margin-bottom:10px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.15));}
+  .role h3{font-size:22px;font-weight:800;letter-spacing:1px;}
+  .role p{font-size:12.5px;line-height:1.7;margin-top:8px;opacity:.9;flex:1;}
+  .role .go{margin-top:14px;background:#fff;color:var(--navy);font-size:14.5px;font-weight:800;border-radius:12px;padding:12px 18px;width:100%;box-shadow:0 4px 12px rgba(0,0,0,.12);}
+  .role.bank .go{color:var(--gold2);}
+  /* 民眾 */
+  .zone.pub{border-top:6px solid var(--teal);}
+  .zone.first{border-top:6px solid var(--navy);}
+  .pubcard{background:linear-gradient(160deg,var(--tealbg),#d8eee4);border-radius:18px;padding:22px 18px 18px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;align-items:center;text-align:center;min-height:250px;transition:.15s;}
+  .pubcard:active{transform:scale(.985);}
+  .pubcard .em{font-size:46px;margin-bottom:10px;}
+  .pubcard h3{font-size:22px;font-weight:800;color:var(--teal2);letter-spacing:1px;}
+  .pubcard .who{font-size:12px;font-weight:800;color:var(--teal2);background:#fff;border-radius:20px;padding:4px 12px;margin-top:8px;}
+  .pubcard p{font-size:12.5px;color:#2f5a49;line-height:1.7;margin-top:10px;flex:1;}
+  .pubcard .go{margin-top:14px;background:var(--teal);color:#fff;font-size:14.5px;font-weight:800;border-radius:12px;padding:12px 18px;width:100%;box-shadow:0 4px 12px rgba(14,122,95,.25);}
+  .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:22px;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <div class="shield">🛡️</div>
+    <h1>AI 阻詐訓練平台</h1>
+    <p>員警、銀行行員、一般民眾——請選擇您的身分，進入專屬的教材與 AI 演練</p>
+  </div>
+  <div class="zones">
+    <div class="zone first">
+      <div class="zh"><span class="ic">🚨</span><h2>我是第一線人員</h2></div>
+      <div class="zs">攔下正要交錢的民眾。學「看穩聽問守」，AI 扮演被詐騙的民眾讓您練習勸阻。</div>
+      <div class="roles">
+        <a class="role police" href="/police">
+          <div class="em">👮</div><h3>員警</h3>
+          <p>到場關懷、勸阻匯款<br>紅／黃／黑燈同理降階與引導提問</p>
+          <span class="go">進入員警攔阻專區 →</span>
+        </a>
+        <a class="role bank" href="/bank">
+          <div class="em">🏦</div><h3>銀行行員</h3>
+          <p>臨櫃關懷、攔下可疑匯款<br>用作業流程放慢節奏、合規關懷提問</p>
+          <span class="go">進入臨櫃攔阻專區 →</span>
+        </a>
+      </div>
+    </div>
+    <div class="zone pub">
+      <div class="zh"><span class="ic">🏠</span><h2>民眾守護</h2></div>
+      <div class="zs">保護自己與家人。學會辨識最常見的詐騙手法，AI 扮演詐騙者來找您，練習識破與拒絕。</div>
+      <a class="pubcard" href="/public">
+        <div class="em">👨‍👩‍👧‍👦</div><h3>一般民眾</h3>
+        <span class="who">長輩・青壯年・青少年</span>
+        <p>用「看穩聽問守」保護自己<br>九種常見詐騙手法圖鑑</p>
+        <span class="go">進入民眾防詐專區 →</span>
+      </a>
+    </div>
+  </div>
+  <div class="foot">劇本依內政部警政署「165 打詐儀錶板」統計設計｜研究設計：田心喬醫師（新光醫院精神科）</div>
+</div>
+</body>
+</html>

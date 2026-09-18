@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>完整流程圖｜見樹也見林</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#1a2c4e; --navy-700:#24406b; --gold-500:#d7a854;
+    --bg:#f4f6f9; --card:#ffffff; --line:#e5e9ef;
+    --text-900:#1c2536; --text-700:#3b4658; --text-500:#6b7688;
+    --red:#c94a3f; --teal:#2f8f78; --amber:#d98a2b; --green:#3ea173;
+    --blue-bg:#eaf1fb; --font:'Noto Sans TC', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--font); background:var(--bg); color:var(--text-900); -webkit-font-smoothing:antialiased;}
+  .app{max-width:720px; margin:0 auto; min-height:100vh; background:var(--bg);}
+
+  .header{background:var(--navy-900); color:#fff; padding:16px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .shield{width:28px; height:28px; border-radius:7px; background:var(--gold-500); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .brand-name{font-size:15px; font-weight:700;}
+  .badge{background:var(--gold-500); color:var(--navy-900); font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px;}
+
+  .tabs{display:flex; background:#fff; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:14px 8px; font-size:14px; font-weight:700; color:var(--text-500); text-decoration:none; cursor:pointer;}
+  .tab.active{color:var(--navy-900); border-bottom:2.5px solid var(--navy-900);}
+
+  .breadcrumb{padding:14px 22px 0;}
+  .back-link{display:inline-flex; align-items:center; gap:4px; text-decoration:none; color:var(--text-500); font-size:12.5px; font-weight:700;}
+
+  .content{padding:16px 22px 60px;}
+  .title-row{display:flex; align-items:center; gap:10px; margin:6px 0 4px;}
+  .title-icon{font-size:24px;}
+  .title-text{font-size:21px; font-weight:900; color:var(--navy-900);}
+  .title-sub{font-size:12.5px; color:var(--text-500); margin:0 0 18px 34px;}
+
+  .fc-node{
+    background:var(--card); border:1px solid var(--line); border-left:5px solid var(--navy-700);
+    border-radius:11px; padding:14px 16px; font-size:14px; line-height:1.7; color:var(--text-900);
+    box-shadow:0 1px 2px rgba(20,30,50,0.05); text-decoration:none; display:block;
+  }
+  a.fc-node{transition:transform .12s, box-shadow .12s;}
+  a.fc-node:hover{transform:translateY(-1px); box-shadow:0 5px 14px rgba(20,30,50,0.1);}
+  .fc-node .stage{font-weight:900; font-size:15.5px; display:inline-flex; align-items:center; gap:6px;}
+  .fc-node .go{float:right; font-size:12px; font-weight:700; color:var(--text-500);}
+  .fc-node.c-look{border-left-color:var(--red);}   .fc-node.c-look .stage{color:var(--red);}
+  .fc-node.c-calm{border-left-color:var(--navy-900);} .fc-node.c-calm .stage{color:var(--navy-900);}
+  .fc-node.c-listen{border-left-color:var(--teal);} .fc-node.c-listen .stage{color:var(--teal);}
+  .fc-node.c-ask{border-left-color:var(--amber);}  .fc-node.c-ask .stage{color:var(--amber);}
+  .fc-node.c-hold{border-left-color:var(--green);} .fc-node.c-hold .stage{color:var(--green);}
+  .fc-node.plain{border-left-color:var(--line); color:var(--text-700); font-size:13.5px;}
+
+  .fc-arrow{text-align:center; color:var(--text-500); font-size:16px; padding:7px 0;}
+  .fc-warn{
+    text-align:center; font-size:12.5px; font-weight:700; color:#7a2b23;
+    background:#fbebe9; border:1px solid #f2cfc9; border-radius:9px; padding:9px 12px; margin:2px 0;
+  }
+  .fc-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:2px 0;}
+  .fc-grid.five{grid-template-columns:repeat(5,1fr);}
+  @media (max-width:520px){.fc-grid,.fc-grid.five{grid-template-columns:repeat(2,1fr);}}
+  .fc-cell{
+    background:var(--card); border:1px solid var(--line); border-radius:9px;
+    padding:10px 6px; text-align:center; font-size:11.5px; font-weight:700; color:var(--text-700); line-height:1.55;
+    box-shadow:0 1px 2px rgba(20,30,50,0.04);
+  }
+  .fc-cell b{display:block; margin-bottom:3px; font-size:12px; color:var(--navy-900);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="brand"><div class="shield">🛡️</div><div class="brand-name">員警阻詐溝通技巧</div></div>
+    <a href="/handbook/index.html" class="badge" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;">↑ 回上一層</a>
+  </div>
+  <div class="tabs">
+    <a class="tab" href="index.html">操作手冊</a>
+    <a class="tab active" href="index.html#tools">工具資源</a>
+    <a class="tab" href="javascript:void(0)" onclick="goPractice()">AI 阻詐教練</a>
+  </div>
+  <div class="breadcrumb"><a class="back-link" href="index.html#tools">← 返回工具資源</a></div>
+
+  <div class="content">
+    <div class="title-row"><span class="title-icon">📊</span><span class="title-text">完整流程圖</span></div>
+    <div class="title-sub">見樹也見林 — 一頁看完看・穩・聽・問・守。點步驟卡可跳到該步驟詳解。</div>
+
+    <a class="fc-node c-look" href="step1.html"><span class="stage">👁 看</span>　判斷燈號，選對策略<span class="go">看詳解 →</span></a>
+    <div class="fc-arrow">↓</div>
+    <div class="fc-node plain">開場白：「您好，我是警察，看您好像在處理一件事，方便跟我說說嗎？」</div>
+    <div class="fc-arrow">↓</div>
+    <div class="fc-node plain">觀察三面向：①情緒狀態　②溝通意願　③思考清晰度</div>
+    <div class="fc-arrow">↓</div>
+    <div class="fc-grid">
+      <div class="fc-cell"><b>🔴 紅燈</b>激動恐懼<br>拒絕理會<br>思路混亂</div>
+      <div class="fc-cell"><b>🟡 黃燈</b>有猶豫<br>但仍要匯款</div>
+      <div class="fc-cell"><b>🟢 綠燈</b>平靜疑惑<br>主動詢問</div>
+      <div class="fc-cell"><b>⚫ 特殊</b>異常冷靜<br>備好說詞</div>
+    </div>
+    <div class="fc-arrow">↓</div>
+
+    <a class="fc-node c-calm" href="step2.html"><span class="stage">🧘 穩</span>　讓對方情緒平穩<span class="go">看詳解 →</span></a>
+    <div class="fc-arrow">↓</div>
+    <div class="fc-grid">
+      <div class="fc-cell"><b>🔴 紅燈</b>請對方移步<br>坐下靜待</div>
+      <div class="fc-cell"><b>🟡 黃燈</b>花兩分鐘<br>說明一件事</div>
+      <div class="fc-cell"><b>🟢 綠燈</b>一起確認<br>直接進聽</div>
+      <div class="fc-cell"><b>⚫ 特殊</b>做紀錄<br>請他說明</div>
+    </div>
+    <div class="fc-warn">⚠ 確認：有沒有被要求「不能告訴任何人」</div>
+    <div class="fc-arrow">↓</div>
+
+    <a class="fc-node c-listen" href="step3.html"><span class="stage">👂 聽</span>　蒐集資訊，找出矛盾點<span class="go">看詳解 →</span></a>
+    <div class="fc-arrow">↓</div>
+    <div class="fc-node plain">「方便跟我說說發生什麼事嗎？」　記住：時間線・金額・保密要求・矛盾點</div>
+    <div class="fc-arrow">↓</div>
+    <div class="fc-node plain" style="text-align:center;font-weight:700;">判斷詐騙類型</div>
+    <div class="fc-grid five">
+      <div class="fc-cell"><b>假檢警</b>嗔（恐懼）</div>
+      <div class="fc-cell"><b>投資詐騙</b>貪（獲利）</div>
+      <div class="fc-cell"><b>感情詐騙</b>癡（信任）</div>
+      <div class="fc-cell"><b>傲慢拒絕</b>傲（我知道）</div>
+      <div class="fc-cell"><b>主動懷疑</b>疑（不確定）</div>
+    </div>
+    <div class="fc-arrow">↓</div>
+
+    <a class="fc-node c-ask" href="step4.html"><span class="stage">🧭 問</span>　讓他自己發現問題<span class="go">看詳解 →</span></a>
+    <div class="fc-warn" style="color:#8a5a12;background:#fdf3dc;border-color:#f0d9a8;">不說「你被騙了」，用提問帶他自己想</div>
+    <div class="fc-arrow">↓</div>
+    <div class="fc-node plain">對方猶豫／同意暫停匯款</div>
+    <div class="fc-arrow">↓</div>
+
+    <a class="fc-node c-hold" href="step5.html"><span class="stage">🛡 守</span>　鞏固決定，防止動搖<span class="go">看詳解 →</span></a>
+    <div class="fc-grid five">
+      <div class="fc-cell">接住羞恥</div>
+      <div class="fc-cell">歸因詐騙者</div>
+      <div class="fc-cell">連結家人</div>
+      <div class="fc-cell">提醒再施壓</div>
+      <div class="fc-cell">留名片<br>+165</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){var ua=navigator.userAgent,inApp=false;
+if(/Line\//i.test(ua)||/FBAN|FBAV|FB_IAB/i.test(ua)||/Instagram/i.test(ua)||/Messenger/i.test(ua))inApp=true;
+window.__inApp=inApp;})();
+function goPractice(){var url='/handbook/manual?ai=1',ua=navigator.userAgent,abs=location.origin+url;
+if(window.__inApp){
+ if(/Line\//i.test(ua)){location.href=abs+'&openExternalBrowser=1';return;}
+ if(/Android/i.test(ua)){location.href='intent://'+abs.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return;}
+ if(/iPad|iPhone|iPod/i.test(ua)){location.href='x-safari-https://'+abs.replace(/^https?:\/\//,'');
+  setTimeout(function(){if(navigator.clipboard)navigator.clipboard.writeText(abs).catch(function(){});alert('請點右上角 ⋯ →「在 Safari 開啟」，網址已複製，可貼到 Safari');},800);return;}
+}
+location.href=url;}
+</script>
+</body>
+</html>

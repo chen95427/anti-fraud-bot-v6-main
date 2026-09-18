@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>銀行行員臨櫃攔阻 · 看穩聽問守</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{--gold:#c9973a;--gold2:#a87a24;--goldbg:#fff6e3;--goldline:#eed9a8;--brown:#3a2a08;--ink:#1c2536;--muted:#6b7688;--line:#e5e9ef;--red:#c94a3f;--navy:#1a2c4e;--green:#3ea173;--blue:#2f6fb5;--teal:#0e7a5f;}
+  body{font-family:"Noto Sans TC","Microsoft JhengHei","微軟正黑體",sans-serif;background:linear-gradient(180deg,#fffaf0 0%,#fdf3dc 100%);color:var(--ink);min-height:100dvh;}
+  .topbar{background:linear-gradient(135deg,#c9973a,#e0b45a);color:var(--brown);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(168,122,36,.25);}
+  .topbar .l{display:flex;align-items:center;gap:10px;}
+  .topbar .shield{width:36px;height:36px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;}
+  .topbar .tt{font-size:16px;font-weight:800;}
+  .topbar .tt small{display:block;font-size:10.5px;font-weight:600;opacity:.8;margin-top:1px;}
+  /* 切換身分：放大、有趣 */
+  .switch{display:flex;align-items:center;gap:8px;background:#fff;color:var(--gold2);font-size:14px;font-weight:800;text-decoration:none;border-radius:30px;padding:9px 16px 9px 12px;box-shadow:0 3px 10px rgba(0,0,0,.12);transition:.15s;}
+  .switch:active{transform:scale(.96);}
+  .switch .av{display:flex;gap:-4px;}
+  .switch .av span{width:26px;height:26px;border-radius:50%;background:var(--goldbg);border:2px solid #fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;margin-left:-8px;}
+  .switch .av span:first-child{margin-left:0;}
+  .hero{position:relative;padding:32px 20px 26px;overflow:hidden;text-align:center;}
+  .hero .in{max-width:760px;margin:0 auto;}
+  .hero .pill{display:inline-block;background:var(--gold);color:#fff;font-size:12.5px;font-weight:800;padding:6px 16px;border-radius:20px;margin-bottom:14px;}
+  .hero .big{font-size:64px;line-height:1;margin-bottom:8px;}
+  .hero h1{font-size:26px;font-weight:800;line-height:1.4;color:var(--brown);}
+  .hero .sub{font-size:14px;color:var(--gold2);margin-top:10px;letter-spacing:1px;}
+  .hero .sub b{color:var(--brown);font-size:20px;letter-spacing:6px;}
+  .hero p{font-size:13.5px;color:#5a4a28;margin-top:12px;line-height:1.8;}
+  .hero .cta{display:inline-block;margin-top:16px;background:var(--navy);color:#fff;font-size:16px;font-weight:800;border-radius:14px;padding:15px 30px;text-decoration:none;box-shadow:0 8px 20px rgba(26,44,78,.28);}
+  .hero .mic{font-size:12px;color:var(--gold2);margin-top:10px;font-weight:700;}
+  .wrap{max-width:900px;margin:0 auto;padding:6px 18px 96px;}
+  .sect{font-size:19px;font-weight:800;color:var(--brown);margin:22px 0 12px;text-align:center;}
+  .sect small{display:block;font-size:12.5px;color:var(--gold2);font-weight:600;margin-top:4px;}
+  /* 五步：圖為主、字極少 */
+  .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+  @media(max-width:760px){.steps{grid-template-columns:repeat(2,1fr);} .steps .step:last-child{grid-column:1/-1;}}
+  .step{background:#fff;border-radius:18px;padding:18px 10px 14px;text-align:center;border-top:7px solid var(--c);box-shadow:0 4px 16px rgba(168,122,36,.10);cursor:pointer;transition:.15s;}
+  .step:active{transform:scale(.97);}
+  .step .em{font-size:44px;line-height:1;}
+  .step h3{font-size:22px;font-weight:800;margin-top:8px;color:var(--c);}
+  .step .k{font-size:13px;font-weight:700;color:var(--ink);margin-top:4px;}
+  .step .d{display:none;font-size:12px;color:#5a4a28;line-height:1.65;margin-top:8px;text-align:left;border-top:1px dashed var(--goldline);padding-top:8px;}
+  .step.open .d{display:block;}
+  .step .say{display:none;margin-top:8px;background:var(--goldbg);border:1px solid var(--goldline);border-radius:9px;padding:7px 10px;font-size:12px;color:var(--brown);text-align:left;line-height:1.55;}
+  .step.open .say{display:block;}
+  .step .more{font-size:11px;color:var(--gold2);font-weight:700;margin-top:8px;}
+  .tap{text-align:center;font-size:12px;color:var(--gold2);margin-top:8px;}
+  /* 三不 */
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px;}
+  .no{background:#fff;border-radius:16px;padding:16px 8px;text-align:center;box-shadow:0 4px 14px rgba(168,122,36,.10);}
+  .no .em{font-size:38px;}
+  .no b{display:block;font-size:15px;color:var(--red);margin-top:6px;}
+  .no span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--goldline);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:10;}
+  .bottom a{width:min(100%,500px);text-align:center;background:var(--navy);color:#fff;font-size:16px;font-weight:800;border-radius:13px;padding:15px;text-decoration:none;box-shadow:0 6px 18px rgba(26,44,78,.28);}
+  .src{font-size:11px;color:var(--gold2);text-align:center;margin-top:24px;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="l"><div class="shield">🏦</div><div class="tt">銀行行員臨櫃攔阻<small>看穩聽問守</small></div></div>
+  <a class="switch" href="/"><span class="av"><span>👮</span><span>🏦</span><span>👨‍👩‍👧</span></span>切換身分</a>
+</div>
+
+<div class="hero"><div class="in">
+  <span class="pill">金融機構臨櫃關懷</span>
+  <div class="big">🏦</div>
+  <h1>你多核對的那一分鐘，<br>可能是他們的一輩子</h1>
+  <div class="sub">臨櫃攔阻五步：<b>看穩聽問守</b></div>
+  <p>錢從櫃檯出去就追不回來。行員最有力的工具不是勸說，是<b>作業流程本身</b>——多一道核對，就多一次機會。</p>
+  <a class="cta" href="/mg?group=A&role=bank">🎯 開始 AI 臨櫃演練</a>
+  <div class="mic">🎤 按麥克風說話就好，AI 客戶用文字回應</div>
+</div></div>
+
+<div class="wrap">
+  <div class="sect">臨櫃五步<small>點一下看怎麼做</small></div>
+  <div class="steps">
+    <div class="step" style="--c:#c94a3f" onclick="tg(this)"><div class="em">👁️</div><h3>看</h3><div class="k">看清警訊</div>
+      <div class="d">大額整數提匯・邊講電話邊辦・神情緊張・用途說不清・第一次匯陌生帳戶・剛解定存</div>
+      <div class="say">💬「這筆金額比較大，我幫您多核對一下。您要匯給哪一位呢？」</div><div class="more">點看 ▾</div></div>
+    <div class="step" style="--c:#1a2c4e" onclick="tg(this)"><div class="em">🧘</div><h3>穩</h3><div class="k">放慢節奏</div>
+      <div class="d">用流程穩住：多一道核對、請主管覆核。客戶越急，你越照規矩來。</div>
+      <div class="say">💬「大額匯款照規定要多做一次確認，您先坐一下，我馬上處理。」</div><div class="more">點看 ▾</div></div>
+    <div class="step" style="--c:#3ea173" onclick="tg(this)"><div class="em">👂</div><h3>聽</h3><div class="k">合規關懷</div>
+      <div class="d">像在幫他辦事：收款人是誰、認識多久、錢做什麼用。聽出他「最後被要求做什麼」。</div>
+      <div class="say">💬「這位收款的朋友您認識多久了？這筆錢是用在什麼地方呢？」</div><div class="more">點看 ▾</div></div>
+    <div class="step" style="--c:#c9973a" onclick="tg(this)"><div class="em">🧭</div><h3>問</h3><div class="k">問到破口</div>
+      <div class="d">有沒有被要求保密？電話不能掛？先解定存？真正的機構會這樣要求嗎？</div>
+      <div class="say">💬「對方有沒有跟您說，這件事不能告訴家人、電話要一直開著？」</div><div class="more">點看 ▾</div></div>
+    <div class="step" style="--c:#0e7a5f" onclick="tg(this)"><div class="em">🛡️</div><h3>守</h3><div class="k">依規通報</div>
+      <div class="d">暫緩交易 → 通知主管 → 協助撥 165／110 → 請警方到場。說「保護您的存款」，不說「阻止您」。</div>
+      <div class="say">💬「您願意停下來想一想真的很聰明。我先幫您暫緩，我們一起打 165 確認，是為了保護您的存款。」</div><div class="more">點看 ▾</div></div>
+  </div>
+
+  <div class="sect" style="margin-top:28px;">臨櫃三不說<small>直接否定會讓客戶更防衛</small></div>
+  <div class="three">
+    <div class="no"><div class="em">🚫</div><b>「這是詐騙」</b><span>改：我幫您多確認</span></div>
+    <div class="no"><div class="em">🚫</div><b>「你被騙了」</b><span>改：您停下來很聰明</span></div>
+    <div class="no"><div class="em">🚫</div><b>「不能匯」</b><span>改：先暫緩、一起查</span></div>
+  </div>
+
+  <div class="src">研究設計：田心喬醫師（新光醫院精神科）｜依「金融機構臨櫃關懷提問」與真實演練資料設計</div>
+</div>
+<div class="bottom"><a href="/mg?group=A&role=bank">🎯 開始 AI 臨櫃演練（按 🎤 說話）</a></div>
+<script>function tg(el){el.classList.toggle('open');el.querySelector('.more').textContent=el.classList.contains('open')?'收合 ▴':'點看 ▾';}</script>
+</body>
+</html>

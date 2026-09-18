@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>員警阻詐溝通技巧</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#1a2c4e;
+    --navy-700:#24406b;
+    --gold-500:#d7a854;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --line:#e5e9ef;
+    --text-900:#1c2536;
+    --text-700:#3b4658;
+    --text-500:#6b7688;
+    --red:#c94a3f;
+    --green:#3ea173;
+    --blue-bg:#eaf1fb;
+    --font:'Noto Sans TC', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--font); background:var(--bg); color:var(--text-900); -webkit-font-smoothing:antialiased;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}}
+
+  .app{max-width:900px; margin:0 auto; min-height:100vh; background:var(--bg);}
+
+  .header{background:var(--navy-900); color:#fff; padding:16px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .shield{width:28px; height:28px; border-radius:7px; background:var(--gold-500); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .brand-name{font-size:15px; font-weight:700;}
+  .badge{background:var(--gold-500); color:var(--navy-900); font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px;}
+
+  .hero{
+    position:relative; padding:36px 22px 26px; min-height:320px;
+    display:flex; flex-direction:column; justify-content:flex-end; align-items:flex-start;
+    background-image:
+      linear-gradient(180deg, rgba(10,25,55,0.22) 0%, rgba(10,25,55,0.5) 52%, rgba(10,25,55,0.88) 100%),
+      url('hero.jpg');
+    background-size: cover, 135%;
+    background-position: center, 60% 16%;
+    background-repeat: no-repeat, no-repeat;
+    color:#fff; overflow:hidden;
+  }
+  .hero-head{display:table; margin-bottom:12px;}
+  .hero-tag{
+    display:block; text-align:center; background:var(--gold-500); color:var(--navy-900);
+    font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:999px; margin-bottom:14px;
+    letter-spacing:0.04em;
+  }
+  .hero-title{font-size:26px; font-weight:900; line-height:1.4; margin:0; white-space:nowrap;}
+  .hero-sub{font-size:13.5px; color:rgba(255,255,255,0.75);}
+
+  .tabs{display:flex; background:#fff; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:14px 8px; font-size:14px; font-weight:700; color:var(--text-500); cursor:pointer;}
+  .tab.active{color:var(--navy-900); border-bottom:2.5px solid var(--navy-900);}
+
+  .content{padding:24px 22px 60px;}
+  .section-title{font-size:14.5px; font-weight:900; color:var(--text-500); margin:0 0 14px; letter-spacing:0.02em;}
+
+  .step-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
+  @media (max-width:520px){.step-grid{grid-template-columns:1fr;}}
+
+  .step-card{
+    display:block; text-decoration:none; color:inherit;
+    background:var(--card); border-radius:12px; overflow:hidden;
+    box-shadow:0 1px 3px rgba(20,30,50,0.08); transition:transform 0.15s, box-shadow 0.15s;
+  }
+  .step-card:hover{transform:translateY(-2px); box-shadow:0 6px 16px rgba(20,30,50,0.12);}
+  .step-card .bar{height:5px;}
+  .step-card.c1 .bar{background:var(--red);}
+  .step-card.c2 .bar{background:var(--navy-900);}
+  .step-card.c3 .bar{background:#2f8f78;}
+  .step-card.c4 .bar{background:#d98a2b;}
+  .step-card.c5 .bar{background:var(--green);}
+  .step-card .body{padding:22px 18px; text-align:center;}
+  .step-card .label{font-size:11.5px; font-weight:700; color:var(--text-500); letter-spacing:0.06em; margin-bottom:10px;}
+  .step-card .icon{font-size:26px; margin-bottom:10px;}
+  .step-card .icon-img{display:block; width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:10px; margin:0 auto 12px; box-shadow:0 3px 10px rgba(20,30,50,0.12);}
+  .step-card.wide .icon-img{width:120px; height:75px; aspect-ratio:auto; margin:0; flex-shrink:0;}
+  .step-card .name{font-size:15.5px; font-weight:900; color:var(--navy-900); margin-bottom:10px;}
+  .step-card .time{
+    display:inline-block; background:var(--blue-bg); color:var(--navy-700);
+    font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:999px; margin-bottom:10px;
+  }
+  .step-card .desc{font-size:12px; color:var(--text-500); line-height:1.6;}
+
+  .step-card.wide{grid-column:1 / -1;}
+  .step-card.wide .body{
+    display:flex; align-items:center; gap:16px; text-align:left; padding:18px 20px;
+  }
+  .step-card.wide .icon{font-size:26px; margin-bottom:0; flex-shrink:0;}
+  .step-card.wide .wide-main{flex:1; min-width:0;}
+  .step-card.wide .name{margin-bottom:4px;}
+  .step-card.wide .time{margin-bottom:0; flex-shrink:0;}
+  .step-card.wide .desc{margin-top:2px;}
+
+  .ai-cta{
+    margin-top:22px; display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--navy-900); color:#fff; border-radius:12px; padding:20px;
+    text-decoration:none;
+  }
+  .ai-cta .left b{font-size:15px; display:block; margin-bottom:4px;}
+  .ai-cta .left span{font-size:12px; color:rgba(255,255,255,0.7);}
+  .ai-cta .arrow{font-size:20px; flex-shrink:0;}
+
+  /* ---- tab panels ---- */
+  .tab{ -webkit-tap-highlight-color:transparent; }
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* ---- 工具資源 ---- */
+  .tool-list{display:flex; flex-direction:column; gap:12px;}
+  .tool-item{
+    display:flex; align-items:center; gap:14px; text-decoration:none;
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; color:inherit; box-shadow:0 1px 3px rgba(20,30,50,0.06);
+    transition:transform 0.15s, box-shadow 0.15s; cursor:pointer;
+  }
+  .tool-item:hover{transform:translateY(-2px); box-shadow:0 6px 16px rgba(20,30,50,0.1);}
+  .tool-item .ti-ic{font-size:24px; flex-shrink:0; width:30px; text-align:center;}
+  .tool-item .ti-main{flex:1; min-width:0;}
+  .tool-item .ti-name{font-size:15px; font-weight:900; color:var(--navy-900); margin-bottom:2px;}
+  .tool-item .ti-sub{font-size:12px; color:var(--text-500); line-height:1.5;}
+  .tool-item .ti-arrow{font-size:18px; color:var(--text-500); flex-shrink:0;}
+
+  /* ---- 工具資源：訓練工具三宮格 ---- */
+  .tools-section-label{font-size:13px; font-weight:900; color:var(--text-500); margin:24px 0 12px; letter-spacing:0.02em;}
+  .tools-section-label:first-child{margin-top:2px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .t-card{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; text-align:center;
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px 8px;
+    text-decoration:none; color:inherit; box-shadow:0 1px 3px rgba(20,30,50,0.06);
+    transition:transform .15s, box-shadow .15s; cursor:pointer;
+  }
+  .t-card:hover{transform:translateY(-2px); box-shadow:0 6px 16px rgba(20,30,50,0.1);}
+  .t-card .tc-ic{font-size:30px;}
+  .t-card .tc-label{font-size:14.5px; font-weight:900; color:var(--navy-900); line-height:1.35;}
+
+  /* ---- 工具資源：清單列 ---- */
+  .tools-card{background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 1px 3px rgba(20,30,50,0.06);}
+  .tools-row{display:flex; align-items:center; gap:14px; padding:16px 18px; text-decoration:none; color:inherit; border-bottom:1px solid var(--line); cursor:pointer;}
+  .tools-row:last-child{border-bottom:none;}
+  .tools-row:hover{background:#f8fafc;}
+  .tr-ic{width:44px; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;}
+  .tr-ic.blue{background:var(--blue-bg);}
+  .tr-ic.green{background:#e9f6ef;}
+  .tr-ic.gold{background:#f7ecd2;}
+  .tr-text{flex:1; min-width:0;}
+  .tr-title{font-size:15px; font-weight:900; color:var(--navy-900); margin-bottom:2px;}
+  .tr-sub{font-size:12px; color:var(--text-500); line-height:1.5;}
+  .tr-arrow{font-size:20px; color:var(--text-500); flex-shrink:0;}
+
+  /* ---- AI 阻詐教練 ---- */
+  .ai-panel-hero{
+    background:linear-gradient(135deg,#24406b,#16233d); color:#fff;
+    border-radius:14px; padding:28px 22px; text-align:center; margin-bottom:18px;
+  }
+  .ai-panel-hero .ai-emoji{font-size:42px; margin-bottom:10px;}
+  .ai-panel-hero h2{font-size:20px; font-weight:900; margin:0 0 8px;}
+  .ai-panel-hero p{font-size:13px; color:rgba(255,255,255,0.78); line-height:1.7; margin:0;}
+  .ai-launch{
+    display:block; width:100%; text-align:center; text-decoration:none; border:none;
+    background:var(--gold-500); color:var(--navy-900); font-family:var(--font);
+    font-size:16px; font-weight:900; padding:16px; border-radius:12px;
+    margin-bottom:24px; cursor:pointer;
+  }
+  .ai-launch:active{transform:scale(0.99);}
+  .ai-note-list{display:flex; flex-direction:column; gap:10px;}
+  .ai-note{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+  }
+  .ai-note .an-ic{font-size:20px; flex-shrink:0;}
+  .ai-note .an-name{font-size:14px; font-weight:800; color:var(--navy-900); margin-bottom:3px;}
+  .ai-note .an-sub{font-size:12px; color:var(--text-500); line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="shield">🛡️</div>
+      <div class="brand-name">員警阻詐溝通技巧</div>
+    </div>
+    <a href="/" class="badge" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;">↑ 回主頁</a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-head">
+      <span class="hero-tag">警方防詐培訓工具</span>
+      <div class="hero-title">你是在搶人心<br>不是在對抗被害人</div>
+    </div>
+    <div class="hero-sub">溝通五大技巧：看・穩・聽・問・守</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-panel="manual" onclick="switchTab(this)">操作手冊</div>
+    <div class="tab" data-panel="tools" onclick="switchTab(this)">工具資源</div>
+    <div class="tab" data-panel="ai" onclick="switchTab(this)">AI 阻詐教練</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ 操作手冊 ══ -->
+    <div class="panel active" id="panel-manual">
+    <div class="section-title">五步驟操作手冊</div>
+
+    <div class="step-grid">
+      <a class="step-card c1" href="step1.html">
+        <div class="bar"></div>
+        <div class="body">
+          <div class="label">STEP 1</div>
+          <img class="icon-img" src="/handbook/landing/assets/steps/look.jpg" alt="看">
+          <div class="name">看・判斷燈號</div>
+          <div class="desc">觀察情緒、意願、<br>思考清晰度</div>
+        </div>
+      </a>
+
+      <a class="step-card c2" href="step2.html">
+        <div class="bar"></div>
+        <div class="body">
+          <div class="label">STEP 2</div>
+          <img class="icon-img" src="/handbook/landing/assets/steps/calm.jpg" alt="穩">
+          <div class="name">穩・讓情緒平穩</div>
+          <div class="desc">紅黃綠特殊燈號<br>對應穩定話術</div>
+        </div>
+      </a>
+
+      <a class="step-card c3" href="step3.html">
+        <div class="bar"></div>
+        <div class="body">
+          <div class="label">STEP 3</div>
+          <img class="icon-img" src="/handbook/landing/assets/steps/listen.jpg" alt="聽">
+          <div class="name">聽・蒐集資訊</div>
+          <div class="desc">問話架構、同理原則<br>找出矛盾點</div>
+        </div>
+      </a>
+
+      <a class="step-card c4" href="step4.html">
+        <div class="bar"></div>
+        <div class="body">
+          <div class="label">STEP 4</div>
+          <img class="icon-img" src="/handbook/landing/assets/steps/ask.jpg" alt="問">
+          <div class="name">問・引導發現</div>
+          <div class="desc">五種詐騙類型<br>的關鍵提問</div>
+        </div>
+      </a>
+    </div>
+
+    <a class="step-card c5 wide" href="step5.html">
+      <div class="bar"></div>
+      <div class="body">
+        <img class="icon-img wide-img" src="/handbook/landing/assets/steps/guard.jpg" alt="守">
+        <div class="wide-main">
+          <div class="name">STEP 5・守・鞏固決定</div>
+          <div class="desc">接住情緒，留下安全網，防止動搖</div>
+        </div>
+      </div>
+    </a>
+
+    <a class="ai-cta" href="javascript:void(0)" onclick="goPractice()">
+      <div class="left">
+        <b>🤖 準備好了嗎？進入 AI 阻詐教練</b>
+        <span>五步驟都練完後，用真實情境對話驗收成果</span>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+    </div><!-- end panel-manual -->
+
+    <!-- ══ 工具資源 ══ -->
+    <div class="panel" id="panel-tools">
+
+      <div class="tools-section-label">訓練工具</div>
+      <div class="grid-3">
+        <a class="t-card" href="step1.html">
+          <div class="tc-ic">📋</div>
+          <div class="tc-label">現場<br>檢核表</div>
+        </a>
+        <a class="t-card" href="javascript:void(0)" onclick="goPractice()">
+          <div class="tc-ic">🎯</div>
+          <div class="tc-label">情境<br>練習</div>
+        </a>
+        <a class="t-card" href="javascript:void(0)" onclick="goHistory()">
+          <div class="tc-ic">📊</div>
+          <div class="tc-label">我的<br>訓練紀錄</div>
+        </a>
+      </div>
+
+      <div class="tools-section-label">完整流程與速查</div>
+      <div class="tools-card">
+        <a class="tools-row" href="flowchart.html">
+          <div class="tr-ic blue">📊</div>
+          <div class="tr-text">
+            <div class="tr-title">完整流程圖</div>
+            <div class="tr-sub">見樹也見林，一頁全覽</div>
+          </div>
+          <div class="tr-arrow">›</div>
+        </a>
+        <a class="tools-row" href="quickref.html">
+          <div class="tr-ic green">📚</div>
+          <div class="tr-text">
+            <div class="tr-title">快速查找</div>
+            <div class="tr-sub">話術、燈號、詐騙類型速查</div>
+          </div>
+          <div class="tr-arrow">›</div>
+        </a>
+      </div>
+
+      <div class="tools-section-label">關於本手冊</div>
+      <div class="tools-card">
+        <a class="tools-row" href="profile.html">
+          <div class="tr-ic gold">👨‍⚕️</div>
+          <div class="tr-text">
+            <div class="tr-title">田心喬醫師</div>
+            <div class="tr-sub">新光醫院精神科｜司法精神醫學</div>
+          </div>
+          <div class="tr-arrow">›</div>
+        </a>
+        <a class="tools-row" href="javascript:void(0)" onclick="goAdmin()">
+          <div class="tr-ic green">🔒</div>
+          <div class="tr-text">
+            <div class="tr-title">後台管理</div>
+            <div class="tr-sub">訓練成績與問卷結果</div>
+          </div>
+          <div class="tr-arrow">›</div>
+        </a>
+      </div>
+
+    </div><!-- end panel-tools -->
+
+    <!-- ══ AI 阻詐教練 ══ -->
+    <div class="panel" id="panel-ai">
+      <div class="ai-panel-hero">
+        <div class="ai-emoji">🤖</div>
+        <h2>AI 阻詐教練</h2>
+        <p>與 AI 模擬的各類詐騙情境民眾即時對話<br>演練結束後，AI 教練點評你的阻詐話術與技巧</p>
+      </div>
+      <button class="ai-launch" onclick="goPractice()">🚀 開始 AI 演練對話</button>
+      <div class="section-title">演練說明</div>
+      <div class="ai-note-list">
+        <div class="ai-note">
+          <span class="an-ic">🎓</span>
+          <span>
+            <span class="an-name">兩種訓練級別</span>
+            <span class="an-sub">「基礎級」有教練卡逐步指引＋實戰金句；「實戰級」無教練指引混合型案例</span>
+          </span>
+        </div>
+        <div class="ai-note">
+          <span class="an-ic">🎭</span>
+          <span>
+            <span class="an-name">AI 扮演被害民眾</span>
+            <span class="an-sub">依五種詐騙類型模擬真實情緒與反應，你扮演臨櫃／關懷的員警；按 🎤 用說的即可</span>
+          </span>
+        </div>
+        <div class="ai-note">
+          <span class="an-ic">🌡️</span>
+          <span>
+            <span class="an-name">即時情緒溫度計與話術標記</span>
+            <span class="an-sub">對話中即時顯示民眾情緒變化，並標記你用到的關鍵話術</span>
+          </span>
+        </div>
+        <div class="ai-note">
+          <span class="an-ic">📊</span>
+          <span>
+            <span class="an-name">五軸雷達圖點評</span>
+            <span class="an-sub">結束後 AI 教練從看・穩・聽・問・守五面向給你回饋</span>
+          </span>
+        </div>
+      </div>
+    </div><!-- end panel-ai -->
+
+  </div>
+</div>
+
+<script>
+  // ── tab 切換 ──
+  function switchTab(btn){
+    const panel = btn.getAttribute('data-panel');
+    document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-' + panel).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  function showPanelByName(name){
+    const btn = document.querySelector('.tabs .tab[data-panel="'+name+'"]');
+    if(btn) switchTab(btn);
+  }
+  // 支援 index.html#tools / #ai 直接開對應面板（步驟頁 tab 連回用）
+  (function(){
+    const h = (location.hash || '').replace('#','');
+    if(h==='tools' || h==='ai') showPanelByName(h);
+  })();
+
+  // ── 跳轉外部瀏覽器（LINE/FB/IG/Messenger 內建）──
+  (function(){
+    const ua = navigator.userAgent;
+    let isInApp=false, browserName=null;
+    if(/Line\//i.test(ua)){isInApp=true;browserName='LINE';}
+    else if(/FBAN|FBAV|FB_IAB/i.test(ua)){isInApp=true;browserName='Facebook';}
+    else if(/Instagram/i.test(ua)){isInApp=true;browserName='Instagram';}
+    else if(/Messenger/i.test(ua)){isInApp=true;browserName='Messenger';}
+    window.__inAppBrowser={isInApp,browserName};
+  })();
+  function tryOpenExternal(url){
+    if(!window.__inAppBrowser || !window.__inAppBrowser.isInApp) return false;
+    const ua = navigator.userAgent;
+    if(/Line\//i.test(ua)){
+      const sep = url.includes('?') ? '&' : '?';
+      location.href = url + sep + 'openExternalBrowser=1'; return true;
+    }
+    if(/Android/i.test(ua)){
+      location.href = 'intent://' + url.replace(/^https?:\/\//,'') + '#Intent;scheme=https;package=com.android.chrome;end';
+      return true;
+    }
+    if(/iPad|iPhone|iPod/i.test(ua)){
+      location.href = 'x-safari-https://' + url.replace(/^https?:\/\//,'');
+      setTimeout(()=>{
+        if(navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
+        alert('請點右上角 ⋯ →「在 Safari 開啟」\n\n網址已複製，可貼到 Safari');
+      },800);
+      return true;
+    }
+    return false;
+  }
+  function goPractice(){
+    // V5：導向兩級制多族群引擎（一般級有教練 / 高級混合無教練），直接進員警身分
+    const target = location.origin + '/mg?group=A&role=police';
+    if(tryOpenExternal(target)) return;
+    location.href = '/mg?group=A&role=police';
+  }
+  function goHistory(){
+    const target = location.origin + '/handbook/manual?ai=1&view=history';
+    if(tryOpenExternal(target)) return;
+    location.href = '/handbook/manual?ai=1&view=history';
+  }
+  function goAdmin(){
+    location.href = '/admin';
+  }
+</script>
+</body>
+</html>
