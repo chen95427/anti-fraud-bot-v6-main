@@ -1,0 +1,56 @@
+services:
+  - type: web
+    name: anti-fraud-bot-v5
+    runtime: python
+    plan: starter   # 付費方案（約 $7/月）：不休眠、可掛持久磁碟保存資料
+    # 手冊檔已直接 commit 在 public/handbook/，不需 build.py 複製（移除以免誤刪）
+    buildCommand: pip install -r requirements.txt
+    # 單一 worker：演練 session 存在行程記憶體，多 worker 會互相看不到 session
+    # threads 24：演講/團體同時使用（50–100 人）時，每回合都在等 Anthropic 回應（I/O），多執行緒不吃記憶體、可同時服務更多人
+    startCommand: gunicorn server:app --workers 1 --threads 24 --timeout 120 --bind 0.0.0.0:$PORT
+    # 持久磁碟：訓練資料放這，重新部署／重啟都不會被清空
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DB_PATH
+        value: /var/data/training_data.db   # 資料庫放到持久磁碟，永久保存
+      - key: ANTHROPIC_API_KEY
+        sync: false   # 在 Render 後台手動設定，不寫入 git
+      - key: ADMIN_PASSWORD
+        sync: false   # 舊式後台密碼（登入制上線後僅作 bootstrap 備援；ADMIN_KEY_FALLBACK=1 時才允許 ?key=）
+      # ── 資安（V3 移植）：後台改為帳號登入＋2FA＋IP 允用＋稽核 ──
+      - key: SECRET_KEY
+        sync: false   # Flask 登入 cookie 簽章金鑰（64 位亂數；不設會每次重啟登出）
+      - key: ADMIN_BOOTSTRAP_USER
+        sync: false   # 首次啟動自動建立的管理員帳號（只在 admin_users 為空時生效）
+      - key: ADMIN_BOOTSTRAP_PASS
+        sync: false   # 初始密碼（登入後強制修改）
+      - key: ADMIN_IDLE_TIMEOUT
+        value: "1800"   # 後台閒置逾時（秒）
+      - key: ADMIN_IP_ENFORCE
+        value: "1"      # 後台 IP 允用強制（清單空＝全放行；被鎖時暫設 0）
+      # 自動 Email 備份（訓練完成自動寄完整備份）；不設就是關閉，功能其餘照常
+      # Render 封鎖 SMTP 埠，需用 Resend（HTTPS）。到 resend.com 申請免費 API key。
+      - key: RESEND_API_KEY
+        sync: false   # Resend API 金鑰（re_ 開頭）
+      - key: BACKUP_EMAIL
+        value: mingshin228@gmail.com   # 收件信箱（用此信箱註冊 Resend 即免驗證網域）
+      # 以下 SMTP 為備援（本機/不擋 SMTP 環境才有效，Render 上會 timeout）
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: CLAUDE_MODEL
+        value: claude-haiku-4-5
+      - key: DAILY_LIMIT
+        value: "1000"   # 全站每日總量（＝預算天花板；30-50 人足夠；沒人用不花錢）
+      - key: PER_PERSON_PER_MINUTE
+        value: "20"     # 每人每分鐘（防連點/機器人）
+      - key: PER_PERSON_PER_DAY
+        value: "30"     # 每人每天演練場次（改按人算，同單位不互鎖）
+      - key: MAX_TURNS_PER_SESSION
+        value: "50"
+      - key: PYTHON_VERSION
+        value: "3.12.6"

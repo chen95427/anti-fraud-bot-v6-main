@@ -1,0 +1,45 @@
+# 環境變數（含 API key，絕對不能上傳！）
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 部署用，本地測試產生的快取
+.render-cache/
+
+# 資料庫（本機測試用，雲端部署後會在 Render 自動建立）
+*.db
+training_data.db
+
+# v2 遺留 / 含密碼 / 非部署所需（不進 v3 repo）
+網站資訊/
+阻詐機器人/
+部署資訊.md
+部署資訊_v2.md
+部署指南.md
+index_code.md
+server.js
+package.json
+
+# 本機 log / 暫存
+server_log.txt
+*.log
+_design_unzip/
+_thumb/
