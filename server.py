@@ -2727,7 +2727,8 @@ def mg_start():
         level = '一般'   # B 類自我防護固定一般指引（目的是協助辨識，恆有教練提示）
         ai_assist = False   # B 類不受這次黑客松鎖定影響，教練提示邏輯維持原樣（不用這個旗標）
         if not unit_name:
-            unit_name = '自我防護'  # B 類不填單位，統一歸類方便後台檢視
+            # 民眾版現在也要填「演練單位」（可能是銀行內部宣導、也可能是分局社區宣導），用於後台區分主辦單位
+            return jsonify({'error': '請輸入演練單位（例如：受訓的銀行分行或警察分局，用於記錄演練紀錄）'}), 400
 
     rl_ok, rl_err = check_rate_limit(rate_key(unit_name, user_name, ip))
     if not rl_ok:
