@@ -32,6 +32,7 @@ import pyotp
 import qrcode
 from werkzeug.security import generate_password_hash, check_password_hash
 import anthropic
+import openai
 
 # ========== 載入 .env ==========
 BASE_DIR = Path(__file__).resolve().parent
@@ -56,6 +57,11 @@ ADMIN_LINK_KEY = ADMIN_PASSWORD if ADMIN_KEY_FALLBACK else ''   # 後台頁面�
 if ADMIN_OPEN:
     print('[AUTH] ⚠️⚠️ ADMIN_OPEN=1：後台完全不驗證！僅限本機除錯，正式環境請移除此變數。')
 MODEL = os.environ.get('CLAUDE_MODEL', 'claude-haiku-4-5')
+# 【AI 供應商切換】預設 anthropic（維持現狀零改變）；設 AI_PROVIDER=openai 改走 OpenAI 相容 Chat Completions API，
+# 用於之後兩邊輸出品質/格式合規率的比較測試，見 call_ai()。
+AI_PROVIDER = os.environ.get('AI_PROVIDER', 'anthropic').strip().lower()
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
 DAILY_LIMIT = int(os.environ.get('DAILY_LIMIT', '300'))  # 每日全站演練次數上限（＝預算天花板）
 PER_PERSON_PER_MINUTE = int(os.environ.get('PER_PERSON_PER_MINUTE', '20'))  # 每人每分鐘（防連點/機器人）
 PER_PERSON_PER_DAY = int(os.environ.get('PER_PERSON_PER_DAY', '30'))        # 每人每天演練場次上限
@@ -117,7 +123,9 @@ def add_cors_headers(response):
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
 
-client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
+client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY']) if AI_PROVIDER != 'openai' else None
+openai_client = openai.OpenAI(api_key=OPENAI_API_KEY) if AI_PROVIDER == 'openai' else None
+print(f'[AI] Provider={AI_PROVIDER} Model={OPENAI_MODEL if AI_PROVIDER == "openai" else MODEL}')
 
 # ========== SQLite 資料庫 ==========
 DB_PATH = os.environ.get('DB_PATH', str(BASE_DIR / 'training_data.db'))
@@ -258,6 +266,9 @@ def init_db():
         if 'mode' not in cols:
             c.execute("ALTER TABLE sessions ADD COLUMN mode TEXT")
             print('[DB] migrated: sessions 加上 mode 欄位（V5 玩法 intervene/refuse）')
+        if 'ai_assist' not in cols:
+            c.execute("ALTER TABLE sessions ADD COLUMN ai_assist INTEGER")
+            print('[DB] migrated: sessions 加上 ai_assist 欄位（黑客松期間比較有/無AI輔助教練卡）')
         msg_cols = {row[1] for row in c.execute("PRAGMA table_info(messages)").fetchall()}
         if 'emotion_score' not in msg_cols:
             c.execute("ALTER TABLE messages ADD COLUMN emotion_score INTEGER")
@@ -336,14 +347,15 @@ def db_upsert_user(unit_name, name):
 
 
 def db_create_session(session_id, unit_name, name, ip, signal, fraud_type, persona,
-                      difficulty=None, case_id=None, role=None, mode=None):
+                      difficulty=None, case_id=None, role=None, mode=None, ai_assist=None):
     with _db_lock, db_conn() as c:
         c.execute('''INSERT OR REPLACE INTO sessions
-            (session_id, unit_name, user_name, ip, signal, fraud_type, persona_name, persona_avatar, started_at, turn_count, difficulty, case_id, role, mode)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)''',
+            (session_id, unit_name, user_name, ip, signal, fraud_type, persona_name, persona_avatar, started_at, turn_count, difficulty, case_id, role, mode, ai_assist)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)''',
             (session_id, unit_name, name, ip, signal, fraud_type,
              persona.get('name', ''), persona.get('avatar', ''),
-             now_tw().isoformat(timespec='seconds'), difficulty, case_id, role, mode))
+             now_tw().isoformat(timespec='seconds'), difficulty, case_id, role, mode,
+             (1 if ai_assist else 0) if ai_assist is not None else None))
         c.execute('UPDATE users SET total_sessions = total_sessions + 1 WHERE unit_name = ?', (unit_name,))
         c.commit()
 
@@ -352,7 +364,7 @@ def db_log_message(session_id, speaker, content, usage=None,
                    emotion_score=None, phrase_tags=None, current_step=None):
     in_t = getattr(usage, 'input_tokens', None) if usage else None
     out_t = getattr(usage, 'output_tokens', None) if usage else None
-    cache_t = getattr(usage, 'cache_read_input_tokens', None) if usage else None
+    cache_t = getattr(usage, 'cache_read_tokens', None) if usage else None
     tags_text = json.dumps(phrase_tags, ensure_ascii=False) if phrase_tags else None
     with _db_lock, db_conn() as c:
         c.execute('''INSERT INTO messages (session_id, speaker, content, timestamp, input_tokens, output_tokens, cache_read_tokens, emotion_score, phrase_tags, current_step)
@@ -1193,9 +1205,9 @@ def log_usage(ip, action, usage_obj=None, extra=None):
         reset_daily_if_needed()
         daily_stats['total_api_calls'] += 1
         if usage_obj:
-            daily_stats['total_input_tokens'] += getattr(usage_obj, 'input_tokens', 0)
-            daily_stats['total_output_tokens'] += getattr(usage_obj, 'output_tokens', 0)
-            daily_stats['total_cache_read_tokens'] += getattr(usage_obj, 'cache_read_input_tokens', 0) or 0
+            daily_stats['total_input_tokens'] += getattr(usage_obj, 'input_tokens', 0) or 0
+            daily_stats['total_output_tokens'] += getattr(usage_obj, 'output_tokens', 0) or 0
+            daily_stats['total_cache_read_tokens'] += getattr(usage_obj, 'cache_read_tokens', 0) or 0
 
         entry = {
             'time': now_tw().strftime('%H:%M:%S'),
@@ -1205,15 +1217,40 @@ def log_usage(ip, action, usage_obj=None, extra=None):
         if extra:
             entry.update(extra)
         if usage_obj:
-            entry['in'] = getattr(usage_obj, 'input_tokens', 0)
-            entry['out'] = getattr(usage_obj, 'output_tokens', 0)
-            entry['cache_r'] = getattr(usage_obj, 'cache_read_input_tokens', 0) or 0
-            entry['cache_w'] = getattr(usage_obj, 'cache_creation_input_tokens', 0) or 0
+            entry['in'] = getattr(usage_obj, 'input_tokens', 0) or 0
+            entry['out'] = getattr(usage_obj, 'output_tokens', 0) or 0
+            entry['cache_r'] = getattr(usage_obj, 'cache_read_tokens', 0) or 0
+            entry['cache_w'] = getattr(usage_obj, 'cache_creation_tokens', 0) or 0
         daily_stats['recent_activity'].appendleft(entry)
 
 
-def call_anthropic(system_text, messages, max_tokens, use_cache=True):
-    """統一的 Anthropic API 呼叫，含 prompt caching"""
+class AIResponse:
+    """統一的 AI 回應物件，讓 Anthropic／OpenAI 兩邊呼叫結果長得一樣（見 call_ai）。
+    .usage 回傳自己，讓既有 `xxx.usage` 呼叫點（log_usage／db_log_message）不用改。"""
+    __slots__ = ('text', 'input_tokens', 'output_tokens', 'cache_read_tokens', 'cache_creation_tokens')
+
+    def __init__(self, text, input_tokens=0, output_tokens=0, cache_read_tokens=0, cache_creation_tokens=0):
+        self.text = text
+        self.input_tokens = input_tokens or 0
+        self.output_tokens = output_tokens or 0
+        self.cache_read_tokens = cache_read_tokens or 0
+        self.cache_creation_tokens = cache_creation_tokens or 0
+
+    @property
+    def usage(self):
+        return self
+
+
+def call_ai(system_text, messages, max_tokens, use_cache=True):
+    """統一的 AI 呼叫入口：依 AI_PROVIDER 分流 Anthropic／OpenAI，回傳欄位統一的 AIResponse。
+    prompt 內容與評分邏輯完全不受影響，這裡只負責『打哪個 API、把回應轉成一樣的形狀』。"""
+    if AI_PROVIDER == 'openai':
+        return _call_openai(system_text, messages, max_tokens)
+    return _call_anthropic(system_text, messages, max_tokens, use_cache)
+
+
+def _call_anthropic(system_text, messages, max_tokens, use_cache=True):
+    """Anthropic API 呼叫，含 prompt caching（原 call_anthropic，行為完全不變）"""
     system_param = system_text
     if use_cache and system_text:
         system_param = [{
@@ -1221,11 +1258,44 @@ def call_anthropic(system_text, messages, max_tokens, use_cache=True):
             'text': system_text,
             'cache_control': {'type': 'ephemeral'}
         }]
-    return client.messages.create(
+    response = client.messages.create(
         model=MODEL,
         max_tokens=max_tokens,
         system=system_param,
         messages=messages,
+    )
+    usage = response.usage
+    return AIResponse(
+        text=response.content[0].text,
+        input_tokens=getattr(usage, 'input_tokens', 0),
+        output_tokens=getattr(usage, 'output_tokens', 0),
+        cache_read_tokens=getattr(usage, 'cache_read_input_tokens', 0),
+        cache_creation_tokens=getattr(usage, 'cache_creation_input_tokens', 0),
+    )
+
+
+def _call_openai(system_text, messages, max_tokens):
+    """OpenAI 相容 Chat Completions API 呼叫：system 併入 messages 最前面，
+    其餘 messages 的 {'role','content'} 格式與 OpenAI 相容，不用轉換。"""
+    full_messages = list(messages)
+    if system_text:
+        full_messages = [{'role': 'system', 'content': system_text}] + full_messages
+    response = openai_client.chat.completions.create(
+        model=OPENAI_MODEL,
+        max_tokens=max_tokens,
+        messages=full_messages,
+    )
+    usage = response.usage
+    cache_read = 0
+    if usage is not None:
+        details = getattr(usage, 'prompt_tokens_details', None)
+        cache_read = (getattr(details, 'cached_tokens', 0) or 0) if details is not None else 0
+    return AIResponse(
+        text=response.choices[0].message.content,
+        input_tokens=getattr(usage, 'prompt_tokens', 0) if usage is not None else 0,
+        output_tokens=getattr(usage, 'completion_tokens', 0) if usage is not None else 0,
+        cache_read_tokens=cache_read,
+        cache_creation_tokens=0,  # OpenAI 沒有 Anthropic 那種顯式 prompt cache 寫入量
     )
 
 
@@ -1727,9 +1797,8 @@ def admin_ai_review():
 二、情境難度調整建議（哪些情境該優先補強 few-shot 範例）
 三、手冊/教材補強點（對應五步驟的弱項）
 注意：絕對不要建議修改評分邏輯或評分標準。"""
-        response = client.messages.create(model=MODEL, max_tokens=1800,
-                                          messages=[{'role': 'user', 'content': prompt}])
-        review = response.content[0].text
+        response = call_ai(None, [{'role': 'user', 'content': prompt}], max_tokens=1800, use_cache=False)
+        review = response.text
         stamp = now_tw().strftime('%Y-%m-%d %H:%M')
         stored = f"（產生時間：{stamp}｜樣本：近 {len(sess)} 場）\n\n{review}"
         with _db_lock, db_conn() as c:
@@ -1907,7 +1976,7 @@ def start_session():
                                           exemplar_block=build_exemplar_block(signal, fraud_type))
 
     try:
-        response = call_anthropic(
+        response = call_ai(
             system_prompt,
             [{
                 'role': 'user',
@@ -1915,7 +1984,7 @@ def start_session():
             }],
             max_tokens=650,  # 對話 + 末尾情緒 JSON，避免 JSON 被截斷
         )
-        raw_opening = response.content[0].text
+        raw_opening = response.text
         opening, emo = extract_emotion_payload(raw_opening, None, signal=signal)
 
         sessions[session_id] = {
@@ -2007,12 +2076,12 @@ def chat():
     session['conversation_log'].append({'speaker': '員警', 'text': message})
 
     try:
-        response = call_anthropic(
+        response = call_ai(
             session['system_prompt'],
             session['messages'],
             max_tokens=650,  # 對話 + 末尾情緒 JSON，避免 JSON 被截斷
         )
-        raw_reply = response.content[0].text
+        raw_reply = response.text
         prev_score = session.get('emotion_score')
         reply, emo = extract_emotion_payload(raw_reply, prev_score, signal=session.get('signal'))
         session['emotion_score'] = emo['emotion_score']
@@ -2071,12 +2140,13 @@ def feedback():
     prompt = build_feedback_prompt(fraud_label, signal_label, turn_count, history_text)
 
     try:
-        response = client.messages.create(
-            model=MODEL,
+        response = call_ai(
+            None,
+            [{'role': 'user', 'content': prompt}],
             max_tokens=1400,  # 提高避免長評語被截斷（900 會截斷末尾 scores JSON→露亂碼）
-            messages=[{'role': 'user', 'content': prompt}],
+            use_cache=False,
         )
-        raw_fb = response.content[0].text
+        raw_fb = response.text
         fb, scores = extract_feedback_scores(raw_fb)
         if scores is None:
             scores = scores_from_detail_line(fb)  # fallback：從評分明細行推算
@@ -2436,6 +2506,11 @@ MG_PASS_SCORE = 80         # A 類單一總分通過門檻（五步技巧 80 分
 MG_CALM_LINE = 30          # 民眾情緒「穩定」門檻：降到 30 以下才算 OK（綠燈結束＋降溫滿分線）
 MG_LEVEL_COACH = '一般'    # 前端傳「一般」＝基礎級
 MG_LEVEL_ADV = '高級'      # 前端傳「高級」＝實戰級（混合案例）
+# 【黑客松初期階段限定】員警／銀行行員（intervene）先鎖定只剩「實戰級＋林太太(a2)」，
+# 拆成「有／無 AI 輔助教練卡」兩版做比較測試。不刪資料、之後比賽結束要恢復其他級別/案例，
+# 把 MG_HACKATHON_LOCK 改回 False 即可，不用動其他程式碼。
+MG_HACKATHON_LOCK = True
+MG_HACKATHON_CASE_ID = 'a2'   # 林太太,49歲
 # 實戰級混合案例池（沿用 V4 ADVANCED_CASES 的轉折/混合設計；後端決定燈號、前端不顯示）
 MG_ADV_CASES = [
     {'id': 'a1', 'signal': 'black', 'fraud': 'fake_police', 'name': '周先生,54歲', 'avatar': '🧑',
@@ -2627,6 +2702,7 @@ def mg_start():
     signal = data.get('signal', 'red')
     fraud_type = data.get('fraudType', 'fake_police')
     level = data.get('level', '一般')  # 一般 / 高級
+    ai_assist = bool(data.get('aiAssist', False))
     session_id = data.get('sessionId')
     unit_name = (data.get('unitName') or '').strip()
     user_name = (data.get('userName') or '').strip()
@@ -2645,8 +2721,11 @@ def mg_start():
     if mode == 'intervene':
         if not unit_name:
             return jsonify({'error': '請輸入您的單位（用於記錄演練紀錄）'}), 400
+        if MG_HACKATHON_LOCK:
+            level = MG_LEVEL_ADV   # 黑客松初期：員警/銀行行員只開放實戰級（見 MG_HACKATHON_LOCK）
     else:
         level = '一般'   # B 類自我防護固定一般指引（目的是協助辨識，恆有教練提示）
+        ai_assist = False   # B 類不受這次黑客松鎖定影響，教練提示邏輯維持原樣（不用這個旗標）
         if not unit_name:
             unit_name = '自我防護'  # B 類不填單位，統一歸類方便後台檢視
 
@@ -2660,8 +2739,9 @@ def mg_start():
         if mode == 'intervene':
             hide_signal = False
             if level == MG_LEVEL_ADV:
-                # 實戰級：混合案例、後端決定燈號、前端不顯示燈號、無教練
-                case_id = data.get('caseId') or MG_ADV_CASES[0]['id']
+                # 實戰級：混合案例、後端決定燈號、前端不顯示燈號
+                # 黑客松初期鎖定：不管前端傳什麼 caseId，一律用林太太(a2)（見 MG_HACKATHON_LOCK）
+                case_id = MG_HACKATHON_CASE_ID if MG_HACKATHON_LOCK else (data.get('caseId') or MG_ADV_CASES[0]['id'])
                 case = MG_ADV_MAP.get(case_id)
                 if not case:
                     return jsonify({'error': '實戰案例不存在'}), 400
@@ -2683,14 +2763,14 @@ def mg_start():
             else:
                 first_user = (f'（場景開始：你正準備匯款/交錢，一位{r["scene"]}走過來關心你。'
                               f'請用你的角色身份，說出符合當下情緒的第一句話。）')
-            response = call_anthropic(system_prompt, [{'role': 'user', 'content': first_user}], max_tokens=650)
-            raw_opening = response.content[0].text
+            response = call_ai(system_prompt, [{'role': 'user', 'content': first_user}], max_tokens=650)
+            raw_opening = response.text
             opening, emo = extract_emotion_payload(raw_opening, None, signal=signal)
             opening = normalize_action_format(opening)
             sessions[session_id] = {
                 'mg': True, 'mode': 'intervene', 'role': role, 'signal': signal,
                 'fraud_type': fraud_type, 'level': level, 'persona': persona, 'case_id': case_id,
-                'ip': ip, 'unit_name': unit_name, 'user_name': user_name,
+                'ip': ip, 'unit_name': unit_name, 'user_name': user_name, 'ai_assist': ai_assist,
                 'system_prompt': system_prompt, 'emotion_score': emo['emotion_score'],
                 'steps_done': ['look'], 'neg_hits': 0,  # 開場即『看』階段（觀察情緒/行為）
                 'messages': [{'role': 'user', 'content': first_user},
@@ -2702,9 +2782,9 @@ def mg_start():
                     'role': role, 'roleLabel': r['label'], 'actor': r['actor'],
                     'signal': signal, 'hideSignal': hide_signal, 'fraudType': fraud_type,
                     'typeLabel': ('混合實戰' if hide_signal else MG_TYPES[fraud_type]['label']),
-                    'caseId': case_id, 'level': level,
+                    'caseId': case_id, 'level': level, 'aiAssist': ai_assist,
                     'emotion_score': emo['emotion_score'], 'current_step': 'look'}
-            if level == MG_LEVEL_COACH:
+            if level == MG_LEVEL_COACH or ai_assist:
                 resp['coach'] = mg_coach_for_step('look', fraud_type, signal, role, last_civ=opening)
         else:
             scen_group = MG_REFUSE[r['scam']]['scenarios']
@@ -2716,8 +2796,8 @@ def mg_start():
                        'desc': sc['desc'], 'signal': signal, 'fraud': r['scam']}
             system_prompt = build_mg_scammer_prompt(role, case_id, signal)
             first_user = '（場景開始：請你以詐騙者身份，依劇本主動對民眾說出第一句開場白，開始行騙。）'
-            response = call_anthropic(system_prompt, [{'role': 'user', 'content': first_user}], max_tokens=650)
-            raw_opening = response.content[0].text
+            response = call_ai(system_prompt, [{'role': 'user', 'content': first_user}], max_tokens=650)
+            raw_opening = response.text
             opening, risk = extract_risk_payload(raw_opening, None, signal=signal)
             sessions[session_id] = {
                 'mg': True, 'mode': 'refuse', 'role': role, 'scam': r['scam'], 'signal': signal,
@@ -2745,7 +2825,8 @@ def mg_start():
             db_upsert_user(unit_name, user_name)
             db_create_session(session_id, unit_name, user_name, ip, signal,
                               (fraud_type if mode == 'intervene' else r['scam']),
-                              persona, case_id=case_id, role=role, mode=mode)
+                              persona, case_id=case_id, role=role, mode=mode,
+                              ai_assist=(ai_assist if mode == 'intervene' else None))
             spk = '民眾' if mode == 'intervene' else '對方'
             db_log_message(session_id, spk, resp['opening'],
                            getattr(response, 'usage', None),
@@ -2789,8 +2870,8 @@ def mg_chat():
     session['conversation_log'].append({'speaker': actor, 'text': message})
 
     try:
-        response = call_anthropic(session['system_prompt'], session['messages'], max_tokens=650)
-        raw_reply = response.content[0].text
+        response = call_ai(session['system_prompt'], session['messages'], max_tokens=650)
+        raw_reply = response.text
         new_turn = turn_count + 1
         log_usage(ip, 'mg_chat', response.usage, {'turn': new_turn, 'role': session['role']})
 
@@ -2874,7 +2955,7 @@ def mg_chat():
                 out['rescue'] = exemplar_rescue(session['signal'], session['fraud_type'], 3, step=cur)
                 session['bad_streak'] = 0
                 session['rise_streak'] = 0
-            if session['level'] == '一般' and not ended:
+            if (session['level'] == '一般' or session.get('ai_assist')) and not ended:
                 nxt = next((s for s in MG_STEP_ORDER if s not in session['steps_done']), 'guard')
                 out['coach'] = mg_coach_for_step(nxt, session['fraud_type'], session['signal'], session['role'], last_civ=reply)
             return jsonify(out)
@@ -2958,9 +3039,8 @@ def mg_feedback():
             signal_label = MG_SIG[session['signal']]['intervene']
             fraud_label = MG_TYPES[session['fraud_type']]['label']
             prompt = build_feedback_prompt(fraud_label, signal_label, turn_count, history_text)
-            response = client.messages.create(model=MODEL, max_tokens=1400,
-                                              messages=[{'role': 'user', 'content': prompt}])
-            raw_fb = response.content[0].text
+            response = call_ai(None, [{'role': 'user', 'content': prompt}], max_tokens=1400, use_cache=False)
+            raw_fb = response.text
             fb, scores = extract_feedback_scores(raw_fb)
             if scores is None:
                 scores = scores_from_detail_line(fb)
