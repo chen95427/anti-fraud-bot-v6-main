@@ -319,8 +319,8 @@
           <div class="ds">投資群組認識的「老師」也在跟她談感情，投資與感情交纏，半信半疑又捨不得。</div></div></div>
         <div class="sec-num"><span class="b">3</span><span>模式</span></div>
         <div class="seg" id="segAssist">
-          <button class="on" data-assist="1">有 AI 輔助<small>顯示教練指引與建議句</small></button>
-          <button data-assist="0">無 AI 輔助<small>純對話，靠自己判斷</small></button>
+          <button class="on" data-assist="0">前測版<small>無AI輔助，純對話</small></button>
+          <button data-assist="1">後測版<small>有AI輔助，顯示教練指引</small></button>
         </div>
       </div>
 
@@ -528,7 +528,7 @@ const STEP_ZH={look:'看',calm:'穩',listen:'聽',ask:'問',guard:'守'};
 /* ===== 狀態 ===== */
 let S={role:null,mode:null,level:'一般',signal:'yellow',fraudType:'fake_police',
        unit:'',name:'',sessionId:null,actor:'員警',busy:false,ended:false,
-       stepsDone:[],metric:78,startMetric:78,persona:null,typeLabel:'',scamLabel:'',aiAssist:true};
+       stepsDone:[],metric:78,startMetric:78,persona:null,typeLabel:'',scamLabel:'',aiAssist:false};
 
 const $=id=>document.getElementById(id);
 
@@ -577,7 +577,8 @@ function selectRole(rk){
   }else{
     $('guideBtnSetup').style.display='none';$('guideBtnChat').style.display='none';
     $('sigSection').style.display='block';
-    $('unitInput').style.display='none';   // B 類自我防護：不需填單位
+    $('unitInput').style.display='';
+    $('unitInput').placeholder='演練單位（必填，例：○○銀行○○分行／○○分局）';
     $('dataTt').textContent='演練者資料（請填姓名或代號）';
     $('lvSecTt').style.display='none';$('segLv').style.display='none';  // B 類固定一般指引（協助辨識）
     document.querySelectorAll('#segLv button').forEach(b=>b.classList.toggle('on',b.dataset.lv==='一般'));
@@ -642,7 +643,7 @@ document.querySelectorAll('#segAssist button').forEach(b=>b.onclick=()=>{documen
 /* ===== 進入情境 ===== */
 $('startBtn').onclick=()=>{
   const unit=$('unitInput').value.trim(),name=$('nameInput').value.trim();
-  if(S.mode==='intervene'&&!unit){$('setupErr').style.display='block';$('setupErr').textContent='請先輸入您的單位（記錄演練用）';$('unitInput').focus();return;}
+  if(!unit){$('setupErr').style.display='block';$('setupErr').textContent='請先輸入演練單位（記錄演練用）';$('unitInput').focus();return;}
   if(!name){$('setupErr').style.display='block';$('setupErr').textContent='請輸入您的姓名或代號（記錄演練與成績用）';$('nameInput').focus();return;}
   $('setupErr').style.display='none';
   S.unit=unit;S.name=name;S.signal=sigOn();
@@ -712,11 +713,11 @@ function renderScene(){
   if(S.mode==='intervene'){
     if(S.adv){
       const a=ADV_META[S.caseId];typeLabel='混合實戰';
-      subLevel=MG_HACKATHON_LOCK?(S.aiAssist?'有AI輔助':'無AI輔助'):'實戰級';
+      subLevel=MG_HACKATHON_LOCK?(S.aiAssist?'後測版':'前測版'):'實戰級';
       personaHtml='<div class="av">'+a.em+'</div><div><div class="nm">'+a.label+'</div><div class="ds">'+esc(a.ds)+'</div></div>';
       $('sceneNote').textContent=MG_HACKATHON_LOCK
-        ?(S.aiAssist?'有 AI 輔助：對話中會顯示教練指引與建議句。你是'+r.label+'，跟著指引一步步練習。'
-                    :'無 AI 輔助：純對話，不會顯示教練指引。你是'+r.label+'，自己判斷該進哪一步。')
+        ?(S.aiAssist?'後測版：對話中會顯示教練指引與建議句。你是'+r.label+'，跟著指引一步步練習。'
+                    :'前測版：純對話，不會顯示教練指引。你是'+r.label+'，自己判斷該進哪一步。')
         :'實戰級：無教練指引的混合型案例。你是'+r.label+'，自己判斷該進哪一步。';
     }else{
       const t=TYPE_META[S.fraudType];typeLabel=t.label;subLevel='基礎級';
@@ -765,7 +766,7 @@ async function startChat(){
 function prepChat(d){
   const r=ROLE_META[S.role];
   $('cAv').textContent=S.persona.avatar;$('cName').textContent=S.persona.name;
-  if(S.adv){$('cSig').textContent=(MG_HACKATHON_LOCK?(S.aiAssist?'有AI輔助':'無AI輔助'):'實戰');$('cSig').style.background='#7a3b33';}
+  if(S.adv){$('cSig').textContent=(MG_HACKATHON_LOCK?(S.aiAssist?'後測版':'前測版'):'實戰');$('cSig').style.background='#7a3b33';}
   else{$('cSig').textContent=SIG_TEXT[S.signal];$('cSig').style.background=S.signal==='red'?'#c94a3f':S.signal==='yellow'?'#e0932b':'#20242e';}
   $('cSub').textContent=r.label+'｜'+(S.adv?'':SIG_TEXT[S.signal]+' × ')+S.typeLabel;
   $('ctxLine').textContent=S.typeLabel+' — '+S.persona.desc;
