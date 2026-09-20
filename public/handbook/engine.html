@@ -295,10 +295,7 @@
       <div class="grouphdr"><div class="gt">A · 第一線攔阻者</div><div class="gs">練「看穩聽問守」勸阻技能，模擬對象＝正要交錢／過戶的民眾（AI 演民眾）</div></div>
       <div class="rolecard groupA" data-role="police"><div class="ic">🛡️</div><div><div class="nm">員警</div><div class="ds">模擬對象：猶豫要匯款的民眾。重點在紅／黃／黑燈的同理降階與引導提問。</div></div></div>
       <div class="rolecard groupA" data-role="bank"><div class="ic">🏦</div><div><div class="nm">銀行行員</div><div class="ds">模擬對象：臨櫃／ATM 前要大額匯款、神色慌張的客戶。用「穩、問」關懷提問攔下可疑匯款。</div></div></div>
-      <div class="grouphdr"><div class="gt">B · 自我防護民眾</div><div class="gs">練「辨識與拒絕」，模擬對象＝各類詐騙者本人（AI 這次演詐騙者，換您練守住底線）</div></div>
-      <div class="rolecard groupB" data-role="elder"><img class="pic" src="/handbook/landing/assets/roles/elder.jpg" alt="長輩民眾"><div><div class="nm">長輩民眾</div><div class="ds">3 個劇本（165 高齡被害前三名）：假檢警來電／假投資（退休金）／假親友借錢。</div></div></div>
-      <div class="rolecard groupB" data-role="adult"><img class="pic" src="/handbook/landing/assets/roles/adult.jpg" alt="青壯年民眾"><div><div class="nm">青壯年民眾</div><div class="ds">3 個劇本（165 件數財損前五名）：假投資群組／假交友詐騙／假客服解除分期。</div></div></div>
-      <div class="rolecard groupB" data-role="teen"><img class="pic" src="/handbook/landing/assets/roles/teen.jpg" alt="青少年"><div><div class="nm">青少年</div><div class="ds">3 個劇本：車手高薪招募／遊戲代儲詐騙／假票券網拍。識破「輕鬆賺錢」話術與法律後果。</div></div></div>
+      <!-- 黑客松初期限定：民眾版（長輩/青壯年/青少年）暫停開放，見 MG_GROUP_B_DISABLED -->
       <div class="rolefoot">🎤 演練時按麥克風說話就好，AI 用文字回應。<br>選好身分後可挑劇本與對方手法強度（黃／紅／黑）。</div>
     </div>
   </div>
@@ -312,15 +309,15 @@
       <div class="sec-num"><span class="b" id="numData">1</span><span id="dataTt">演練者資料（記錄用）</span></div>
       <div class="fieldrow"><input id="unitInput" placeholder="單位（必填，例：淡水分局偵查隊）"><input id="nameInput" placeholder="姓名或代號（必填）"></div>
 
-      <!-- 黑客松初期限定：員警/銀行行員鎖定「實戰級＋林太太(a2)」，只問有/無AI輔助（見 MG_HACKATHON_LOCK） -->
+      <!-- 黑客松初期限定：員警/銀行行員鎖定「實戰級＋林太太(a2)」，只選前測版/後測版（見 MG_HACKATHON_LOCK） -->
       <div id="hackLockPanel" style="display:none">
         <div class="sec-num"><span class="b">2</span><span>情境</span></div>
         <div class="persona"><div class="av">👩‍🦰</div><div><div class="nm">林太太,49歲</div>
           <div class="ds">投資群組認識的「老師」也在跟她談感情，投資與感情交纏，半信半疑又捨不得。</div></div></div>
-        <div class="sec-num"><span class="b">3</span><span>模式</span></div>
+        <div class="sec-num"><span class="b">3</span><span>測驗階段</span></div>
         <div class="seg" id="segAssist">
-          <button class="on" data-assist="0">前測版<small>無AI輔助，純對話</small></button>
-          <button data-assist="1">後測版<small>有AI輔助，顯示教練指引</small></button>
+          <button class="on" data-assist="0">前測版<small>練習/教學前先測一次</small></button>
+          <button data-assist="1">後測版<small>練習/教學後再測一次</small></button>
         </div>
       </div>
 
@@ -460,6 +457,9 @@
 <div class="guideOv" id="guideOv" onclick="if(event.target===this)hideGuide()">
   <div class="guide">
     <h2>📖 操作指引</h2>
+    <div class="tip" style="border-color:#3ea173;background:#eafbf3;color:#1d6b45;margin:10px 0">
+      📝 <b>練習之前</b>：請先完成一次「前測版」演練，測出目前的程度，再往下看操作說明。
+    </div>
     <div>練習採<b>漸進式難度</b>，請照下面順序：</div>
     <div class="stp"><b class="n">1</b><div class="t"><b>先認識三種燈號</b>，照這個順序、每種都練一次：<div style="margin-top:8px;line-height:2.3;">
       <span class="sigb y">🟡 黃燈</span>民眾半信半疑<br>
@@ -469,6 +469,9 @@
       <span class="sigb b">⚫ 黑燈</span>民眾被教育過、對答如流</div></div></div>
     <div class="stp"><b class="n">2</b><div class="t"><b>基礎級</b>：有教練指引與建議句，練到通過（80 分：五步技巧 80 ＋ 情緒降溫 20）。</div></div>
     <div class="stp"><b class="n">3</b><div class="t"><b>實戰級</b>：無教練指引的混合型案例，民眾狀態會轉折，靠自己判斷該進哪一步。</div></div>
+    <div class="tip" style="border-color:#0ea5e9;background:#eaf6fd;color:#0c5a7a;margin:10px 0">
+      🎯 <b>練習之後</b>：完成練習／教學後，請再做一次「後測版」，比較兩次的表現。
+    </div>
     <div class="tip">
       🎤 <b>怎麼對話</b>：按麥克風說話（也可打字），<b>一次說一段、100 字以內</b>——說完按 ▶ 送出，再按 🎤 繼續說下一段（一次講太長，辨識容易漏字）→ 看對方回覆 → 左側<b>情緒溫度計</b>會隨你的話升降，<b>降到 30 以下才算穩定</b>。<br>
       每句話下面會標示你這句講得如何：<span class="achv">穩·做到了 ✓</span> <span class="prin">同理語句</span> <span class="warn">太直接了 ⚠</span><br>
@@ -480,9 +483,12 @@
 
 <script>
 /* ===== 前端常數（顯示用；真實對話與評分由後端 /api/mg/* 決定） ===== */
-// 黑客松初期限定：員警/銀行行員（intervene）鎖定實戰級＋林太太(a2)，只選有/無AI輔助。
-// 比賽結束要恢復完整選單，把這裡跟 server.py 的 MG_HACKATHON_LOCK 一起改回 false 即可。
+// 黑客松初期限定：員警/銀行行員（intervene）鎖定實戰級＋林太太(a2)，只選前測版/後測版（都不顯示教練卡，
+// 差別只在什麼時候做）。比賽結束要恢復完整選單，把這裡跟 server.py 的 MG_HACKATHON_LOCK 一起改回 false 即可。
 const MG_HACKATHON_LOCK = true;
+// 黑客松初期限定：民眾版（長輩/青壯年/青少年）暫停開放。比賽結束要恢復，把這裡跟 server.py 的
+// MG_GROUP_B_DISABLED 一起改回 false 即可，不用動其他程式碼。
+const MG_GROUP_B_DISABLED = true;
 const ROLE_META={
  police:{group:'A',label:'員警',icon:'🛡️',short:'練看穩聽問守勸阻技巧',mode:'intervene',sceneIc:'🏦'},
  bank:{group:'A',label:'銀行行員',icon:'🏦',short:'練臨櫃關懷攔阻',mode:'intervene',sceneIc:'🏧'},
@@ -553,7 +559,7 @@ function selectRole(rk){
     $('dataTt').textContent='演練者資料（記錄用，姓名可填代號）';
     $('unitInput').placeholder=(rk==='bank')?'單位（必填，例：○○銀行○○分行）':'單位（必填，例：淡水分局偵查隊）';
     if(MG_HACKATHON_LOCK){
-      // 黑客松初期：跳過訓練級別／燈號／詐騙類型／演練對象選擇，鎖定實戰級＋林太太(a2)，只問有/無AI輔助
+      // 黑客松初期：跳過訓練級別／燈號／詐騙類型／演練對象選擇，鎖定實戰級＋林太太(a2)，只問前測版/後測版
       $('lvSecTt').style.display='none';$('segLv').style.display='none';
       $('sigSection').style.display='none';$('typeSection').style.display='none';
       $('personaSecRow').style.display='none';$('personaBox').style.display='none';
@@ -716,8 +722,7 @@ function renderScene(){
       subLevel=MG_HACKATHON_LOCK?(S.aiAssist?'後測版':'前測版'):'實戰級';
       personaHtml='<div class="av">'+a.em+'</div><div><div class="nm">'+a.label+'</div><div class="ds">'+esc(a.ds)+'</div></div>';
       $('sceneNote').textContent=MG_HACKATHON_LOCK
-        ?(S.aiAssist?'後測版：對話中會顯示教練指引與建議句。你是'+r.label+'，跟著指引一步步練習。'
-                    :'前測版：純對話，不會顯示教練指引。你是'+r.label+'，自己判斷該進哪一步。')
+        ?((S.aiAssist?'後測版':'前測版')+'：純對話，不會顯示教練指引。你是'+r.label+'，自己判斷該進哪一步。')
         :'實戰級：無教練指引的混合型案例。你是'+r.label+'，自己判斷該進哪一步。';
     }else{
       const t=TYPE_META[S.fraudType];typeLabel=t.label;subLevel='基礎級';
@@ -1368,23 +1373,20 @@ function backToHome(){
 }
 function scrollLog(){const c=$('clog');c.scrollTop=c.scrollHeight;}
 
-/* ===== 入口分流：/mg?group=A|B 只顯示該族群的身分卡；?role=xxx 直接進入該身分 ===== */
+/* ===== 入口分流：/mg?group=A 只顯示該族群的身分卡；?role=xxx 直接進入該身分 =====
+   黑客松初期限定：B 類（民眾）暫停開放，見 MG_GROUP_B_DISABLED；group=B 或 role 屬於 B 一律導回總入口。 */
 (function(){
   const qs=new URLSearchParams(location.search);
   const g=(qs.get('group')||'').toUpperCase();
-  if(g==='A'||g==='B'){
+  if(g==='A'){
     document.querySelectorAll('.rolecard').forEach(c=>{
       if(ROLE_META[c.dataset.role].group!==g)c.style.display='none';
     });
-    const hdrs=document.querySelectorAll('.grouphdr');
-    if(hdrs[0]&&g==='B')hdrs[0].style.display='none';
-    if(hdrs[1]&&g==='A')hdrs[1].style.display='none';
   }
   const r0=qs.get('role');
-  if(r0&&ROLE_META[r0]){_pendingRole=r0;return;}
-  // 主頁規劃：AI 訓練不是入口。A 類（員警/銀行行員）沒帶 role 直接開 /mg → 導回總入口先選專區、看完看穩聽問守再進來；
-  // B 類（民眾）三個年齡層共用 /public 專區，帶 group=B 進來才顯示長輩/青壯年/青少年選單。
-  if(g!=='B'){location.replace('/');}
+  if(r0&&ROLE_META[r0]&&!(MG_GROUP_B_DISABLED&&ROLE_META[r0].group==='B')){_pendingRole=r0;return;}
+  // 主頁規劃：AI 訓練不是入口。A 類（員警/銀行行員）沒帶 role 直接開 /mg → 導回總入口先選專區、看完看穩聽問守再進來。
+  location.replace('/');
 })();
 
 /* ===== API ===== */
