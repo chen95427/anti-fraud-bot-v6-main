@@ -2215,6 +2215,14 @@ def mg_session_label(s):
         return ''
     return f"{MG_ROLE_LABEL.get(role, role)}・{MG_MODE_LABEL.get(mode, mode or '')}"
 
+
+def mg_phase_label(s):
+    """後台顯示：這場是「前測」還是「後測」（依 ai_assist 欄位：0=前測、1=後測）；沒有值回空字串。"""
+    v = s['ai_assist'] if 'ai_assist' in s.keys() else None
+    if v is None:
+        return ''
+    return '後測' if v else '前測'
+
 # ---- A 類 intervene：五型民眾 persona + 鑰匙問句（供教練卡 / 場景揭示）----
 MG_TYPES = {
     'fake_police': {'label': '假檢警', 'persona': {'avatar': '👵', 'name': '陳阿嬤,72歲', 'desc': '剛接到「檢察官」電話，被告知帳戶涉案需匯款300萬'},
@@ -2507,10 +2515,14 @@ MG_CALM_LINE = 30          # 民眾情緒「穩定」門檻：降到 30 以下�
 MG_LEVEL_COACH = '一般'    # 前端傳「一般」＝基礎級
 MG_LEVEL_ADV = '高級'      # 前端傳「高級」＝實戰級（混合案例）
 # 【黑客松初期階段限定】員警／銀行行員（intervene）先鎖定只剩「實戰級＋林太太(a2)」，
-# 拆成「有／無 AI 輔助教練卡」兩版做比較測試。不刪資料、之後比賽結束要恢復其他級別/案例，
-# 把 MG_HACKATHON_LOCK 改回 False 即可，不用動其他程式碼。
+# 拆成「前測版／後測版」兩次測驗做比較（前測：練習/教學前先測一次；後測：練習/教學後再測一次；
+# 兩版對話過程都不顯示教練卡，差別只在「什麼時候做」，用 ai_assist 欄位記錄 0=前測、1=後測）。
+# 不刪資料、之後比賽結束要恢復其他級別/案例，把 MG_HACKATHON_LOCK 改回 False 即可，不用動其他程式碼。
 MG_HACKATHON_LOCK = True
 MG_HACKATHON_CASE_ID = 'a2'   # 林太太,49歲
+# 黑客松初期階段限定：民眾版（長輩/青壯年/青少年，group=B）暫停開放，只留員警/銀行行員。
+# 比賽結束要恢復，把這裡改回 False 即可，不用動其他程式碼或刪資料。
+MG_GROUP_B_DISABLED = True
 # 實戰級混合案例池（沿用 V4 ADVANCED_CASES 的轉折/混合設計；後端決定燈號、前端不顯示）
 MG_ADV_CASES = [
     {'id': 'a1', 'signal': 'black', 'fraud': 'fake_police', 'name': '周先生,54歲', 'avatar': '🧑',
@@ -2709,6 +2721,8 @@ def mg_start():
 
     if role not in MG_ROLES:
         return jsonify({'error': '身分族群不存在'}), 400
+    if MG_GROUP_B_DISABLED and MG_ROLES[role]['group'] == 'B':
+        return jsonify({'error': '目前僅開放員警／銀行行員版本'}), 403
     if signal not in MG_SIG:
         signal = 'red'
     if not session_id:
@@ -2785,7 +2799,7 @@ def mg_start():
                     'typeLabel': ('混合實戰' if hide_signal else MG_TYPES[fraud_type]['label']),
                     'caseId': case_id, 'level': level, 'aiAssist': ai_assist,
                     'emotion_score': emo['emotion_score'], 'current_step': 'look'}
-            if level == MG_LEVEL_COACH or ai_assist:
+            if level == MG_LEVEL_COACH:
                 resp['coach'] = mg_coach_for_step('look', fraud_type, signal, role, last_civ=opening)
         else:
             scen_group = MG_REFUSE[r['scam']]['scenarios']
@@ -2956,7 +2970,7 @@ def mg_chat():
                 out['rescue'] = exemplar_rescue(session['signal'], session['fraud_type'], 3, step=cur)
                 session['bad_streak'] = 0
                 session['rise_streak'] = 0
-            if (session['level'] == '一般' or session.get('ai_assist')) and not ended:
+            if session['level'] == '一般' and not ended:
                 nxt = next((s for s in MG_STEP_ORDER if s not in session['steps_done']), 'guard')
                 out['coach'] = mg_coach_for_step(nxt, session['fraud_type'], session['signal'], session['role'], last_civ=reply)
             return jsonify(out)
@@ -4901,8 +4915,12 @@ def admin_user_detail(unit_name):
         my_fb_badge = '<span style="color:#28a745;font-weight:bold" title="員警有寫心得">✍️</span>' if s['user_feedback'] else '<span style="color:#d1d5db">—</span>'
         _dt = fmt_dt(s['started_at'])
         _d, _t = (_dt.split(' ', 1) + [''])[:2]
+        phase = mg_phase_label(s)
+        phase_badge = (f'<span style="background:{"#0ea5e9" if phase=="前測" else "#7a3b33"};color:white;'
+                       f'padding:2px 8px;border-radius:10px;font-size:11px">{phase}</span>') if phase else '—'
         rows += f'''<tr>
             <td style="white-space:nowrap"><strong style="color:#1A3C6E">{_d}</strong><br><span style="font-size:11px;color:#9ca3af">{_t}</span></td>
+            <td>{phase_badge}</td>
             <td>{SIGNAL_MAP.get(s['signal'], s['signal'])}</td>
             <td>{FRAUD_TYPE_MAP.get(s['fraud_type'], s['fraud_type'])}</td>
             <td>{s['persona_avatar']} {s['persona_name']}</td>
@@ -4938,8 +4956,8 @@ td {{padding:10px;border-bottom:1px solid #e5e7eb;font-size:13px}}
     <div><div class="label">首次演練</div><div class="value" style="font-size:14px">{fmt_date(user['first_seen'])}</div></div>
     <div><div class="label">最後演練</div><div class="value" style="font-size:14px">{fmt_date(user['last_seen'])}</div></div>
 </div>
-<table><thead><tr><th>時間</th><th>燈號</th><th>詐騙類型</th><th>對象</th><th>回合</th><th>時長</th><th>狀態</th><th>心得</th><th>標註</th><th>操作</th></tr></thead>
-<tbody>{rows or '<tr><td colspan="10" class="empty">尚無演練紀錄</td></tr>'}</tbody></table>
+<table><thead><tr><th>時間</th><th>階段</th><th>燈號</th><th>詐騙類型</th><th>對象</th><th>回合</th><th>時長</th><th>狀態</th><th>心得</th><th>標註</th><th>操作</th></tr></thead>
+<tbody>{rows or '<tr><td colspan="11" class="empty">尚無演練紀錄</td></tr>'}</tbody></table>
 </body></html>'''
 
 
@@ -5114,6 +5132,7 @@ h1 {{color:#1A3C6E;border-bottom:3px solid #F5C518;padding-bottom:8px;font-size:
     <div><div class="label">單位</div><div class="value">{s['unit_name']}</div></div>
     <div><div class="label">姓名</div><div class="value">{s['user_name'] or '-'}</div></div>
     {f'<div><div class="label">身分/玩法</div><div class="value">{mg_session_label(s)}</div></div>' if mg_session_label(s) else ''}
+    {f'<div><div class="label">測驗階段</div><div class="value">{mg_phase_label(s)}</div></div>' if mg_phase_label(s) else ''}
     <div><div class="label">燈號</div><div class="value">{SIGNAL_MAP.get(s['signal'], s['signal'])}</div></div>
     <div><div class="label">類型</div><div class="value">{FRAUD_TYPE_MAP.get(s['fraud_type'], s['fraud_type'])}</div></div>
     <div><div class="label">對象</div><div class="value">{s['persona_avatar']} {s['persona_name']}</div></div>
@@ -5267,7 +5286,7 @@ def admin_export():
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        '日期時間', '姓名', '單位', '難度', '燈號', '詐騙類型', '對象', '回合數', '練習成績',
+        '日期時間', '姓名', '單位', '難度', '測驗階段', '燈號', '詐騙類型', '對象', '回合數', '練習成績',
         f"滿意度Q1_{SURVEY_QUESTIONS['q1']['title']}",
         f"滿意度Q2_{SURVEY_QUESTIONS['q2']['title']}",
         f"滿意度Q3_{SURVEY_QUESTIONS['q3']['title']}(星)",
@@ -5288,7 +5307,7 @@ def admin_export():
             q1t = q2t = q3t = q4t = q5t = ''
         writer.writerow([
             fmt_dt(s['started_at']), s['user_name'] or '', s['unit_name'] or '',
-            diff_label(s),
+            diff_label(s), mg_phase_label(s),
             SIGNAL_MAP.get(s['signal'], s['signal'] or ''),
             FRAUD_TYPE_MAP.get(s['fraud_type'], s['fraud_type'] or ''),
             s['persona_name'] or '', s['turn_count'] or 0,
