@@ -617,7 +617,7 @@
 
   <div class="chat-input-area">
     <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="語音輸入">🎤</button>
-    <input type="text" id="chatInput" placeholder="以員警身份說話..." onkeydown="if(event.key==='Enter')sendMessage()" />
+    <input type="text" id="chatInput" placeholder="以員警身份說話..." onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)sendMessage()" />
     <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
   </div>
 </div>
