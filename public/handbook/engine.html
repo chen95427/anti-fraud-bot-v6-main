@@ -925,7 +925,7 @@ function stopMic(){
 
 /* ===== 送出訊息 ===== */
 $('send').onclick=sendMsg;
-$('msgBox').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
+$('msgBox').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229)sendMsg();});
 async function sendMsg(){
   if(S.busy||S.ended)return;
   const box=$('msgBox'),text=box.value.trim();if(!text)return;

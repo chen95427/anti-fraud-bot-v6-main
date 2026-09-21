@@ -2708,7 +2708,7 @@ function tryOpenExternalBrowser() {
                 <button type="button" class="pr-mic-btn" id="prMicBtn" onclick="prToggleMic()" ontouchend="event.preventDefault();prToggleMic();">🎤</button>
                 <input type="text" id="prInput" placeholder="以員警身份說話..."
                     autocomplete="off" autocapitalize="sentences" inputmode="text" enterkeyhint="send"
-                    onkeydown="if(event.key==='Enter'){event.preventDefault();prSend();}"
+                    onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229){event.preventDefault();prSend();}"
                     onfocus="setTimeout(()=>this.scrollIntoView({block:'center',behavior:'smooth'}),300)" />
                 <button type="button" class="pr-send-btn" id="prSendBtn" onclick="prSend()" ontouchend="event.preventDefault();prSend();">➤</button>
             </div>
