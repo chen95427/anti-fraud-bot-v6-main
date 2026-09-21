@@ -323,7 +323,7 @@
 
       <div class="sec-num" id="lvSecTt"><span class="b">2</span><span>訓練級別</span></div>
       <div class="seg" id="segLv">
-        <button class="on" data-lv="一般">基礎級<small>有教練指引＋實戰金句</small></button>
+        <button class="on" data-lv="一般">基礎級<small>看得到情緒溫度計</small></button>
         <button data-lv="高級">實戰級<small>無教練指引混合型案例</small></button>
       </div>
 
@@ -467,7 +467,7 @@
       <span class="sigb r">🔴 紅燈</span>民眾恐懼、堅信對方<br>
       <span style="color:#9aa7bd;font-weight:800;">　↓</span><br>
       <span class="sigb b">⚫ 黑燈</span>民眾被教育過、對答如流</div></div></div>
-    <div class="stp"><b class="n">2</b><div class="t"><b>基礎級</b>：有教練指引與建議句，練到通過（80 分：五步技巧 80 ＋ 情緒降溫 20）。</div></div>
+    <div class="stp"><b class="n">2</b><div class="t"><b>基礎級</b>：看得到民眾情緒溫度計，練到通過（80 分：五步技巧 80 ＋ 情緒降溫 20）。</div></div>
     <div class="stp"><b class="n">3</b><div class="t"><b>實戰級</b>：無教練指引的混合型案例，民眾狀態會轉折，靠自己判斷該進哪一步。</div></div>
     <div class="tip" style="border-color:#0ea5e9;background:#eaf6fd;color:#0c5a7a;margin:10px 0">
       🎯 <b>練習之後</b>：完成練習／教學後，請再做一次「後測版」，比較兩次的表現。
@@ -611,7 +611,7 @@ function applyLevelUI(){
   $('personaSecTt').textContent=adv?'演練對象（實戰）':'演練對象';
   $('archNote').textContent=adv
     ?'🔥 實戰級：無教練指引的混合型案例，民眾狀態會轉折，靠你自己判斷該進哪一步。仍依看穩聽問守評分。'
-    :'💡 基礎級：由「看穩聽問守」真實逐字稿語料驅動，串接真實 AI；每一步有教練卡與 543 場實戰金句陪你練，卡關會自動救援。';
+    :'💡 基礎級：由「看穩聽問守」真實逐字稿語料驅動，串接真實 AI；畫面上的情緒溫度計會即時反映對方的情緒變化。';
   renderTypeRows();renderPersonaSetup();
 }
 function renderTypeRows(){
@@ -763,7 +763,6 @@ async function startChat(){
     else{S.metric=d.risk_score;S.startMetric=d.risk_score;}
     setThermo();
     addCiv(d.opening);
-    if(d.coach)addCoach(d.coach);
     scrollLog();
   }catch(e){alert('無法開始演練：'+e.message);}
   finally{S.busy=false;btn.disabled=false;btn.textContent='開始對話';}
@@ -954,22 +953,17 @@ async function sendMsg(){
     setThermo();
     addCiv(d.reply);
     realtimeFeedback(prevMetric,S.metric);   // 即時情緒／風險回饋（不必等結束點評）
-    if(d.repeatNote)rtBanner('bad',d.repeatNote);   // 重複口號反制：立刻告訴受訓者這樣講沒有用
     $('rounds').textContent='第 '+d.turnCount+' 回合';
-    let coachShown=false;
-    if(d.rescue&&d.rescue.length&&!d.ended){addRescue(d.rescue);coachShown=true;}
     if(d.ended){finishByResult(d.result);}
-    else if(d.coach&&S.level==='一般'){addCoach(d.coach);coachShown=true;}
     scrollLog();
-    S.lastCoachShown=coachShown;
-  }catch(e){tp.remove();alert('回應失敗：'+e.message);S.lastCoachShown=false;}
+  }catch(e){tp.remove();alert('回應失敗：'+e.message);}
   finally{
     S.busy=false;$('send').disabled=S.ended;
     if(!S.ended){
       // 統一規則（基礎級／實戰級／民眾模式一致）：AI 回覆後麥克風一律關閉，
-      // 使用者先看回覆（與教練指引），想好再自己按 🎤 講；不自動重開麥。
+      // 使用者先看回覆，想好再自己按 🎤 講；不自動重開麥。
       if(isRec)stopMic();
-      $('msgBox').placeholder=S.lastCoachShown?'看完教練指引後，按 🎤 說話':'看完對方回覆後，按 🎤 說話';
+      $('msgBox').placeholder='看完對方回覆後，按 🎤 說話';
     }
   }
 }
@@ -1038,27 +1032,6 @@ function tagLastCop(d){
   box.innerHTML=html;
   const lastMe=[...(S.convo||[])].reverse().find(x=>x.me);if(lastMe)lastMe.tags=[...box.querySelectorAll('span')].map(sp=>({t:sp.textContent,c:sp.className}));
 }
-function addCoach(c){
-  const d=document.createElement('div');d.className='coach';
-  let inner='<div class="clbl"><span class="lbl">💡 教練指引</span></div>';
-  if(c.stepZh)inner+='<div class="cinstr"><b>指示：</b>現在進入「'+c.stepZh+'」階段：'+esc(c.instr)+'</div>';
-  else inner+='<div class="cinstr"><b>指示：</b>'+esc(c.instr)+'</div>';
-  if(c.say)inner+='<div class="csay" data-fill="say" title="點一下填入輸入框"><b>建議'+((S.mode==='intervene')?'問句':'回應')+'：</b>「'+esc(c.say)+'」</div>';
-  if(c.gold)inner+='<div class="csay" data-fill="gold" title="點一下填入輸入框"><b>⭐ 實戰金句：</b>「'+esc(c.gold)+'」<span style="font-size:10px;color:#a5762a;">（來自真實高分演練）</span></div>';
-  if(c.prin)inner+='<div class="pp">原則：'+esc(c.prin)+'</div>';
-  d.innerHTML=inner;
-  d.querySelectorAll('.csay').forEach(el=>{el.onclick=()=>{$('msgBox').value=(el.dataset.fill==='gold')?c.gold:c.say;$('msgBox').focus();};});
-  $('clog').appendChild(d);
-}
-function addRescue(list){
-  const d=document.createElement('div');d.className='coach';
-  d.innerHTML='<div class="clbl"><span class="lbl" style="background:#c94a3f;color:#fff;">🆘 卡關救援・實戰金句</span></div>'
-    +'<div class="cinstr"><b>剛剛的說法讓民眾更防衛了。</b>試試真實高分演練中有效的說法（點一句填入）：</div>'
-    +list.map((p,i)=>'<div class="csay" data-i="'+i+'">「'+esc(p)+'」</div>').join('')
-    +'<div class="pp">來自 543 場真實演練的高分話術庫</div>';
-  d.querySelectorAll('.csay').forEach(el=>{el.onclick=()=>{$('msgBox').value=list[+el.dataset.i];$('msgBox').focus();};});
-  $('clog').appendChild(d);
-}
 
 /* ===== 操作指引 ===== */
 function showGuide(manual){$('guideOv').classList.add('on');if(!manual)localStorage.setItem('mg_guide_seen_v1','1');}
@@ -1072,6 +1045,7 @@ function rtBanner(cls,text){
 }
 // 「接下來」提示一律依目前進度往前指，永不倒退（看穩聽問守是固定順序；已到「守」就只講守）
 function nextStepHint(cur){
+  return '';   // 已移除「接下來該怎麼問」的提示，只保留對方情緒變化
   if(S.mode!=='intervene')return '';
   const nxt=STEP_ORDER.find(st=>!(S.stepsDone||[]).includes(st));
   const M={look:'先觀察、判斷燈號，不急著說重點',calm:'先接住他的感受，把情緒穩下來',listen:'邀他多說發生什麼事、不打斷',ask:'用提問引導他自己發現破綻',guard:'接住自責、把責任歸給詐騙者、連結家人或 165'};
@@ -1087,14 +1061,14 @@ function realtimeFeedback(prev,cur){
   const start=(S.startMetric==null)?prev:S.startMetric;
   if(S.mode==='intervene'){
     // 上升：這句讓對方更激動
-    if(cur-prev>=8){rtBanner('bad','⚠️ 對方情緒升高了（'+prev+' → '+cur+'）。剛剛那句太直接，換個說法、先接住他的感受再說。');return;}
+    if(cur-prev>=8){rtBanner('bad','⚠️ 對方情緒升高了（'+prev+' → '+cur+'）。');return;}
     // 依階段只提示一次；「接下來」永遠指向目前尚未完成的下一步，不會叫人退回前面的步驟
-    if(cur<=30&&!S.rtHit.calm){S.rtHit.calm=1;rtBanner('great','🎉 情緒已經穩定了（'+start+' → '+cur+'）！降溫達標。'+nextStepHint(cur));return;}
-    if(cur<45&&!S.rtHit.near){S.rtHit.near=1;rtBanner('good','🌡️ 快穩下來了（'+start+' → '+cur+'），對方開始願意聽你說。'+nextStepHint(cur));return;}
-    if(cur<60&&!S.rtHit.mid){S.rtHit.mid=1;rtBanner('good','🌡️ 他的情緒已經降溫了（'+start+' → '+cur+'），你做對了，請繼續！'+nextStepHint(cur));return;}
-    if(start-cur>=10&&!S.rtHit.first){S.rtHit.first=1;rtBanner('good','🌡️ 對方情緒開始降溫（'+start+' → '+cur+'），你這樣說有效！'+nextStepHint(cur));return;}
+    if(cur<=30&&!S.rtHit.calm){S.rtHit.calm=1;rtBanner('great','🎉 情緒已經穩定了（'+start+' → '+cur+'）！'+nextStepHint(cur));return;}
+    if(cur<45&&!S.rtHit.near){S.rtHit.near=1;rtBanner('good','🌡️ 快穩下來了（'+start+' → '+cur+'）。'+nextStepHint(cur));return;}
+    if(cur<60&&!S.rtHit.mid){S.rtHit.mid=1;rtBanner('good','🌡️ 他的情緒已經降溫了（'+start+' → '+cur+'）。'+nextStepHint(cur));return;}
+    if(start-cur>=10&&!S.rtHit.first){S.rtHit.first=1;rtBanner('good','🌡️ 對方情緒開始降溫（'+start+' → '+cur+'）。'+nextStepHint(cur));return;}
   }else{
-    if(cur-prev>=10){rtBanner('bad','⚠️ 被騙風險升高了（'+prev+' → '+cur+'）。先停下來，別照對方的節奏走，查證或直接拒絕。');return;}
+    if(cur-prev>=10){rtBanner('bad','⚠️ 被騙風險升高了（'+prev+' → '+cur+'）。');return;}
     if(cur<45&&!S.rtHit.safe){S.rtHit.safe=1;rtBanner('great','🛡️ 被騙風險已降到安全區（'+start+' → '+cur+'）！你守得很好，繼續堅持查證與拒絕。');return;}
     if(start-cur>=10&&!S.rtHit.first){S.rtHit.first=1;rtBanner('good','🛡️ 被騙風險開始下降（'+start+' → '+cur+'），你的回應是對的，繼續！');return;}
   }
@@ -1155,6 +1129,7 @@ function svKey(){return 'mg_survey_done|'+(S.unit||'')+'|'+(S.name||'');}
 async function surveySetup(){
   // 只有員警／銀行行員（intervene）才問；同一個人（單位＋姓名）只問一次：先看本機記錄，再問伺服器
   svPending=false;$('svBox').style.display='none';
+  return;   // 滿意度問卷已停用：不顯示、也不攔截離開（後端 API 保留）
   if(S.mode!=='intervene')return;
   if(localStorage.getItem(svKey()))return;
   try{

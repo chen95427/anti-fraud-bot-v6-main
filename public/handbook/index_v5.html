@@ -4324,8 +4324,7 @@ function tryOpenExternalBrowser() {
             document.getElementById('prFbCard').textContent = data.feedback;
             document.getElementById('prMyFbBox').style.display = '';
             prRenderConvoArchive(data.feedback);   // 準備「完整對話存檔」
-            document.getElementById('prSurveyOpenBtn').style.display = '';
-            prAwaitingSurvey = true;  // 點評已出，離開前需完成滿意度調查
+            // 滿意度問卷已停用：不顯示入口、離開前也不再攔截（prAwaitingSurvey 維持 false）
             prHideHints();
             prAfterFeedbackProgress();  // V4：刷新闖關進度，若新達標則彈恭喜
         } catch(e) {
