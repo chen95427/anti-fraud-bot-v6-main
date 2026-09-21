@@ -1293,11 +1293,14 @@ def _call_anthropic(system_text, messages, max_tokens, use_cache=True):
             'text': system_text,
             'cache_control': {'type': 'ephemeral'}
         }]
+    kwargs = {}
+    if system_param:   # 沒有 system（如點評）就不帶這個參數；傳 None 會被 API 拒絕（400）
+        kwargs['system'] = system_param
     response = client.messages.create(
         model=MODEL,
         max_tokens=max_tokens,
-        system=system_param,
         messages=messages,
+        **kwargs,
     )
     usage = response.usage
     return AIResponse(
@@ -2987,8 +2990,7 @@ def mg_chat():
                     emo['reason'] = '同樣的話重複聽，民眾不知道該做什麼，反而更不安'
                 emo['current_step'] = None
                 emo['phrase_tags'] = []
-                repeat_note = ('⚠️ 這句跟前面重複了（第 ' + str(session['repeat_streak'] + 1) + ' 次類似的話），民眾聽不懂你要他做什麼。'
-                               '換句話說——具體問：「對方是誰？怎麼聯絡您的？要求您做什麼？」')
+                # 不再對受訓者顯示「換句話說——具體問…」之類的提問提示（repeat_note 維持 None）
                 session['messages'].append({'role': 'user', 'content': '（系統提醒：員警又重複了同樣的話。你聽不懂他要你做什麼，下一句請表現困惑、反問他「你一直說要小心，到底要我怎麼做？」之類。不要因此軟化，情緒維持或微升。直接接續對話，不要提及本提醒。）'})
                 session['messages'].append({'role': 'assistant', 'content': '（好。）'})
             else:
