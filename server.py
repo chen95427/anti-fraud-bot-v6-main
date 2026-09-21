@@ -860,9 +860,12 @@ def build_roleplay_prompt(signal, fraud_type, persona_name, persona_desc,
     return prompt
 
 
-def build_feedback_prompt(fraud_label, signal_label, turn_count, conversation_history):
+def build_feedback_prompt(fraud_label, signal_label, turn_count, conversation_history, pretest=False):
+    strict = ('\n【前測評分尺度】本次為前測，請用較嚴格的標準評分：除非該步驟表現極為出色，否則不給 ✅ 的最高分段，'
+              f'五步驟總分盡量不要超過 {MG_PRETEST_MAX} 分。\n' if pretest else '')
     return f"""你是員警阻詐訓練的教練，負責在演練結束後給出結構化回饋。
 
+{strict}
 【本次演練資訊】
 詐騙類型：{fraud_label}
 燈號：{signal_label}
@@ -2559,6 +2562,7 @@ def bank_role_scene(signal, fraud_type):
 
 
 # A 類兩級制：基礎級（有教練卡）／實戰級（混合型民眾、不給燈號、無教練）
+MG_PRETEST_MAX = 85        # 前測總分上限
 MG_PASS_SCORE = 80         # A 類單一總分通過門檻（五步技巧 80 分 + 民眾情緒降溫 20 分）
 MG_CALM_LINE = 30          # 民眾情緒「穩定」門檻：降到 30 以下才算 OK（綠燈結束＋降溫滿分線）
 MG_LEVEL_COACH = '一般'    # 前端傳「一般」＝基礎級
@@ -3127,7 +3131,8 @@ def mg_feedback():
         if session['mode'] == 'intervene':
             signal_label = MG_SIG[session['signal']]['intervene']
             fraud_label = MG_TYPES[session['fraud_type']]['label']
-            prompt = build_feedback_prompt(fraud_label, signal_label, turn_count, history_text)
+            is_pretest = session.get('ai_assist') is False   # 前測：ai_assist=0
+            prompt = build_feedback_prompt(fraud_label, signal_label, turn_count, history_text, pretest=is_pretest)
             response = call_ai(None, [{'role': 'user', 'content': prompt}], max_tokens=1400, use_cache=False)
             raw_fb = response.text
             fb, scores = extract_feedback_scores(raw_fb)
@@ -3145,6 +3150,11 @@ def mg_feedback():
             need = max(1, emo_start - MG_CALM_LINE)
             emo_pts = round(min(1.0, drop / need) * 20)              # 0–20
             total = min(100, skill_pts + emo_pts)
+            if is_pretest and total > MG_PRETEST_MAX:
+                # 前測分數上限：壓在 85，並同步改寫點評文字中的總分
+                total = MG_PRETEST_MAX
+                fb = re.sub(r'(\d{1,3})(\s*/\s*100\s*分)',
+                            lambda m: (str(MG_PRETEST_MAX) + m.group(2)) if int(m.group(1)) > MG_PRETEST_MAX else m.group(0), fb)
             passed = total >= MG_PASS_SCORE
             # 存檔：五軸之外一併把「畫面上顯示的單一總分」寫進 scores_json（供後台頒獎／排名，與受訓者看到的分數一致）
             saved_scores = dict(sc)
