@@ -31,9 +31,9 @@ a{text-decoration:none;color:inherit;}
 /* ---- hero：改成左文右圖的卡片式分割版面，不再是滿版跨頁照片 ---- */
 .hero{position:relative;min-height:auto;padding-top:60px;overflow:hidden;color:#fff;background:linear-gradient(155deg,var(--navy-deep) 0%,var(--navy) 62%,var(--navy2) 100%);}
 .hero-veil{position:absolute;inset:0;background-image:radial-gradient(rgba(230,112,63,.16) 1.5px,transparent 1.5px);background-size:26px 26px;mask-image:radial-gradient(ellipse 70% 60% at 30% 20%,#000 0%,transparent 70%);pointer-events:none;}
-.hero-in{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center;padding-top:64px;padding-bottom:72px;max-width:1120px;}
+.hero-kicker-big{position:relative;text-align:center;font-size:clamp(32px,4.6vw,50px);font-weight:900;letter-spacing:1px;line-height:1.28;color:var(--gold);padding-top:96px;}
+.hero-in{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center;padding-top:36px;padding-bottom:72px;max-width:1120px;}
 .hero-text{max-width:560px;}
-.hero-pill{display:inline-block;font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:2px;color:var(--gold-soft);border:1px solid rgba(230,112,63,.55);border-radius:999px;padding:7px 16px;margin-bottom:22px;background:rgba(230,112,63,.12);}
 .hero-title{font-size:clamp(32px,4.6vw,50px);font-weight:900;line-height:1.28;letter-spacing:1px;}
 .hero-title em{font-style:normal;color:var(--gold);position:relative;}
 .hero-sub{margin-top:20px;font-size:clamp(14.5px,1.6vw,16.5px);color:rgba(255,255,255,.85);line-height:2;}
@@ -46,18 +46,29 @@ a{text-decoration:none;color:inherit;}
 .btn-ghost:hover{border-color:#fff;background:rgba(255,255,255,.08);}
 .btn-navy{background:var(--navy);color:#fff;box-shadow:0 8px 24px rgba(21,60,64,.3);}
 .hero-tag{margin-top:26px;font-family:var(--mono);font-size:11.5px;letter-spacing:1px;color:rgba(255,255,255,.5);}
-.hero-phase{margin-top:22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,.06);border:1px solid rgba(230,112,63,.28);border-radius:14px;padding:14px 18px;}
-.hero-phase-step{display:flex;align-items:center;gap:9px;}
-.hero-phase-step .n{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
-.hero-phase-step .t{font-size:13px;font-weight:800;color:#fff;line-height:1.3;}
-.hero-phase-step .t small{display:block;font-weight:500;color:rgba(255,255,255,.6);font-size:10.5px;margin-top:1px;letter-spacing:.3px;}
-.hero-phase-arrow{color:rgba(255,255,255,.35);font-size:14px;flex:none;}
-@media(max-width:600px){.hero-phase{flex-direction:column;align-items:flex-start;gap:12px;}.hero-phase-arrow{display:none;}}
 .hero-media{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);border:1px solid rgba(230,112,63,.3);aspect-ratio:4/5;}
 .hero-media img{width:100%;height:100%;object-fit:cover;object-position:center 25%;}
 .hero-media-badge{position:absolute;left:14px;bottom:14px;background:rgba(11,38,42,.85);backdrop-filter:blur(4px);color:var(--gold-soft);font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:2px;padding:8px 14px;border-radius:10px;border:1px solid rgba(230,112,63,.4);}
-@media(max-width:820px){.hero-in{grid-template-columns:1fr;padding-top:96px;}.hero-media{max-width:360px;margin:0 auto;aspect-ratio:4/3;}}
+@media(max-width:820px){.hero-in{grid-template-columns:1fr;padding-top:36px;}.hero-media{max-width:360px;margin:0 auto;aspect-ratio:4/3;}}
+@media(max-width:640px){.hero-kicker-big{padding-top:80px;}}
 @media(max-width:560px){.mb{display:none;}}
+
+/* ---- hero-phase：前測／後測平台字樣，滿版置中的招牌區塊（不塞在左欄，獨立一排、置中顯示） ---- */
+.hero-phase{position:relative;text-align:center;padding:8px 22px 60px;}
+.hero-phase-in{display:inline-flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+.hero-phase-step{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1px solid rgba(230,112,63,.3);border-radius:999px;padding:9px 20px 9px 10px;}
+.hero-phase-step .n{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
+.hero-phase-step .t{font-size:16px;font-weight:900;color:#fff;line-height:1.25;text-align:left;}
+.hero-phase-step .t small{display:block;font-weight:600;color:rgba(255,255,255,.62);font-size:11px;margin-top:1px;letter-spacing:.3px;}
+.hero-phase-step-on{background:rgba(230,112,63,.16);border-color:var(--gold);}
+.hero-phase-step-on .n{background:var(--gold);color:#fff;}
+.hero-phase-arrow{color:var(--gold);font-size:20px;font-weight:900;flex:none;}
+.hero-phase-note{margin-top:18px;font-size:14.5px;font-weight:700;color:var(--gold-soft);letter-spacing:.5px;}
+@media(max-width:640px){
+  .hero-phase-in{flex-direction:column;gap:10px;}
+  .hero-phase-arrow{transform:rotate(90deg);}
+  .hero-phase-step{width:100%;max-width:280px;justify-content:flex-start;}
+}
 
 /* ---- sections ---- */
 section.method,section.roles,section.how{padding:88px 0;}
