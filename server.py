@@ -3947,6 +3947,33 @@ def _admin_auth_gate():
     return
 
 
+_ADMIN_LOGOUT_BADGE = ('<a href="/admin/logout" title="登出" '
+    'style="position:fixed;top:12px;right:12px;z-index:99999;background:#b91c1c;color:#fff;'
+    'font-family:\'Microsoft JhengHei\',\'Noto Sans TC\',sans-serif;font-size:13px;font-weight:800;'
+    'padding:8px 16px;border-radius:20px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)">'
+    '↩ 登出</a>')
+
+@app.after_request
+def _admin_inject_logout(resp):
+    """每一頁後台都要看得到登出按鈕：與其每個頁面各自加連結（容易漏），統一在這裡把一顆固定在
+    右上角的「登出」按鈕插進每個已登入的後台 HTML 頁面，不用改各路由的內容。"""
+    try:
+        p = request.path
+        if not p.startswith('/admin') or p in _ADMIN_PUBLIC_PATHS:
+            return resp
+        if resp.mimetype != 'text/html' or resp.status_code >= 300:
+            return resp
+        if not _admin_authed():
+            return resp
+        body = resp.get_data(as_text=True)
+        if '</body>' not in body or 'href="/admin/logout"' in body:
+            return resp  # 沒有完整頁面（例如小片段的 redirect script），或頁面自己已經有登出連結，就不重複插
+        resp.set_data(body.replace('</body>', _ADMIN_LOGOUT_BADGE + '</body>', 1))
+    except Exception as e:
+        print('[AdminLogoutInject]', e)
+    return resp
+
+
 def _login_page(err='', username=''):
     e = f'<div style="background:#fde8e8;color:#b91c1c;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:14px">{esc(err)}</div>' if err else ''
     return Response(f"""<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8">
@@ -4147,6 +4174,7 @@ def admin_accounts():
             elif target == me:
                 note = ('err', '不能刪除自己目前登入的帳號')
             else:
+                deleted = False
                 with _db_lock, db_conn() as c:
                     owners_left = c.execute("SELECT COUNT(*) FROM admin_users WHERE role='owner' AND username != ?",
                                             (target,)).fetchone()[0]
@@ -4155,8 +4183,11 @@ def admin_accounts():
                     else:
                         c.execute('DELETE FROM admin_users WHERE username=?', (target,))
                         c.commit()
-                        audit('刪除帳號', target)
-                        note = ('ok', f'已刪除「{target}」')
+                        deleted = True
+                if deleted:
+                    audit('刪除帳號', target)  # 一定要在上面那個 with _db_lock 區塊「外面」才呼叫：
+                    # audit() 內部自己也會 with _db_lock，同一支（不可重入）鎖巢狀搶會整個卡死（曾經因此掛過站）
+                    note = ('ok', f'已刪除「{target}」')
 
     with _db_lock, db_conn() as c:
         rows = c.execute('SELECT * FROM admin_users ORDER BY (role="owner") DESC, username').fetchall()
