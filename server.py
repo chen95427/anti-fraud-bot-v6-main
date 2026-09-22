@@ -24,7 +24,7 @@ from email.message import EmailMessage
 from collections import defaultdict, deque
 from datetime import datetime, date, timedelta, timezone
 from pathlib import Path
-from flask import Flask, request, jsonify, send_from_directory, Response, redirect, session as login_session
+from flask import Flask, request, jsonify, send_from_directory, Response, redirect, session as login_session, g
 import secrets
 import base64
 import ipaddress
@@ -269,6 +269,16 @@ def init_db():
         if 'ai_assist' not in cols:
             c.execute("ALTER TABLE sessions ADD COLUMN ai_assist INTEGER")
             print('[DB] migrated: sessions 加上 ai_assist 欄位（黑客松期間比較有/無AI輔助教練卡）')
+        if 'bank_name' not in cols:
+            c.execute("ALTER TABLE sessions ADD COLUMN bank_name TEXT")
+            print('[DB] migrated: sessions 加上 bank_name 欄位（銀行行員：固定選單選的銀行別，供後台分行過濾）')
+        admin_cols = {row[1] for row in c.execute("PRAGMA table_info(admin_users)").fetchall()}
+        if 'scope_group' not in admin_cols:
+            c.execute("ALTER TABLE admin_users ADD COLUMN scope_group TEXT")
+            print('[DB] migrated: admin_users 加上 scope_group 欄位（帳號限定只能看某族群，如 bank）')
+        if 'scope_bank' not in admin_cols:
+            c.execute("ALTER TABLE admin_users ADD COLUMN scope_bank TEXT")
+            print('[DB] migrated: admin_users 加上 scope_bank 欄位（銀行帳號限定只能看某一家銀行）')
         msg_cols = {row[1] for row in c.execute("PRAGMA table_info(messages)").fetchall()}
         if 'emotion_score' not in msg_cols:
             c.execute("ALTER TABLE messages ADD COLUMN emotion_score INTEGER")
@@ -347,15 +357,15 @@ def db_upsert_user(unit_name, name):
 
 
 def db_create_session(session_id, unit_name, name, ip, signal, fraud_type, persona,
-                      difficulty=None, case_id=None, role=None, mode=None, ai_assist=None):
+                      difficulty=None, case_id=None, role=None, mode=None, ai_assist=None, bank_name=None):
     with _db_lock, db_conn() as c:
         c.execute('''INSERT OR REPLACE INTO sessions
-            (session_id, unit_name, user_name, ip, signal, fraud_type, persona_name, persona_avatar, started_at, turn_count, difficulty, case_id, role, mode, ai_assist)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)''',
+            (session_id, unit_name, user_name, ip, signal, fraud_type, persona_name, persona_avatar, started_at, turn_count, difficulty, case_id, role, mode, ai_assist, bank_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)''',
             (session_id, unit_name, name, ip, signal, fraud_type,
              persona.get('name', ''), persona.get('avatar', ''),
              now_tw().isoformat(timespec='seconds'), difficulty, case_id, role, mode,
-             (1 if ai_assist else 0) if ai_assist is not None else None))
+             (1 if ai_assist else 0) if ai_assist is not None else None, bank_name))
         c.execute('UPDATE users SET total_sessions = total_sessions + 1 WHERE unit_name = ?', (unit_name,))
         c.commit()
 
@@ -393,6 +403,20 @@ def db_finalize_session(session_id, feedback_text=None, scores=None):
         c.execute('UPDATE sessions SET ended_at = ?, duration_sec = ?, feedback_text = ?, scores_json = ? WHERE session_id = ?',
                  (now, duration, feedback_text, scores_text, session_id))
         c.commit()
+
+
+def has_completed_pretest(unit_name, user_name):
+    """同一「單位＋姓名/代號」是否已有做完的前測（ai_assist=0 且已點評）；用來擋「還沒前測就選後測」。"""
+    unit_name = (unit_name or '').strip()
+    user_name = (user_name or '').strip()
+    if not unit_name or not user_name:
+        return False
+    with _db_lock, db_conn() as c:
+        row = c.execute('''SELECT 1 FROM sessions
+                            WHERE unit_name = ? AND user_name = ? AND ai_assist = 0
+                              AND feedback_text IS NOT NULL LIMIT 1''',
+                         (unit_name, user_name)).fetchone()
+        return row is not None
 
 
 # ========== 訓練梯次／QR 通行 ==========
@@ -1723,9 +1747,11 @@ def admin_toggle_excellent(session_id):
     if not _admin_authed():
         return Response('未授權', status=401)
     with _db_lock, db_conn() as c:
-        s = c.execute('SELECT tag FROM sessions WHERE session_id=?', (session_id,)).fetchone()
+        s = c.execute('SELECT * FROM sessions WHERE session_id=?', (session_id,)).fetchone()
         if not s:
             return Response('找不到此演練', status=404)
+        if not _session_in_scope(s):
+            return _session_scope_denied()
         new_tag = None if s['tag'] == 'excellent' else 'excellent'
         c.execute('UPDATE sessions SET tag=? WHERE session_id=?', (new_tag, session_id))
         c.commit()
@@ -1739,6 +1765,8 @@ def admin_exemplars():
     """後台：優秀話術範例庫（報告種子 + 自動入選預覽），可停用/啟用個別金句"""
     if not _admin_authed():
         return Response('未授權', status=401)
+    if (r := _require_owner()) is not None:
+        return r
     key = request.args.get('key', '')
     tid = request.args.get('toggle')
     if tid:
@@ -1785,6 +1813,8 @@ def admin_ai_review():
     """主動 AI 升級：AI 回顧近期優秀對話 → 產出升級建議給管理者審閱（手動觸發、不動評分）"""
     if not _admin_authed():
         return Response('未授權', status=401)
+    if (r := _require_owner()) is not None:
+        return r
     key = request.args.get('key', '')
     qk = f'?key={key}' if key else ''
     run = request.args.get('run')
@@ -2238,6 +2268,11 @@ def feedback():
 #  B 類・自我防護民眾（長輩/青壯年/青少年）＝refuse：AI 演詐騙者，量被騙風險
 #  端點：/api/mg/start、/api/mg/chat、/api/mg/feedback（獨立於既有 /api/*，不動 V4 引擎）
 # ══════════════════════════════════════════════════════════════════════════
+
+# ---- 銀行行員固定銀行別選單（讓後台能可靠地依銀行分帳號查看，不再靠自由填的「單位」文字判斷）----
+MG_BANK_OTHER = '其他銀行'
+MG_BANK_LIST = ['台新銀行', '富邦銀行', '淡水一信', MG_BANK_OTHER]
+MG_BANK_SET = set(MG_BANK_LIST)
 
 # ---- 六身分族群 ----
 MG_ROLES = {
@@ -2762,6 +2797,18 @@ def mg_coach_for_step(step, fraud_type, signal=None, role='police', last_civ=Non
     return out
 
 
+@app.route('/api/mg/check-pretest', methods=['POST'])
+def mg_check_pretest():
+    """前端用：這個「單位＋姓名/代號」是否已有做完的前測，用來決定能不能點選後測版。"""
+    pw_ok, pw_err = check_password()
+    if not pw_ok:
+        return jsonify({'error': pw_err}), 401
+    data = request.get_json() or {}
+    unit_name = (data.get('unitName') or '').strip()
+    user_name = (data.get('userName') or '').strip()
+    return jsonify({'hasPretest': has_completed_pretest(unit_name, user_name)})
+
+
 @app.route('/api/mg/start', methods=['POST'])
 def mg_start():
     cleanup_sessions()
@@ -2779,6 +2826,7 @@ def mg_start():
     session_id = data.get('sessionId')
     unit_name = (data.get('unitName') or '').strip()
     user_name = (data.get('userName') or '').strip()
+    bank_name = (data.get('bankName') or '').strip()
 
     if role not in MG_ROLES:
         return jsonify({'error': '身分族群不存在'}), 400
@@ -2796,6 +2844,14 @@ def mg_start():
     if mode == 'intervene':
         if not unit_name:
             return jsonify({'error': '請輸入您的單位（用於記錄演練紀錄）'}), 400
+        if role == 'bank':
+            if bank_name not in MG_BANK_SET:
+                return jsonify({'error': '請選擇您所屬的銀行'}), 400
+        else:
+            bank_name = None
+        if ai_assist and not has_completed_pretest(unit_name, user_name):
+            # 同一「單位＋姓名/代號」尚無完成的前測紀錄，不可直接選後測
+            return jsonify({'error': '此單位／姓名尚無前測紀錄，請先完成一次「前測版」演練，才能進行後測版'}), 400
         if MG_HACKATHON_LOCK:
             level = MG_LEVEL_ADV   # 黑客松初期：員警/銀行行員只開放實戰級（見 MG_HACKATHON_LOCK）
     else:
@@ -2847,6 +2903,7 @@ def mg_start():
                 'mg': True, 'mode': 'intervene', 'role': role, 'signal': signal,
                 'fraud_type': fraud_type, 'level': level, 'persona': persona, 'case_id': case_id,
                 'ip': ip, 'unit_name': unit_name, 'user_name': user_name, 'ai_assist': ai_assist,
+                'bank_name': bank_name,
                 'system_prompt': system_prompt, 'emotion_score': emo['emotion_score'],
                 'steps_done': ['look'], 'neg_hits': 0,  # 開場即『看』階段（觀察情緒/行為）
                 'messages': [{'role': 'user', 'content': first_user},
@@ -2902,7 +2959,8 @@ def mg_start():
             db_create_session(session_id, unit_name, user_name, ip, signal,
                               (fraud_type if mode == 'intervene' else r['scam']),
                               persona, case_id=case_id, role=role, mode=mode,
-                              ai_assist=(ai_assist if mode == 'intervene' else None))
+                              ai_assist=(ai_assist if mode == 'intervene' else None),
+                              bank_name=(bank_name if role == 'bank' else None))
             spk = '民眾' if mode == 'intervene' else '對方'
             db_log_message(session_id, spk, resp['opening'],
                            getattr(response, 'usage', None),
@@ -3617,7 +3675,11 @@ ADMIN_GROUP_LABEL = {k: v for k, v, _ in ADMIN_GROUPS}
 ADMIN_GROUP_COLOR = {k: c for k, _, c in ADMIN_GROUPS}
 
 def admin_g():
-    """目前後台檢視的族群（?g=police|bank|elder|adult|teen）；空＝尚未選（首頁用）"""
+    """目前後台檢視的族群（?g=police|bank|elder|adult|teen）；空＝尚未選（首頁用）。
+    帳號若被限定族群（scope_group，如銀行帳號），一律強制用該族群，?g= 參數無效。"""
+    sg, _ = _admin_scope()
+    if sg:
+        return sg
     g = request.args.get('g', '')
     return g if g in ADMIN_GROUP_LABEL else ''
 
@@ -3633,17 +3695,31 @@ def gq(key=None):
 
 def gwhere(alias='', prefix='AND'):
     """組出 SQL 過濾片段與參數：('AND role=?', ['police'])；未選族群回 ('', [])。
-    舊資料（V4 前）role 為 NULL、視為員警。"""
+    舊資料（V4 前）role 為 NULL、視為員警。帳號若被限定特定銀行（scope_bank），額外加 AND bank_name=?。"""
     g = admin_g()
-    if not g:
+    clauses, params = [], []
+    if g:
+        col = f'{alias}.role' if alias else 'role'
+        if g == 'police':
+            clauses.append(f'({col}=? OR {col} IS NULL)'); params.append('police')
+        else:
+            clauses.append(f'{col}=?'); params.append(g)
+    _, sb = _admin_scope()
+    if sb:
+        bcol = f'{alias}.bank_name' if alias else 'bank_name'
+        clauses.append(f'{bcol}=?'); params.append(sb)
+    if not clauses:
         return '', []
-    col = f'{alias}.role' if alias else 'role'
-    if g == 'police':
-        return f' {prefix} ({col}=? OR {col} IS NULL)', ['police']
-    return f' {prefix} {col}=?', [g]
+    return f' {prefix} ' + ' AND '.join(clauses), params
 
 def gbar(key, current_path):
-    """後台每頁頂端的族群切換列（高亮目前族群）"""
+    """後台每頁頂端的族群切換列（高亮目前族群）；帳號被限定族群/銀行時，改顯示鎖定提示、不給切換。"""
+    sg, sb = _admin_scope()
+    if sg:
+        label = ADMIN_GROUP_LABEL.get(sg, sg) + (f'　·　🏦 {esc(sb)}' if sb else '')
+        return (f'<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;margin:0 0 16px">'
+                f'<div style="font-size:12px;color:#6b7280">目前檢視族群：<b style="color:#111">{label}</b>　'
+                f'<span style="color:#9ca3af">（此帳號僅能查看此範圍的資料）</span></div></div>')
     g = admin_g()
     items = ''
     for k, label, color in ADMIN_GROUPS:
@@ -3675,6 +3751,75 @@ def _get_admin(username):
         return None
     with _db_lock, db_conn() as c:
         return c.execute('SELECT * FROM admin_users WHERE username = ?', (username,)).fetchone()
+
+
+def _current_admin_row():
+    """目前登入帳號在 admin_users 的完整資料列；用 ?key= 舊式主密碼後門進來的沒有具名帳號，回 None。
+    結果快取在 flask.g（每個請求只查一次 DB）：一來省重複查詢，二來避免在路由內已持有 _db_lock 時
+    被巢狀呼叫又去搶同一把（非重入）鎖而卡死——_admin_auth_gate() 會在路由開始前先呼叫一次把快取熱好。"""
+    if hasattr(g, '_admin_row_cache'):
+        return g._admin_row_cache
+    u = login_session.get('admin')
+    row = _get_admin(u) if u else None
+    try:
+        g._admin_row_cache = row
+    except RuntimeError:
+        pass  # 不在 request context 內（理論上不會發生），就不快取，直接回傳
+    return row
+
+
+def _admin_scope():
+    """回傳 (scope_group, scope_bank)：這個登入帳號被限定只能看哪個族群／哪家銀行；沒有限定回 (None, None)＝看得到全部。
+    ADMIN_OPEN（本機除錯）與舊式 ?key= 主密碼後門一律視為不限定（等同擁有者）。"""
+    if ADMIN_OPEN:
+        return None, None
+    row = _current_admin_row()
+    if not row:
+        return None, None
+    cols = row.keys()
+    sg = row['scope_group'] if 'scope_group' in cols else None
+    sb = row['scope_bank'] if 'scope_bank' in cols else None
+    return (sg or None), (sb or None)
+
+
+def _admin_is_owner():
+    """是否有『擁有者』權限（帳號管理、安全設定、備份／還原等最敏感操作）。"""
+    if ADMIN_OPEN:
+        return True
+    row = _current_admin_row()
+    if row:
+        return row['role'] == 'owner'
+    # 沒有具名帳號登入，但通過舊式 ?key= 主密碼後門 → 視同知道主密碼，等同擁有者
+    return bool(ADMIN_KEY_FALLBACK and ADMIN_PASSWORD and request.args.get('key', '') == ADMIN_PASSWORD)
+
+
+def _require_owner():
+    """僅擁有者可用的頁面（帳號管理／安全設定／備份還原等）在路由開頭呼叫；不是擁有者回 403。"""
+    if not _admin_is_owner():
+        return Response('⛔ 此功能僅限擁有者帳號使用（例如：帳號管理、備份還原、安全設定）。', status=403,
+                        mimetype='text/plain; charset=utf-8')
+    return None
+
+
+def _session_in_scope(row):
+    """檢查一場演練是否在目前登入帳號的權限範圍內；用在直接以 session_id 存取的路由，
+    防止被限定帳號（如銀行帳號）用網址猜/貼別的族群或別家銀行的 session_id 也看得到。"""
+    sg, sb = _admin_scope()
+    if not sg and not sb:
+        return True
+    cols = row.keys()
+    role = (row['role'] if ('role' in cols and row['role']) else 'police')
+    if sg and role != sg:
+        return False
+    if sb:
+        bn = row['bank_name'] if 'bank_name' in cols else None
+        if bn != sb:
+            return False
+    return True
+
+
+def _session_scope_denied():
+    return Response('⛔ 這場演練不在您帳號的查看範圍內。', status=403, mimetype='text/plain; charset=utf-8')
 
 
 def bootstrap_admin():
@@ -3791,6 +3936,9 @@ def _admin_auth_gate():
         if request.method == 'GET':
             return redirect('/admin/login')
         return Response('未授權，請重新登入', status=401, mimetype='text/plain; charset=utf-8')
+    # 在路由開始前先把目前帳號資料查好、快取進 g（見 _current_admin_row 註解）：
+    # 避免路由內部已經 with _db_lock 時，_admin_scope()/_session_in_scope() 又巢狀去搶同一把鎖而卡死。
+    _current_admin_row()
     # 已登入 → 對會改變資料的請求做 CSRF 驗證（SameSite=Lax 已擋跨站，這是額外防線）
     if request.method in ('POST', 'PUT', 'DELETE', 'PATCH') and _login_valid():
         tok = login_session.get('csrf', '')
@@ -3926,6 +4074,188 @@ a{{color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:12px}}
   <div style="font-size:13px;color:#374151;margin-bottom:10px">信任來源 IP 允用（限制後台只能從指定網路連入，例如警局網段）</div>
   <a href="/admin/security/ip" style="display:inline-block;padding:10px 18px;background:#1A3C6E;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;margin-right:8px">IP 允用設定</a>
   <a href="/admin/security/audit" style="display:inline-block;padding:10px 18px;background:#4b5563;color:#fff;border-radius:8px;font-weight:700;text-decoration:none">📜 稽核紀錄</a>
+</div>
+{'<div class="card" style="margin-top:16px"><div style="font-weight:800;color:#1A3C6E;margin-bottom:6px">👥 帳號管理</div><div style="font-size:13px;color:#374151;margin-bottom:10px">新增／管理其他後台帳號，可限定只看特定族群（如銀行行員）或特定銀行。</div><a href="/admin/accounts" style="display:inline-block;padding:10px 18px;background:#1A3C6E;color:#fff;border-radius:8px;font-weight:700;text-decoration:none">帳號管理</a></div>' if _admin_is_owner() else ''}
+</body></html>""", mimetype='text/html; charset=utf-8')
+
+
+# ---- 帳號管理（僅擁有者）：新增限定族群／銀行的後台帳號，讓不同銀行各自只能看自己的資料 ----
+@app.route('/admin/accounts', methods=['GET', 'POST'])
+def admin_accounts():
+    if (r := _require_owner()) is not None:
+        return r
+    me = login_session.get('admin')
+    note = None
+    generated_pw = None
+
+    if request.method == 'POST':
+        act = request.form.get('action', '')
+        if act == 'create':
+            username = request.form.get('username', '').strip()
+            scope_group = request.form.get('scope_group', '').strip()
+            scope_bank = request.form.get('scope_bank', '').strip()
+            role = 'owner' if request.form.get('role') == 'owner' else 'admin'
+            if scope_group not in ADMIN_GROUP_LABEL:
+                scope_group = None
+            if scope_group != 'bank' or scope_bank not in MG_BANK_SET:
+                scope_bank = None
+            if not username or not re.match(r'^[a-zA-Z0-9_.\-]{3,32}$', username):
+                note = ('err', '帳號請用 3-32 碼英數字（可含 . _ -）')
+            elif _get_admin(username):
+                note = ('err', f'帳號「{username}」已存在')
+            else:
+                generated_pw = secrets.token_urlsafe(9)
+                with _db_lock, db_conn() as c:
+                    c.execute('''INSERT INTO admin_users(username, password_hash, role, scope_group, scope_bank,
+                                 session_version, must_change_pw, created_at)
+                                 VALUES(?,?,?,?,?,1,1,?)''',
+                              (username, generate_password_hash(generated_pw), role, scope_group, scope_bank,
+                               now_tw().isoformat(timespec='seconds')))
+                    c.commit()
+                audit('新增後台帳號', f'{username}（{role}／{scope_group or "全部"}／{scope_bank or "全部銀行"}）')
+                note = ('ok', f'已建立帳號「{username}」')
+        elif act == 'reset_pw':
+            target = request.form.get('username', '').strip()
+            if target and _get_admin(target):
+                generated_pw = secrets.token_urlsafe(9)
+                with _db_lock, db_conn() as c:
+                    c.execute('''UPDATE admin_users SET password_hash=?, must_change_pw=1,
+                                 session_version=session_version+1, failed_attempts=0, locked_until=NULL
+                                 WHERE username=?''', (generate_password_hash(generated_pw), target))
+                    c.commit()
+                audit('重設密碼', target)
+                note = ('ok', f'已重設「{target}」的密碼')
+        elif act == 'toggle_lock':
+            target = request.form.get('username', '').strip()
+            row = _get_admin(target)
+            if row:
+                if target == me:
+                    note = ('err', '不能停用自己目前登入的帳號')
+                else:
+                    locking = not (row['locked_until'] and row['locked_until'] > time.time() + 3600 * 24 * 300)
+                    with _db_lock, db_conn() as c:
+                        c.execute('UPDATE admin_users SET locked_until=? WHERE username=?',
+                                  (time.time() + 3600 * 24 * 365 * 10 if locking else None, target))
+                        c.commit()
+                    audit('停用帳號' if locking else '恢復帳號', target)
+                    note = ('ok', f'已{"停用" if locking else "恢復"}「{target}」')
+        elif act == 'delete':
+            target = request.form.get('username', '').strip()
+            row = _get_admin(target)
+            if not row:
+                note = ('err', '找不到此帳號')
+            elif target == me:
+                note = ('err', '不能刪除自己目前登入的帳號')
+            else:
+                with _db_lock, db_conn() as c:
+                    owners_left = c.execute("SELECT COUNT(*) FROM admin_users WHERE role='owner' AND username != ?",
+                                            (target,)).fetchone()[0]
+                    if row['role'] == 'owner' and owners_left == 0:
+                        note = ('err', '不能刪除最後一個擁有者帳號')
+                    else:
+                        c.execute('DELETE FROM admin_users WHERE username=?', (target,))
+                        c.commit()
+                        audit('刪除帳號', target)
+                        note = ('ok', f'已刪除「{target}」')
+
+    with _db_lock, db_conn() as c:
+        rows = c.execute('SELECT * FROM admin_users ORDER BY (role="owner") DESC, username').fetchall()
+
+    bank_options = ''.join(f'<option value="{esc(b)}">{esc(b)}</option>' for b in MG_BANK_LIST)
+    group_options = ''.join(f'<option value="{k}">{esc(label)}</option>' for k, label, _ in ADMIN_GROUPS)
+
+    list_rows = ''
+    for row in rows:
+        locked = bool(row['locked_until'] and row['locked_until'] > time.time() + 3600 * 24 * 300)
+        scope_txt = ADMIN_GROUP_LABEL.get(row['scope_group'], '全部族群') if row['scope_group'] else '全部族群'
+        if row['scope_bank']:
+            scope_txt += f'　🏦 {esc(row["scope_bank"])}'
+        role_badge = '👑 擁有者' if row['role'] == 'owner' else '一般管理'
+        is_me = row['username'] == me
+        list_rows += f"""<tr{' style="opacity:.5"' if locked else ''}>
+          <td><b>{esc(row['username'])}</b>{' （目前登入）' if is_me else ''}</td>
+          <td>{role_badge}</td>
+          <td style="font-size:12.5px">{scope_txt}</td>
+          <td style="font-size:12px;color:#6b7280">{esc(row['last_login'] or '尚未登入')}</td>
+          <td style="font-size:12px">{'🔴 已停用' if locked else '🟢 啟用中'}{'　⚠️ 待改密碼' if row['must_change_pw'] else ''}</td>
+          <td style="white-space:nowrap">
+            <form method="post" style="display:inline" onsubmit="return confirm('確定重設「{esc(row['username'])}」的密碼？')">
+              <input type="hidden" name="csrf" value="{login_session.get('csrf','')}">
+              <input type="hidden" name="action" value="reset_pw"><input type="hidden" name="username" value="{esc(row['username'])}">
+              <button style="background:#4b5563;color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px">重設密碼</button>
+            </form>
+            {'' if is_me else f'''<form method="post" style="display:inline" onsubmit="return confirm('確定{"恢復" if locked else "停用"}「{esc(row["username"])}」？')">
+              <input type="hidden" name="csrf" value="{login_session.get('csrf','')}">
+              <input type="hidden" name="action" value="toggle_lock"><input type="hidden" name="username" value="{esc(row['username'])}">
+              <button style="background:{'#0b8043' if locked else '#b45309'};color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px">{'恢復' if locked else '停用'}</button>
+            </form>
+            <form method="post" style="display:inline" onsubmit="return confirm('確定永久刪除「{esc(row["username"])}」？此動作無法復原。')">
+              <input type="hidden" name="csrf" value="{login_session.get('csrf','')}">
+              <input type="hidden" name="action" value="delete"><input type="hidden" name="username" value="{esc(row['username'])}">
+              <button style="background:#b91c1c;color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px">刪除</button>
+            </form>'''}
+          </td>
+        </tr>"""
+
+    nb = ''
+    if note:
+        bg, fg = ('#dcfce7', '#166534') if note[0] == 'ok' else ('#fde8e8', '#b91c1c')
+        nb = f'<div style="background:{bg};color:{fg};padding:10px 14px;border-radius:8px;margin-bottom:14px">{esc(note[1])}</div>'
+    pw_box = ''
+    if generated_pw:
+        pw_box = (f'<div style="background:#fffdf5;border:2px solid #f5c518;padding:14px 16px;border-radius:10px;margin-bottom:14px">'
+                  f'<div style="font-weight:800;color:#7a5900">🔑 初始密碼（只顯示這一次，請立即複製給對方）</div>'
+                  f'<div style="font-family:monospace;font-size:18px;margin-top:6px;background:#fff;padding:8px 12px;border-radius:6px;display:inline-block">{esc(generated_pw)}</div>'
+                  f'<div style="font-size:12px;color:#664d03;margin-top:6px">對方第一次登入會被要求立即改成自己的密碼。</div></div>')
+
+    return Response(f"""<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>後台帳號管理</title>
+<style>
+body{{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:#f4f6fb;padding:20px;max-width:920px;margin:0 auto;color:#1f2937}}
+h1{{color:#1A3C6E;font-size:20px;border-bottom:3px solid #F5C518;padding-bottom:8px}}
+.card{{background:#fff;padding:20px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px}}
+a.back{{color:#1A3C6E;font-weight:700;text-decoration:none}}
+label{{font-size:13px;color:#374151;font-weight:700;display:block;margin:10px 0 5px}}
+input,select{{padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;width:100%;font-family:inherit}}
+button.add{{margin-top:14px;padding:10px 20px;background:#1A3C6E;color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer}}
+.grid3{{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}}
+table{{width:100%;border-collapse:collapse;margin-top:6px}}
+th{{background:#1A3C6E;color:#fff;padding:9px;text-align:left;font-size:13px}}
+td{{padding:9px;border-bottom:1px solid #eef1f5;font-size:14px;vertical-align:middle}}
+@media(max-width:640px){{.grid3{{grid-template-columns:1fr}}}}
+</style></head><body>
+<a class="back" href="/admin/account">← 回帳號設定</a>
+<h1>👥 後台帳號管理</h1>
+{nb}{pw_box}
+<div class="card">
+  <div style="font-weight:800;color:#1A3C6E;margin-bottom:10px">新增帳號</div>
+  <form method="post">
+    <input type="hidden" name="csrf" value="{login_session.get('csrf','')}">
+    <input type="hidden" name="action" value="create">
+    <div class="grid3">
+      <div><label>帳號（英數字）</label><input name="username" placeholder="例：fubon_admin" required></div>
+      <div><label>限定族群</label>
+        <select name="scope_group" onchange="document.getElementById('bankWrap').style.display=(this.value==='bank')?'block':'none'">
+          <option value="">不限定（可看全部族群）</option>
+          {group_options}
+        </select>
+      </div>
+      <div id="bankWrap" style="display:none"><label>限定銀行（僅族群選「銀行行員」時生效）</label>
+        <select name="scope_bank"><option value="">不限定（該族群全部銀行都看得到）</option>{bank_options}</select>
+      </div>
+    </div>
+    <label style="margin-top:12px">權限等級</label>
+    <select name="role" style="max-width:260px">
+      <option value="admin">一般管理（看資料、匯出，不能動安全設定／備份）</option>
+      <option value="owner">擁有者（含帳號管理／備份還原／安全設定，慎選）</option>
+    </select>
+    <div><button class="add" type="submit">建立帳號</button></div>
+  </form>
+</div>
+<div class="card">
+  <div style="font-weight:800;color:#1A3C6E;margin-bottom:6px">目前帳號（{len(rows)}）</div>
+  <table><thead><tr><th>帳號</th><th>權限</th><th>限定範圍</th><th>最後登入</th><th>狀態</th><th>操作</th></tr></thead>
+  <tbody>{list_rows or '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:16px">尚無帳號</td></tr>'}</tbody></table>
 </div>
 </body></html>""", mimetype='text/html; charset=utf-8')
 
@@ -4118,6 +4448,8 @@ def admin_2fa():
 # ---- IP 允用 UI ----
 @app.route('/admin/security/ip', methods=['GET', 'POST'])
 def admin_security_ip():
+    if (r := _require_owner()) is not None:
+        return r
     u = login_session.get('admin')
     note_msg = None
     if request.method == 'POST':
@@ -4262,6 +4594,8 @@ code{{background:#f3f4f6;padding:2px 7px;border-radius:5px}}</style></head><body
 
 @app.route('/admin/security/audit')
 def admin_security_audit():
+    if (r := _require_owner()) is not None:
+        return r
     with _db_lock, db_conn() as c:
         rows = c.execute('SELECT ts, actor, ip, action, detail FROM audit_log ORDER BY id DESC LIMIT 300').fetchall()
     body = ''.join(
@@ -4288,6 +4622,8 @@ td{{padding:8px 10px;border-bottom:1px solid #eef1f5;font-size:13px}}</style></h
 
 @app.route('/admin/security/audit.csv')
 def admin_security_audit_csv():
+    if (r := _require_owner()) is not None:
+        return r
     with _db_lock, db_conn() as c:
         rows = c.execute('SELECT ts, actor, ip, action, detail FROM audit_log ORDER BY id').fetchall()
     out = io.StringIO()
@@ -4304,6 +4640,8 @@ def admin_security_audit_csv():
 
 @app.route('/admin/batches', methods=['GET', 'POST'])
 def admin_batches():
+    if (r := _require_owner()) is not None:
+        return r
     u = login_session.get('admin')
     note_msg = None
     if request.method == 'POST':
@@ -4463,6 +4801,10 @@ def admin_dashboard():
     key = ADMIN_LINK_KEY
     if not _admin_authed():
         return redirect('/admin/login')
+    sg, _ = _admin_scope()
+    if sg:
+        # 被限定族群/銀行的帳號：這頁（全站總覽，含所有族群的費用/流量統計）不開放，直接導去他能看的演練者列表
+        return redirect(f'/admin/users?key={key}')
 
     with _lock:
         reset_daily_if_needed()
@@ -4554,7 +4896,7 @@ tr:last-child td{{border-bottom:none}}
 .cost{{color:#dc2626;font-weight:bold}}
 h2{{color:#1A3C6E;margin-top:30px;font-size:18px}}
 </style></head><body>
-<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px"><span>🔐 已登入：<b>{esc(login_session.get('admin') or '（免驗證模式）')}</b></span><span><a href="/admin/batches" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">🎫 訓練梯次／QR code</a><a href="/admin/account" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">👤 帳號設定／2FA／IP 允用／稽核</a><a href="/admin/logout" style="color:#b91c1c;font-weight:700;text-decoration:none">登出</a></span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px"><span>🔐 已登入：<b>{esc(login_session.get('admin') or '（免驗證模式）')}</b></span><span><a href="/admin/batches" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">🎫 訓練梯次／QR code</a>{'<a href="/admin/accounts" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">👥 帳號管理</a>' if _admin_is_owner() else ''}<a href="/admin/account" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">👤 帳號設定／2FA／IP 允用／稽核</a><a href="/admin/logout" style="color:#b91c1c;font-weight:700;text-decoration:none">登出</a></span></div>
 <h1>📊 管理後台 — 阻詐演練機器人</h1>
 <p style="color:#6b7280">日期：{daily_stats['date']} ｜ 模型：{MODEL} ｜ 密碼保護：{'啟用' if APP_PASSWORD else '未啟用'} ｜ QR 通行強制：{'🔴 啟用中' if _batch_gate_enforced() else '🟢 未啟用'} ｜ 資料庫現有：{db_counts['sessions']} 場演練、{db_counts['surveys']} 份問卷</p>
 
@@ -5055,6 +5397,8 @@ def admin_session_detail(session_id):
         s = c.execute('SELECT * FROM sessions WHERE session_id = ?', (session_id,)).fetchone()
         if not s:
             return Response('找不到此演練', status=404)
+        if not _session_in_scope(s):
+            return _session_scope_denied()
         messages = c.execute('''
             SELECT * FROM messages WHERE session_id = ? ORDER BY id ASC
         ''', (session_id,)).fetchall()
@@ -5293,8 +5637,13 @@ function copyFromId(id, btn) {{
 def admin_tag_session(session_id):
     if not _admin_authed():
         return Response('未授權', status=401)
-    tag = request.args.get('tag', '').strip()
     with _db_lock, db_conn() as c:
+        s = c.execute('SELECT * FROM sessions WHERE session_id = ?', (session_id,)).fetchone()
+        if not s:
+            return Response('找不到此演練', status=404)
+        if not _session_in_scope(s):
+            return _session_scope_denied()
+        tag = request.args.get('tag', '').strip()
         c.execute('UPDATE sessions SET tag = ? WHERE session_id = ?', (tag if tag else None, session_id))
         c.commit()
     return Response(f'<script>location.href="/admin/sessions/{session_id}?key={ADMIN_LINK_KEY}"</script>', mimetype='text/html')
@@ -5304,8 +5653,13 @@ def admin_tag_session(session_id):
 def admin_save_notes(session_id):
     if not _admin_authed():
         return Response('未授權', status=401)
-    notes = request.form.get('notes', '').strip()
     with _db_lock, db_conn() as c:
+        s = c.execute('SELECT * FROM sessions WHERE session_id = ?', (session_id,)).fetchone()
+        if not s:
+            return Response('找不到此演練', status=404)
+        if not _session_in_scope(s):
+            return _session_scope_denied()
+        notes = request.form.get('notes', '').strip()
         c.execute('UPDATE sessions SET notes = ? WHERE session_id = ?', (notes, session_id))
         c.commit()
     return Response(f'<script>location.href="/admin/sessions/{session_id}?key={ADMIN_LINK_KEY}"</script>', mimetype='text/html')
@@ -5434,6 +5788,8 @@ def admin_backup():
     """完整備份：所有資料表的所有欄位，供還原用"""
     if not _admin_authed():
         return Response('未授權', status=401)
+    if (r := _require_owner()) is not None:
+        return r
     audit('下載完整備份')
     dump = build_backup_dict()
     ts = now_tw().strftime('%Y%m%d_%H%M')
@@ -5581,6 +5937,8 @@ def admin_restore():
     """從上傳的完整備份檔還原（INSERT OR REPLACE，相同主鍵覆蓋更新）"""
     if not _admin_authed():
         return Response('未授權', status=401)
+    if (r := _require_owner()) is not None:
+        return r
     audit('上傳還原備份')
     f = request.files.get('backup')
     if not f:
@@ -5638,6 +5996,8 @@ a{{display:inline-block;margin-top:18px;padding:10px 22px;background:#1A3C6E;col
 def admin_email_backup():
     if not _admin_authed():
         return Response('未授權', status=401)
+    if (r := _require_owner()) is not None:
+        return r
     ok, info = send_backup_email('手動立即寄送')
     with _email_lock:
         globals()['_last_email_ts'] = time.time()
@@ -5801,6 +6161,8 @@ def admin_session_download(session_id):
         s = c.execute('SELECT * FROM sessions WHERE session_id = ?', (session_id,)).fetchone()
         if not s:
             return Response('找不到此演練', status=404)
+        if not _session_in_scope(s):
+            return _session_scope_denied()
         msgs = c.execute('SELECT speaker, content FROM messages WHERE session_id = ? ORDER BY id ASC', (session_id,)).fetchall()
     _lv = {'beginner': '初級', 'intermediate': '中級', 'advanced': '高級'}.get(
         s["difficulty"] if "difficulty" in s.keys() else None, '')
