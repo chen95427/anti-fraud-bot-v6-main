@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>AI 阻詐演練 · 多族群</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23153c40'/%3E%3Ctext x='50' y='69' font-size='56' text-anchor='middle'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E" />
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   :root{
@@ -63,8 +64,8 @@
   .roleBanner .ic{font-size:20px;}
   .roleBanner b{color:#a5762a;}
   .fieldrow{display:flex;gap:9px;margin:0 18px;}
-  .fieldrow input{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;color:var(--ink);}
-  .fieldrow input:focus{outline:2px solid var(--navy2);}
+  .fieldrow input,.fieldrow select{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff;}
+  .fieldrow input:focus,.fieldrow select:focus{outline:2px solid var(--navy2);}
   .seg{display:flex;gap:8px;margin:0 18px;}
   .seg button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 0;font-family:inherit;font-size:13.5px;font-weight:800;color:var(--muted);cursor:pointer;}
   .seg button.on{background:var(--navy);color:#fff;border-color:var(--navy);}
@@ -307,6 +308,9 @@
       <div class="roleBanner"><span class="ic" id="roleBannerIc">🛡️</span><div><b id="roleBannerNm">員警</b><span id="roleBannerDs"></span></div></div>
 
       <div class="sec-num"><span class="b" id="numData">1</span><span id="dataTt">演練者資料（記錄用）</span></div>
+      <div class="fieldrow" id="bankRow" style="display:none;margin-bottom:9px">
+        <select id="bankSelect"><option value="">請選擇您所屬的銀行（必填）</option></select>
+      </div>
       <div class="fieldrow"><input id="unitInput" placeholder="單位（必填，例：淡水分局偵查隊）"><input id="nameInput" placeholder="姓名或代號（必填）"></div>
 
       <!-- 黑客松初期限定：員警/銀行行員鎖定「實戰級＋林太太(a2)」，只選前測版/後測版（見 MG_HACKATHON_LOCK） -->
@@ -319,6 +323,7 @@
           <button class="on" data-assist="0">前測版<small>練習/教學前先測一次</small></button>
           <button data-assist="1">後測版<small>練習/教學後再測一次</small></button>
         </div>
+        <div class="err" id="assistErr"></div>
       </div>
 
       <div class="sec-num" id="lvSecTt"><span class="b">2</span><span>訓練級別</span></div>
@@ -489,6 +494,8 @@ const MG_HACKATHON_LOCK = true;
 // 黑客松初期限定：民眾版（長輩/青壯年/青少年）暫停開放。比賽結束要恢復，把這裡跟 server.py 的
 // MG_GROUP_B_DISABLED 一起改回 false 即可，不用動其他程式碼。
 const MG_GROUP_B_DISABLED = true;
+// 銀行行員固定銀行別選單：要跟 server.py 的 MG_BANK_LIST 保持一致（後端也會驗證，不一致會被擋在 /api/mg/start）
+const MG_BANK_LIST = ['台新銀行','富邦銀行','淡水一信','其他銀行'];
 const ROLE_META={
  police:{group:'A',label:'員警',icon:'🛡️',short:'練看穩聽問守勸阻技巧',mode:'intervene',sceneIc:'🏦'},
  bank:{group:'A',label:'銀行行員',icon:'🏦',short:'練臨櫃關懷攔阻',mode:'intervene',sceneIc:'🏧'},
@@ -533,10 +540,14 @@ const STEP_ZH={look:'看',calm:'穩',listen:'聽',ask:'問',guard:'守'};
 
 /* ===== 狀態 ===== */
 let S={role:null,mode:null,level:'一般',signal:'yellow',fraudType:'fake_police',
-       unit:'',name:'',sessionId:null,actor:'員警',busy:false,ended:false,
+       unit:'',name:'',bank:'',sessionId:null,actor:'員警',busy:false,ended:false,
        stepsDone:[],metric:78,startMetric:78,persona:null,typeLabel:'',scamLabel:'',aiAssist:false};
 
 const $=id=>document.getElementById(id);
+(function initBankSelect(){
+  const sel=$('bankSelect');
+  MG_BANK_LIST.forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;sel.appendChild(o);});
+})();
 
 /* ===== 個資蒐集同意（必須勾選才能繼續；同意後才會執行入口分流帶來的自動選身分） ===== */
 let _pendingRole=null;
@@ -557,7 +568,9 @@ function selectRole(rk){
   if(S.mode==='intervene'){
     $('unitInput').style.display='';
     $('dataTt').textContent='演練者資料（記錄用，姓名可填代號）';
-    $('unitInput').placeholder=(rk==='bank')?'單位（必填，例：○○銀行○○分行）':'單位（必填，例：淡水分局偵查隊）';
+    $('unitInput').placeholder=(rk==='bank')?'分行／單位（必填，例：板橋分行）':'單位（必填，例：淡水分局偵查隊）';
+    $('bankRow').style.display=(rk==='bank')?'flex':'none';
+    if(rk!=='bank'){$('bankSelect').value='';S.bank='';}
     if(MG_HACKATHON_LOCK){
       // 黑客松初期：跳過訓練級別／燈號／詐騙類型／演練對象選擇，鎖定實戰級＋林太太(a2)，只問前測版/後測版
       $('lvSecTt').style.display='none';$('segLv').style.display='none';
@@ -584,6 +597,7 @@ function selectRole(rk){
     $('guideBtnSetup').style.display='none';$('guideBtnChat').style.display='none';
     $('sigSection').style.display='block';
     $('unitInput').style.display='';
+    $('bankRow').style.display='none';S.bank='';
     $('unitInput').placeholder='演練單位（必填，例：○○銀行○○分行／○○分局）';
     $('dataTt').textContent='演練者資料（請填姓名或代號）';
     $('lvSecTt').style.display='none';$('segLv').style.display='none';  // B 類固定一般指引（協助辨識）
@@ -644,14 +658,42 @@ function renderPersonaSetup(){
 }
 document.querySelectorAll('#segLv button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#segLv button').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('lvBadge').textContent=(b.dataset.lv==='高級')?'實戰級':'基礎級';applyLevelUI();});
 document.querySelectorAll('#grpSig .lcard').forEach(c=>c.onclick=()=>{document.querySelectorAll('#grpSig .lcard').forEach(x=>x.classList.remove('on'));c.classList.add('on');});
-document.querySelectorAll('#segAssist button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#segAssist button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.aiAssist=(b.dataset.assist==='1');});
+/* 同一「單位＋姓名/代號」沒有做過前測，不能選後測（查詢失敗時不擋，最終仍由後端 /api/mg/start 把關） */
+async function checkPretestOk(unit,name){
+  try{const d=await api('/api/mg/check-pretest',{unitName:unit,userName:name});return !!d.hasPretest;}
+  catch(e){return true;}
+}
+document.querySelectorAll('#segAssist button').forEach(b=>b.onclick=async()=>{
+  const toPost=(b.dataset.assist==='1');
+  $('assistErr').style.display='none';
+  if(toPost){
+    const unit=$('unitInput').value.trim(),name=$('nameInput').value.trim();
+    if(!unit||!name){$('assistErr').style.display='block';$('assistErr').textContent='請先填寫單位與姓名／代號，才能選擇後測版';return;}
+    const origHtml=b.innerHTML;b.disabled=true;b.innerHTML='查詢中…';
+    const ok=await checkPretestOk(unit,name);
+    b.disabled=false;b.innerHTML=origHtml;
+    if(!ok){$('assistErr').style.display='block';$('assistErr').textContent='此單位／姓名尚無前測紀錄，請先完成一次「前測版」演練，才能選擇後測版';return;}
+  }
+  document.querySelectorAll('#segAssist button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  S.aiAssist=toPost;
+});
 
 /* ===== 進入情境 ===== */
-$('startBtn').onclick=()=>{
+$('startBtn').onclick=async()=>{
   const unit=$('unitInput').value.trim(),name=$('nameInput').value.trim();
   if(!unit){$('setupErr').style.display='block';$('setupErr').textContent='請先輸入演練單位（記錄演練用）';$('unitInput').focus();return;}
   if(!name){$('setupErr').style.display='block';$('setupErr').textContent='請輸入您的姓名或代號（記錄演練與成績用）';$('nameInput').focus();return;}
+  if(S.role==='bank'){
+    const bank=$('bankSelect').value;
+    if(!bank){$('setupErr').style.display='block';$('setupErr').textContent='請選擇您所屬的銀行';$('bankSelect').focus();return;}
+    S.bank=bank;
+  }
   $('setupErr').style.display='none';
+  if(S.mode==='intervene'&&S.aiAssist){
+    const ok=await checkPretestOk(unit,name);
+    if(!ok){$('setupErr').style.display='block';$('setupErr').textContent='此單位／姓名尚無前測紀錄，請先完成一次「前測版」演練，才能選擇後測版';return;}
+  }
   S.unit=unit;S.name=name;S.signal=sigOn();
   if(S.mode==='intervene'){
     if(MG_HACKATHON_LOCK){
@@ -750,6 +792,7 @@ async function startChat(){
   if(S.mode==='intervene'){
     if(S.adv)payload.caseId=S.caseId;else payload.fraudType=S.fraudType;
     payload.aiAssist=S.aiAssist;
+    if(S.role==='bank')payload.bankName=S.bank;
   }
   else payload.caseId=S.caseId;
   try{
