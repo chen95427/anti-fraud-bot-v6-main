@@ -8,7 +8,6 @@ const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").mat
 
 if (prefersReduced) {
   gsap.set("[data-hero], [data-fade], [data-step], .cred-in", { opacity: 1, y: 0, clearProps: "transform" });
-  document.querySelectorAll(".count").forEach(el => { el.textContent = el.dataset.count; });
   gsap.set(".track-gold", { strokeDashoffset: 0 });
 } else {
   initAnimations();
@@ -16,28 +15,16 @@ if (prefersReduced) {
 
 function initAnimations() {
 
-  /* ---- Hero：lead-follow，標題先落定，其餘依序跟上 ---- */
+  /* ---- Hero：lead-follow，標題先落定，其餘依序跟上，圖卡最後浮入 ---- */
   gsap.set("[data-hero]", { opacity: 0, y: 18 });
   gsap.timeline({ defaults: { ease: "power2.out", duration: 0.7 } })
     .to(".hero-pill",  { opacity: 1, y: 0, duration: 0.5 })
     .to(".hero-title", { opacity: 1, y: 0, duration: 0.9 }, "-=0.25")
     .to(".hero-sub",   { opacity: 1, y: 0 }, "-=0.5")
     .to(".hero-cta",   { opacity: 1, y: 0 }, "-=0.45")
-    .to(".hero-tag",   { opacity: 1, y: 0, duration: 0.5 }, "-=0.4");
-
-  /* ---- Stats：數字跳動（signature 的一部分，只在此出現） ---- */
-  document.querySelectorAll(".count").forEach(el => {
-    const target = +el.dataset.count;
-    const proxy = { v: 0 };
-    gsap.to(proxy, {
-      v: target,
-      duration: 1.2,
-      ease: "power2.out",
-      snap: { v: 1 },
-      scrollTrigger: { trigger: el, start: "top 88%", once: true },
-      onUpdate: () => { el.textContent = Math.round(proxy.v); }
-    });
-  });
+    .to(".hero-tag",   { opacity: 1, y: 0, duration: 0.5 }, "-=0.4")
+    .to(".hero-phase", { opacity: 1, y: 0, duration: 0.5 }, "-=0.3")
+    .to(".hero-media", { opacity: 1, y: 0, duration: 0.7 }, "-=0.85");
 
   /* ---- Signature：金色守護線隨捲動畫過五步驟 ---- */
   const goldPath = document.querySelector(".track-gold");
