@@ -4968,7 +4968,7 @@ tr:last-child td{{border-bottom:none}}
 .cost{{color:#dc2626;font-weight:bold}}
 h2{{color:#1A3C6E;margin-top:30px;font-size:18px}}
 </style></head><body>
-<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px"><span>🔐 已登入：<b>{esc(login_session.get('admin') or '（免驗證模式）')}</b></span><span><a href="/admin/batches" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">🎫 訓練梯次／QR code</a>{'<a href="/admin/accounts" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">👥 帳號管理</a>' if _admin_is_owner() else ''}<a href="/admin/account" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">👤 帳號設定／2FA／IP 允用／稽核</a><a href="/admin/logout" style="color:#b91c1c;font-weight:700;text-decoration:none">登出</a></span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px"><span>🔐 已登入：<b>{esc(login_session.get('admin') or '（免驗證模式）')}</b></span><span><a href="/admin/batches" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">🎫 訓練梯次／QR code</a>{'<a href="/admin/stats" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">📊 統計表</a><a href="/admin/accounts" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">👥 帳號管理</a>' if _admin_is_owner() else ''}<a href="/admin/account" style="color:#1A3C6E;font-weight:700;text-decoration:none;margin-right:14px">👤 帳號設定／2FA／IP 允用／稽核</a><a href="/admin/logout" style="color:#b91c1c;font-weight:700;text-decoration:none">登出</a></span></div>
 <h1>📊 管理後台 — 阻詐演練機器人</h1>
 <p style="color:#6b7280">日期：{daily_stats['date']} ｜ 模型：{MODEL} ｜ 密碼保護：{'啟用' if APP_PASSWORD else '未啟用'} ｜ QR 通行強制：{'🔴 啟用中' if _batch_gate_enforced() else '🟢 未啟用'} ｜ 資料庫現有：{db_counts['sessions']} 場演練、{db_counts['surveys']} 份問卷</p>
 
@@ -5178,8 +5178,13 @@ def admin_surveys_export():
     if not _admin_authed():
         return Response('未授權', status=401)
 
+    # surveys 表本身沒有 role/bank_name，用 session_id 接回 sessions 才能套用族群／銀行篩選；
+    # 沒有對應到場次的舊問卷，在有篩選時會被排除（寧可少顯示，也不要洩漏給沒權限看的帳號）
+    gw, gp = gwhere(alias='se', prefix='AND')
     with _db_lock, db_conn() as c:
-        rows = c.execute('SELECT * FROM surveys ORDER BY created_at DESC').fetchall()
+        rows = c.execute(f'''SELECT sv.* FROM surveys sv
+                              LEFT JOIN sessions se ON se.session_id = sv.session_id
+                              WHERE 1=1{gw} ORDER BY sv.created_at DESC''', gp).fetchall()
 
     def opt_text(qkey, v):
         opts = SURVEY_QUESTIONS[qkey]['options']
@@ -5265,6 +5270,19 @@ tr:hover {{background:#f9fafb}}
 <a href="/admin?key={ADMIN_LINK_KEY}" class="back">← 返回主後台</a>
 <h1>👥 演練者列表{('　—　' + ADMIN_GROUP_LABEL[admin_g()]) if admin_g() else ''} ({len(users)} 人)</h1>
 {gbar(ADMIN_LINK_KEY, '/admin/users')}
+<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;margin:0 0 16px">
+  <div style="font-size:12px;color:#6b7280;margin-bottom:8px">📥 依日期區間匯出名單（Excel／CSV，可用 Excel 直接開；不選日期＝匯出全部）</div>
+  <form method="get" action="/admin/export" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+    <input type="hidden" name="key" value="{ADMIN_LINK_KEY}">
+    {f'<input type="hidden" name="g" value="{admin_g()}">' if admin_g() else ''}
+    {f'<input type="hidden" name="bank" value="{esc(admin_bank())}">' if admin_bank() else ''}
+    <div><label style="display:block;font-size:12px;color:#374151;margin-bottom:3px">開始日期</label>
+      <input type="date" name="from" style="padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px"></div>
+    <div><label style="display:block;font-size:12px;color:#374151;margin-bottom:3px">結束日期</label>
+      <input type="date" name="to" style="padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px"></div>
+    <button type="submit" style="padding:9px 18px;background:#28a745;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">⬇ 下載 Excel 名單</button>
+  </form>
+</div>
 <table><thead><tr><th>單位</th><th>姓名</th><th>總演練次數</th><th>已完成點評</th><th>總對話回合</th><th>累計時間</th><th>首次演練</th><th>最後活動</th><th>操作</th></tr></thead>
 <tbody>{rows or '<tr><td colspan="9" class="empty">尚無演練者資料</td></tr>'}</tbody></table>
 </body></html>'''
@@ -5744,6 +5762,8 @@ def admin_export():
         return Response('未授權', status=401)
     audit('匯出統整 CSV')
     tag_filter = request.args.get('tag', '').strip()  # 可選：只匯出特定標註
+    date_from = request.args.get('from', '').strip()   # 可選：日期區間篩選（YYYY-MM-DD）
+    date_to = request.args.get('to', '').strip()
 
     with _db_lock, db_conn() as c:
         query = 'SELECT * FROM sessions WHERE 1=1'
@@ -5751,39 +5771,22 @@ def admin_export():
         if tag_filter:
             query += ' AND tag = ?'
             params.append(tag_filter)
+        if date_from:
+            query += ' AND started_at >= ?'
+            params.append(date_from)
+        if date_to:
+            query += ' AND started_at <= ?'
+            params.append(date_to + 'T23:59:59')
         gw, gp = gwhere()               # 族群過濾：只匯出目前族群的資料
         query += gw; params += gp
         query += ' ORDER BY started_at DESC'
         sessions_data = c.execute(query, params).fetchall()
-
-        # 一場對應一份問卷（取最新）：session_id -> survey row
-        survey_by_sid = {}
-        for sv in c.execute('SELECT * FROM surveys WHERE session_id IS NOT NULL ORDER BY created_at ASC').fetchall():
-            survey_by_sid[sv['session_id']] = sv  # ASC → 後者覆蓋，留最新
 
         # 每場的完整對話（一格）
         conv_by_sid = {}
         for s in sessions_data:
             msgs = c.execute('SELECT speaker, content FROM messages WHERE session_id = ? ORDER BY id', (s['session_id'],)).fetchall()
             conv_by_sid[s['session_id']] = '\n'.join(f"{m['speaker']}：{m['content']}" for m in msgs)
-
-    # ---- 滿意度作答 → 文字（顯示答案文字，不是代碼）----
-    def sv_single(qkey, v):
-        opts = SURVEY_QUESTIONS[qkey]['options']
-        return opts[v - 1] if v and 1 <= v <= len(opts) else ''
-
-    def sv_q3(v):
-        return f'{v} / 5' if v else ''
-
-    def sv_q4(raw):
-        if not raw:
-            return ''
-        try:
-            idxs = json.loads(raw)
-        except (ValueError, TypeError):
-            return ''
-        opts = SURVEY_QUESTIONS['q4']['options']
-        return '、'.join(opts[i - 1] for i in idxs if 1 <= i <= len(opts))
 
     def diff_label(s):
         mg = mg_session_label(s)  # V5 多族群場次優先顯示『身分・玩法』
@@ -5793,36 +5796,29 @@ def admin_export():
         cid = s['case_id'] or ''
         return f'{lv}{("・" + cid) if cid else ""}' if lv else ''
 
+    def bank_label(s):
+        """銀行別欄位文字：只有銀行行員場次才有意義；沒填銀行別的（早期沒有下拉選單的舊資料，
+        或使用者自己選「其他銀行」的）一律標成「其他／舊資料」，讓人一眼看出來，不會誤以為漏填。"""
+        if (s['role'] if 'role' in s.keys() else None) != 'bank':
+            return ''
+        bn = s['bank_name'] if 'bank_name' in s.keys() else None
+        return bn if (bn and bn != MG_BANK_OTHER) else '其他／舊資料'
+
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        '日期時間', '姓名', '單位', '難度', '測驗階段', '燈號', '詐騙類型', '對象', '回合數', '練習成績',
-        f"滿意度Q1_{SURVEY_QUESTIONS['q1']['title']}",
-        f"滿意度Q2_{SURVEY_QUESTIONS['q2']['title']}",
-        f"滿意度Q3_{SURVEY_QUESTIONS['q3']['title']}(星)",
-        f"滿意度Q4_{SURVEY_QUESTIONS['q4']['title']}",
-        '滿意度Q4_其他',
-        f"滿意度Q5_{SURVEY_QUESTIONS['q5']['title']}",
+        '日期時間', '姓名', '單位', '銀行別', '難度', '測驗階段', '燈號', '詐騙類型', '對象', '回合數', '練習成績',
         'AI教練點評', '員警自評心得', '練習對話內容',
     ])
     for s in sessions_data:
         sid = s['session_id']
-        sv = survey_by_sid.get(sid)
-        q4_other = ''
-        if sv is not None:
-            q1t = sv_single('q1', sv['q1']); q2t = sv_single('q2', sv['q2'])
-            q3t = sv_q3(sv['q3']); q4t = sv_q4(sv['q4']); q5t = sv_single('q5', sv['q5'])
-            q4_other = (sv['q4_other'] if 'q4_other' in sv.keys() else '') or ''
-        else:
-            q1t = q2t = q3t = q4t = q5t = ''
         writer.writerow([
-            fmt_dt(s['started_at']), s['user_name'] or '', s['unit_name'] or '',
+            fmt_dt(s['started_at']), s['user_name'] or '', s['unit_name'] or '', bank_label(s),
             diff_label(s), mg_phase_label(s),
             SIGNAL_MAP.get(s['signal'], s['signal'] or ''),
             FRAUD_TYPE_MAP.get(s['fraud_type'], s['fraud_type'] or ''),
             s['persona_name'] or '', s['turn_count'] or 0,
             (_session_score(s) if s['feedback_text'] else ''),
-            q1t, q2t, q3t, q4t, q4_other, q5t,
             s['feedback_text'] or '', s['user_feedback'] or '', conv_by_sid.get(sid, ''),
         ])
 
@@ -6112,6 +6108,75 @@ def _scored_sessions(unit_filter='', date_filter=''):
         out.append({'sid': r['session_id'], 'unit': r['unit_name'] or '', 'name': r['user_name'] or '',
                     'signal': r['signal'], 'fraud': r['fraud_type'], 'score': sc, 'time': r['started_at'] or ''})
     return out
+
+
+# ========== Admin: 擁有者專用統計表（員警各單位件數／各銀行件數）==========
+@app.route('/admin/stats')
+def admin_stats():
+    if not _admin_authed():
+        return Response('未授權', status=401)
+    if (r := _require_owner()) is not None:
+        return r
+
+    with _db_lock, db_conn() as c:
+        police_rows = c.execute('''SELECT COALESCE(NULLIF(unit_name,''),'(未填單位)') AS u, COUNT(*) AS n
+                                    FROM sessions WHERE role='police' OR role IS NULL
+                                    GROUP BY u ORDER BY n DESC, u ASC''').fetchall()
+        bank_raw = c.execute('''SELECT bank_name, COUNT(*) AS n FROM sessions
+                                 WHERE role='bank' GROUP BY bank_name''').fetchall()
+
+    # 銀行依固定清單順序（台新/富邦/淡水一信…）＋「其他」桶：NULL、空字串、使用者選「其他銀行」的都併進其他
+    bank_counts = {b: 0 for b in MG_BANK_LIST if b != MG_BANK_OTHER}
+    other_n = 0
+    for row in bank_raw:
+        bn = row['bank_name']
+        if bn in bank_counts:
+            bank_counts[bn] += row['n']
+        else:
+            other_n += row['n']
+
+    police_total = sum(r['n'] for r in police_rows)
+    bank_total = sum(bank_counts.values()) + other_n
+
+    police_rows_html = ''.join(
+        f'<tr><td>{esc(r["u"])}</td><td style="text-align:right;font-weight:800">{r["n"]}</td></tr>'
+        for r in police_rows
+    ) or '<tr><td colspan="2" style="text-align:center;color:#9ca3af;padding:16px">尚無資料</td></tr>'
+
+    bank_rows_html = ''.join(
+        f'<tr><td>{esc(b)}</td><td style="text-align:right;font-weight:800">{n}</td></tr>'
+        for b, n in bank_counts.items()
+    )
+    bank_rows_html += f'<tr><td>其他（含舊資料）</td><td style="text-align:right;font-weight:800">{other_n}</td></tr>'
+
+    return Response(f'''<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>統計表</title>
+<style>
+body{{font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;background:#f4f6fb;padding:20px;max-width:760px;margin:0 auto;color:#1f2937}}
+h1{{color:#1A3C6E;font-size:20px;border-bottom:3px solid #F5C518;padding-bottom:8px}}
+h2{{color:#1A3C6E;font-size:16px;margin:0 0 10px}}
+.card{{background:#fff;padding:20px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:18px}}
+a.back{{color:#1A3C6E;font-weight:700;text-decoration:none}}
+table{{width:100%;border-collapse:collapse;margin-top:6px}}
+th{{background:#1A3C6E;color:#fff;padding:9px;text-align:left;font-size:13px}}
+td{{padding:9px;border-bottom:1px solid #eef1f5;font-size:14px}}
+.total{{font-size:13px;color:#6b7280;margin-top:8px;text-align:right}}
+</style></head><body>
+<a class="back" href="/admin">← 回後台</a>
+<h1>📊 統計表 — 各單位／各銀行件數</h1>
+<div class="card">
+  <h2>👮 員警 — 各單位件數</h2>
+  <table><thead><tr><th>單位</th><th style="text-align:right">件數</th></tr></thead>
+  <tbody>{police_rows_html}</tbody></table>
+  <div class="total">員警總計：{police_total} 件</div>
+</div>
+<div class="card">
+  <h2>🏦 銀行行員 — 各銀行件數</h2>
+  <table><thead><tr><th>銀行</th><th style="text-align:right">件數</th></tr></thead>
+  <tbody>{bank_rows_html}</tbody></table>
+  <div class="total">銀行行員總計：{bank_total} 件</div>
+</div>
+</body></html>''', mimetype='text/html; charset=utf-8')
 
 
 @app.route('/admin/award')
