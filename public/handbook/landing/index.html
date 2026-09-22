@@ -31,9 +31,11 @@
 <!-- ======= HERO ======= -->
 <section class="hero" id="top">
   <div class="hero-veil" aria-hidden="true"></div>
+  <div class="wrap">
+    <p class="hero-kicker-big" data-hero>🛡️ 前測／後測平台</p>
+  </div>
   <div class="wrap hero-in">
     <div class="hero-text">
-      <span class="hero-pill" data-hero>🛡️ AI 阻詐 · 實戰演練</span>
       <h1 class="hero-title" data-hero>在錢匯出去之前，<br /><em>攔下那一刻。</em></h1>
       <p class="hero-sub" data-hero>詐騙攔阻的成敗，往往只在幾句話之間。<br class="mb" />這裡讓警察、銀行行員及民眾先跟 AI 練習，先從 AI 來辨識阻詐技巧。</p>
       <div class="hero-cta" data-hero>
@@ -41,18 +43,21 @@
         <a class="btn btn-ghost" href="#roles">選擇我的身分 ↓</a>
       </div>
       <div class="hero-tag" data-hero>依內政部警政署「165 打詐儀錶板」統計設計</div>
-      <div class="hero-phase" data-hero>
-        <div class="hero-phase-step"><span class="n">1</span><span class="t">前測<small>先測出目前程度</small></span></div>
-        <span class="hero-phase-arrow">→</span>
-        <div class="hero-phase-step"><span class="n">2</span><span class="t">AI 練習<small>看穩聽問守實戰演練</small></span></div>
-        <span class="hero-phase-arrow">→</span>
-        <div class="hero-phase-step"><span class="n">3</span><span class="t">後測<small>比較練習前後的表現</small></span></div>
-      </div>
     </div>
     <div class="hero-media" data-hero>
       <img src="/handbook/landing/assets/hero.jpg" alt="警察與銀行行員在臨櫃協助長者" />
       <span class="hero-media-badge">看穩聽問守</span>
     </div>
+  </div>
+  <div class="hero-phase" data-hero>
+    <div class="hero-phase-in">
+      <div class="hero-phase-step"><span class="n">1</span><span class="t">前測<small>先測出目前程度</small></span></div>
+      <span class="hero-phase-arrow">→</span>
+      <div class="hero-phase-step"><span class="n">2</span><span class="t">AI 練習<small>看穩聽問守實戰演練</small></span></div>
+      <span class="hero-phase-arrow">→</span>
+      <div class="hero-phase-step hero-phase-step-on"><span class="n">3</span><span class="t">後測<small>比較練習前後的表現</small></span></div>
+    </div>
+    <p class="hero-phase-note">練習前後各測一次，讓進步看得見</p>
   </div>
 </section>
 
@@ -110,22 +115,22 @@
 <section class="roles" id="roles">
   <div class="wrap">
     <div class="sec-head">
-      <span class="sec-kicker">兩種身分 · 兩套教材</span>
+      <span class="sec-kicker">兩種身分 · 直接開練</span>
       <h2 class="sec-title">你是哪一個角色身份？</h2>
-      <p class="sec-sub">同一套心法，兩種現場。選擇你的身分，進入專屬教材與 AI 演練。</p>
+      <p class="sec-sub">選擇你的身分，直接進入 AI 阻詐演練。</p>
     </div>
     <div class="role-grid">
-      <a class="role role-police" href="/handbook/index.html" data-fade>
+      <a class="role role-police" href="/mg?role=police" data-fade>
         <img class="role-img" src="/handbook/landing/assets/roles/role_police.jpg" alt="員警">
         <h3>員警</h3>
         <p>到場關懷、勸阻匯款。紅黃綠燈判斷、同理降階與引導提問，AI 扮演被詐騙的民眾讓你練。</p>
-        <span class="role-go">進入員警攔阻專區 →</span>
+        <span class="role-go">開始 AI 阻詐演練 →</span>
       </a>
-      <a class="role role-bank" href="/bank" data-fade>
+      <a class="role role-bank" href="/mg?role=bank" data-fade>
         <img class="role-img" src="/handbook/landing/assets/roles/role_bank.jpg" alt="銀行行員">
         <h3>銀行行員</h3>
         <p>臨櫃關懷、攔下可疑匯款。用作業流程放慢節奏、合規關懷提問——多一道核對，就多一次機會。</p>
-        <span class="role-go">進入臨櫃攔阻專區 →</span>
+        <span class="role-go">開始 AI 阻詐演練 →</span>
       </a>
       <!-- 黑客松初期限定：一般民眾入口暫停開放，見 server.py/engine.html 的 MG_GROUP_B_DISABLED
       <a class="role role-public" href="/public" data-fade>
@@ -165,7 +170,7 @@
       </div>
     </div>
     <div class="how-cta" data-fade>
-      <p style="text-align:center;font-size:15px;font-weight:700;color:#153c40;line-height:1.8;">🎯 準備好了嗎？請回到上方「<a href="#roles" style="color:#cf5a2c;text-decoration:underline;text-underline-offset:3px;">選擇你的身分</a>」，先看該身分的看穩聽問守，再進入 AI 演練。</p>
+      <p style="text-align:center;font-size:15px;font-weight:700;color:#153c40;line-height:1.8;">🎯 準備好了嗎？請回到上方「<a href="#roles" style="color:#cf5a2c;text-decoration:underline;text-underline-offset:3px;">選擇你的身分</a>」，直接進入 AI 演練。</p>
     </div>
   </div>
 </section>
