@@ -3683,19 +3683,37 @@ def admin_g():
     g = request.args.get('g', '')
     return g if g in ADMIN_GROUP_LABEL else ''
 
+BANK_FILTER_OTHER = '__other__'  # 銀行子篩選「其他」：涵蓋舊資料（早期沒有下拉選單，bank_name 是空的）
+                                  # 與使用者自己選「其他銀行」的，兩種都歸在這一類
+
+def admin_bank():
+    """目前後台檢視的銀行子篩選（只在 g=='bank' 時有意義，?bank=台新銀行 這種，或 __other__）。
+    帳號若被限定特定銀行（scope_bank），一律強制用該銀行，?bank= 參數無效。"""
+    _, sb = _admin_scope()
+    if sb:
+        return sb
+    b = request.args.get('bank', '')
+    if b == BANK_FILTER_OTHER or b in MG_BANK_SET:
+        return b
+    return ''
+
 def gq(key=None):
-    """組出後台頁間連結要帶的查詢字串：?key=…&g=…（讓族群在各頁間一路帶著走）"""
+    """組出後台頁間連結要帶的查詢字串：?key=…&g=…&bank=…（讓族群／銀行在各頁間一路帶著走）"""
     parts = []
     if key:
         parts.append(f'key={key}')
     g = admin_g()
     if g:
         parts.append(f'g={g}')
+    b = admin_bank()
+    if b:
+        parts.append(f'bank={b}')
     return ('?' + '&'.join(parts)) if parts else ''
 
 def gwhere(alias='', prefix='AND'):
     """組出 SQL 過濾片段與參數：('AND role=?', ['police'])；未選族群回 ('', [])。
-    舊資料（V4 前）role 為 NULL、視為員警。帳號若被限定特定銀行（scope_bank），額外加 AND bank_name=?。"""
+    舊資料（V4 前）role 為 NULL、視為員警。g=='bank' 時還會依 admin_bank()／scope_bank 再細分到哪一家銀行；
+    「其他」（__other__）涵蓋 bank_name 是 NULL（早期沒有下拉選單的舊資料）或使用者自己選「其他銀行」的。"""
     g = admin_g()
     clauses, params = [], []
     if g:
@@ -3704,10 +3722,13 @@ def gwhere(alias='', prefix='AND'):
             clauses.append(f'({col}=? OR {col} IS NULL)'); params.append('police')
         else:
             clauses.append(f'{col}=?'); params.append(g)
-    _, sb = _admin_scope()
-    if sb:
+    if g == 'bank':
         bcol = f'{alias}.bank_name' if alias else 'bank_name'
-        clauses.append(f'{bcol}=?'); params.append(sb)
+        bank_f = admin_bank()
+        if bank_f == BANK_FILTER_OTHER:
+            clauses.append(f'({bcol} IS NULL OR {bcol}=? OR {bcol}=?)'); params += ['', MG_BANK_OTHER]
+        elif bank_f:
+            clauses.append(f'{bcol}=?'); params.append(bank_f)
     if not clauses:
         return '', []
     return f' {prefix} ' + ' AND '.join(clauses), params
@@ -3728,9 +3749,29 @@ def gbar(key, current_path):
         items += (f'<a href="{current_path}?key={key}&g={k}" style="display:inline-block;padding:7px 14px;border-radius:20px;'
                   f'font-size:13px;font-weight:800;text-decoration:none;margin:0 6px 6px 0;{style}">{label}</a>')
     cur = ADMIN_GROUP_LABEL.get(g, '（未選族群：顯示全部）')
-    return (f'<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;margin:0 0 16px">'
-            f'<div style="font-size:12px;color:#6b7280;margin-bottom:8px">目前檢視族群：<b style="color:#111">{cur}</b>　'
-            f'<span style="color:#9ca3af">（各族群資料分開，不混合）</span></div>{items}</div>')
+    out = (f'<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;margin:0 0 16px">'
+           f'<div style="font-size:12px;color:#6b7280;margin-bottom:8px">目前檢視族群：<b style="color:#111">{cur}</b>　'
+           f'<span style="color:#9ca3af">（各族群資料分開，不混合）</span></div>{items}</div>')
+    if g == 'bank':
+        out += _bank_bar(key, current_path)
+    return out
+
+
+def _bank_bar(key, current_path):
+    """銀行行員專用的第二層篩選列（只在檢視「銀行行員」族群時出現）：可依銀行別分開看，
+    「其他」涵蓋早期沒有下拉選單的舊資料（bank_name 是空的）跟使用者自己選「其他銀行」的。"""
+    cur_bank = admin_bank()
+    items = ''
+    opts = [('', '全部銀行')] + [(b, b) for b in MG_BANK_LIST if b != MG_BANK_OTHER] + [(BANK_FILTER_OTHER, '其他（含舊資料）')]
+    for val, label in opts:
+        on = (val == cur_bank)
+        style = ('background:#a87a24;color:#fff;' if on else 'background:#fff;color:#a87a24;border:1.5px solid #a87a24;')
+        bank_q = f'&bank={val}' if val else ''
+        items += (f'<a href="{current_path}?key={key}&g=bank{bank_q}" style="display:inline-block;padding:6px 12px;border-radius:20px;'
+                  f'font-size:12.5px;font-weight:800;text-decoration:none;margin:0 6px 6px 0;{style}">{label}</a>')
+    cur_label = dict(opts).get(cur_bank, '全部銀行')
+    return (f'<div style="background:#fffaf2;border:1px solid #f0dfc0;border-radius:12px;padding:12px 16px;margin:0 0 16px">'
+            f'<div style="font-size:12px;color:#8a6d1f;margin-bottom:8px">🏦 銀行別篩選：<b style="color:#5c4712">{esc(cur_label)}</b></div>{items}</div>')
 
 
 # ========== 資安（V3 移植）：帳號登入・Session 生命週期・IP 允用・2FA・稽核・CSRF ==========

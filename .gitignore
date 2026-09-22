@@ -17,6 +17,9 @@ env/
 .idea/
 *.swp
 
+# Claude Code 本機狀態（排程鎖等，不是專案內容）
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db
