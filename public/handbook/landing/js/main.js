@@ -18,7 +18,7 @@ function initAnimations() {
   /* ---- Hero：lead-follow，標題先落定，其餘依序跟上，圖卡最後浮入 ---- */
   gsap.set("[data-hero]", { opacity: 0, y: 18 });
   gsap.timeline({ defaults: { ease: "power2.out", duration: 0.7 } })
-    .to(".hero-pill",  { opacity: 1, y: 0, duration: 0.5 })
+    .to(".hero-kicker-big", { opacity: 1, y: 0, duration: 0.5 })
     .to(".hero-title", { opacity: 1, y: 0, duration: 0.9 }, "-=0.25")
     .to(".hero-sub",   { opacity: 1, y: 0 }, "-=0.5")
     .to(".hero-cta",   { opacity: 1, y: 0 }, "-=0.45")
