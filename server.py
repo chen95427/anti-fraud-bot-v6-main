@@ -123,7 +123,9 @@ def add_cors_headers(response):
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
 
-client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY']) if AI_PROVIDER != 'openai' else None
+# max_retries=5：遇到 429（超過用量上限）/529（過載）/連線錯誤時，SDK 自動以指數退避（約 0.5→1→2→4→8 秒，並遵守 retry-after）重試，
+# 大型講習偶爾碰到上限時使用者不會馬上看到錯誤；timeout=60：單次呼叫卡住不會無限等（gunicorn 整體逾時 120 秒）
+client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'], max_retries=5, timeout=60) if AI_PROVIDER != 'openai' else None
 openai_client = openai.OpenAI(api_key=OPENAI_API_KEY) if AI_PROVIDER == 'openai' else None
 print(f'[AI] Provider={AI_PROVIDER} Model={OPENAI_MODEL if AI_PROVIDER == "openai" else MODEL}')
 
@@ -5216,14 +5218,10 @@ def admin_surveys_export():
 
 
 # ========== Admin: 演練者列表 ==========
-@app.route('/admin/users')
-def admin_users():
-    if not _admin_authed():
-        return Response('未授權', status=401)
-
-    # 依族群、以「單位＋姓名」為一人，直接從 sessions 統計（民眾單位皆為「自我防護」，不能只用單位分人）
+def _admin_users_data():
+    """演練者列表／CSV 共用：依族群、以「單位＋姓名」為一人，直接從 sessions 統計（民眾單位皆為「自我防護」，不能只用單位分人）。
+    回傳 (users, pre_min, post_max)；pre_min/post_max 以 (unit_name, user_name) 為 key。"""
     gw, gp = gwhere(alias='s', prefix='WHERE')
-    G = ('&g=' + admin_g()) if admin_g() else ''
     with _db_lock, db_conn() as c:
         users = c.execute(f'''
             SELECT s.unit_name, s.user_name AS name,
@@ -5251,13 +5249,27 @@ def admin_users():
             post_max[k] = max(post_max.get(k, sc), sc)
         else:
             pre_min[k] = min(pre_min.get(k, sc), sc)
+    return users, pre_min, post_max
+
+
+def _admin_unit_show(unit_name):
+    """民眾族群沒有單位（統一「自我防護」）→ 單位欄顯示族群名"""
+    return unit_name if (unit_name and unit_name != '自我防護') else ADMIN_GROUP_LABEL.get(admin_g(), '自我防護')
+
+
+@app.route('/admin/users')
+def admin_users():
+    if not _admin_authed():
+        return Response('未授權', status=401)
+
+    G = ('&g=' + admin_g()) if admin_g() else ''
+    users, pre_min, post_max = _admin_users_data()
 
     rows = ''
     for u in users:
         k = (u['unit_name'], u['name'])
         total_min = round((u['total_duration'] or 0) / 60, 1)
-        # 民眾族群沒有單位（統一「自我防護」）→ 單位欄顯示族群名
-        unit_show = u['unit_name'] if (u['unit_name'] and u['unit_name'] != '自我防護') else ADMIN_GROUP_LABEL.get(admin_g(), '自我防護')
+        unit_show = _admin_unit_show(u['unit_name'])
         rows += f'''<tr>
             <td><strong>{esc(unit_show)}</strong></td>
             <td>{esc(u['name']) or '-'}</td>
@@ -5301,9 +5313,37 @@ tr:hover {{background:#f9fafb}}
     <button type="submit" style="padding:9px 18px;background:#28a745;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">⬇ 下載 Excel 名單</button>
   </form>
 </div>
+<div style="margin:0 0 12px;text-align:right">
+  <a href="/admin/users.csv{gq(ADMIN_LINK_KEY)}" style="display:inline-block;padding:9px 18px;background:#1A3C6E;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:13px">⬇ 下載演練者列表 CSV（含前後測分數）</a>
+</div>
 <table><thead><tr><th>單位</th><th>姓名</th><th>總演練次數</th><th>已完成點評</th><th title="多次前測取最低分">前測分數（最低）</th><th title="多次後測取最高分">後測分數（最高）</th><th>總對話回合</th><th>累計時間</th><th>首次演練</th><th>最後活動</th><th>操作</th></tr></thead>
 <tbody>{rows or '<tr><td colspan="11" class="empty">尚無演練者資料</td></tr>'}</tbody></table>
 </body></html>'''
+
+
+@app.route('/admin/users.csv')
+def admin_users_csv():
+    """演練者列表 CSV：與畫面同欄位（含前測最低分、後測最高分），依目前族群／銀行過濾。"""
+    if not _admin_authed():
+        return Response('未授權', status=401)
+    audit('匯出演練者列表 CSV', admin_g() or '全部')
+    users, pre_min, post_max = _admin_users_data()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['單位', '姓名', '總演練次數', '已完成點評', '前測分數（最低）', '後測分數（最高）',
+                     '總對話回合', '累計時間（分鐘）', '首次演練', '最後活動'])
+    for u in users:
+        k = (u['unit_name'], u['name'])
+        writer.writerow([_admin_unit_show(u['unit_name']), u['name'] or '',
+                         u['session_count'] or 0, u['completed_count'] or 0,
+                         pre_min.get(k, ''), post_max.get(k, ''),
+                         u['total_turns'] or 0, round((u['total_duration'] or 0) / 60, 1),
+                         fmt_date(u['first_seen']), fmt_dt(u['last_seen'])])
+    timestamp = now_tw().strftime('%Y%m%d_%H%M')
+    gtag = ('_' + admin_g()) if admin_g() else ''
+    return Response(output.getvalue().encode('utf-8-sig'),
+                   mimetype='text/csv',
+                   headers={'Content-Disposition': f'attachment; filename=trainees{gtag}_{timestamp}.csv'})
 
 
 # ========== Admin: 每日訓練名單（按日期瀏覽）==========

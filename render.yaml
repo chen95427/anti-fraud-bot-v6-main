@@ -6,8 +6,8 @@ services:
     # 手冊檔已直接 commit 在 public/handbook/，不需 build.py 複製（移除以免誤刪）
     buildCommand: pip install -r requirements.txt
     # 單一 worker：演練 session 存在行程記憶體，多 worker 會互相看不到 session
-    # threads 24：演講/團體同時使用（50–100 人）時，每回合都在等 Anthropic 回應（I/O），多執行緒不吃記憶體、可同時服務更多人
-    startCommand: gunicorn server:app --workers 1 --threads 24 --timeout 120 --bind 0.0.0.0:$PORT
+    # threads 100：大型講習（數百人同時）時，每回合都在等 Anthropic 回應（I/O），多執行緒不吃記憶體、可同時服務更多人
+    startCommand: gunicorn server:app --workers 1 --threads 100 --timeout 120 --bind 0.0.0.0:$PORT
     # 持久磁碟：訓練資料放這，重新部署／重啟都不會被清空
     disk:
       name: data
@@ -52,7 +52,7 @@ services:
       - key: CLAUDE_MODEL
         value: claude-haiku-4-5
       - key: DAILY_LIMIT
-        value: "1000"   # 全站每日總量（＝預算天花板；30-50 人足夠；沒人用不花錢）
+        value: "3000"   # 全站每日總量（＝預算天花板；700 人各做前後測約 1400 場；沒人用不花錢）
       - key: PER_PERSON_PER_MINUTE
         value: "20"     # 每人每分鐘（防連點/機器人）
       - key: PER_PERSON_PER_DAY
