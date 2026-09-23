@@ -5236,9 +5236,25 @@ def admin_users():
             GROUP BY s.unit_name, s.user_name
             ORDER BY last_seen DESC
         ''', gp).fetchall()
+        # 前後測分數：只看已點評的場次；前測（ai_assist=0）取最低、後測（ai_assist=1）取最高
+        scored = c.execute(f'''
+            SELECT s.unit_name, s.user_name, s.ai_assist, s.scores_json, s.feedback_text
+            FROM sessions s{gw}{' AND' if gw else ' WHERE'} s.feedback_text IS NOT NULL AND s.ai_assist IS NOT NULL
+        ''', gp).fetchall()
+    pre_min, post_max = {}, {}
+    for r in scored:
+        sc = _session_score(r)
+        if sc is None:
+            continue
+        k = (r['unit_name'], r['user_name'])
+        if r['ai_assist']:
+            post_max[k] = max(post_max.get(k, sc), sc)
+        else:
+            pre_min[k] = min(pre_min.get(k, sc), sc)
 
     rows = ''
     for u in users:
+        k = (u['unit_name'], u['name'])
         total_min = round((u['total_duration'] or 0) / 60, 1)
         # 民眾族群沒有單位（統一「自我防護」）→ 單位欄顯示族群名
         unit_show = u['unit_name'] if (u['unit_name'] and u['unit_name'] != '自我防護') else ADMIN_GROUP_LABEL.get(admin_g(), '自我防護')
@@ -5247,6 +5263,8 @@ def admin_users():
             <td>{esc(u['name']) or '-'}</td>
             <td>{u['session_count'] or 0}</td>
             <td>{u['completed_count'] or 0}</td>
+            <td style="color:#0ea5e9;font-weight:700">{pre_min.get(k, '-')}</td>
+            <td style="color:#7a3b33;font-weight:700">{post_max.get(k, '-')}</td>
             <td>{u['total_turns'] or 0}</td>
             <td>{total_min} 分鐘</td>
             <td style="font-size:12px;color:#6b7280;white-space:nowrap">{fmt_date(u['first_seen'])}</td>
@@ -5283,8 +5301,8 @@ tr:hover {{background:#f9fafb}}
     <button type="submit" style="padding:9px 18px;background:#28a745;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">⬇ 下載 Excel 名單</button>
   </form>
 </div>
-<table><thead><tr><th>單位</th><th>姓名</th><th>總演練次數</th><th>已完成點評</th><th>總對話回合</th><th>累計時間</th><th>首次演練</th><th>最後活動</th><th>操作</th></tr></thead>
-<tbody>{rows or '<tr><td colspan="9" class="empty">尚無演練者資料</td></tr>'}</tbody></table>
+<table><thead><tr><th>單位</th><th>姓名</th><th>總演練次數</th><th>已完成點評</th><th title="多次前測取最低分">前測分數（最低）</th><th title="多次後測取最高分">後測分數（最高）</th><th>總對話回合</th><th>累計時間</th><th>首次演練</th><th>最後活動</th><th>操作</th></tr></thead>
+<tbody>{rows or '<tr><td colspan="11" class="empty">尚無演練者資料</td></tr>'}</tbody></table>
 </body></html>'''
 
 
