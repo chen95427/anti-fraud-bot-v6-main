@@ -33,6 +33,7 @@ import qrcode
 from werkzeug.security import generate_password_hash, check_password_hash
 import anthropic
 import openai
+from claude_queue import ClaudeQueue
 
 # ========== 載入 .env ==========
 BASE_DIR = Path(__file__).resolve().parent
@@ -1366,6 +1367,69 @@ def _call_openai(system_text, messages, max_tokens):
     )
 
 
+# ========== Claude API 佇列（見 claude_queue.py）==========
+# 演練的開場／對話／點評不在 HTTP 請求裡直接等 Claude：先回 jobId（202），由固定數量的 worker 依序呼叫，
+# 前端輪詢 /api/job/<id> 拿結果並顯示排隊位置。RPM／ITPM 請依 Anthropic Console → Settings → Limits 的實際上限設定（留約 1 成餘裕）。
+CLAUDE_QUEUE_WORKERS = int(os.environ.get('CLAUDE_QUEUE_WORKERS', '6'))
+CLAUDE_QUEUE_RPM = int(os.environ.get('CLAUDE_QUEUE_RPM', '800'))
+CLAUDE_QUEUE_ITPM = int(os.environ.get('CLAUDE_QUEUE_ITPM', '360000'))
+CLAUDE_QUEUE_TIMEOUT = int(os.environ.get('CLAUDE_QUEUE_TIMEOUT', '60'))
+
+
+def _estimate_input_tokens(payload):
+    """粗估 input tokens：中日韓字約 1 token／字，其他字元約 0.35 token／字，每則訊息另加 10。
+    （實測 6 千字的 system prompt ≈ 5.3k tokens；估高一點比較安全，回來後會用實際用量校正）"""
+    texts = [payload.get('system') or ''] + [m.get('content') or '' for m in payload['messages']]
+    total = 0
+    for t in texts:
+        t = t if isinstance(t, str) else str(t)
+        cjk = sum(1 for ch in t if ord(ch) >= 0x2E80)
+        total += cjk + int((len(t) - cjk) * 0.35) + 10
+    return total
+
+
+def _actual_input_tokens(response):
+    """實際計入 ITPM 的 input tokens：未快取＋寫入快取（讀取快取不計入 ITPM）"""
+    return (response.input_tokens or 0) + (response.cache_creation_tokens or 0)
+
+
+def _queue_work(payload):
+    return call_ai(payload['system'], payload['messages'], payload['max_tokens'], payload.get('use_cache', True))
+
+
+def _queue_finish(payload, response):
+    """Claude 回來後在 worker thread 跑各端點的後處理，並把 Flask 回應轉成 {status, body}。"""
+    with app.app_context():
+        rv = payload['finish'](response)
+    status = 200
+    if isinstance(rv, tuple):
+        rv, status = rv[0], rv[1]
+    return {'status': status, 'body': rv.get_json()}
+
+
+claude_queue = ClaudeQueue(_queue_work, _estimate_input_tokens,
+                           num_workers=CLAUDE_QUEUE_WORKERS,
+                           max_requests_per_minute=CLAUDE_QUEUE_RPM,
+                           max_input_tokens_per_minute=CLAUDE_QUEUE_ITPM,
+                           job_timeout=CLAUDE_QUEUE_TIMEOUT,
+                           finish_fn=_queue_finish, actual_tokens_fn=_actual_input_tokens)
+
+
+def enqueue_ai(system, messages, max_tokens, finish, use_cache=True, session=None):
+    """送進 Claude 佇列，立刻回 202 + jobId（含排隊位置）。finish(response) 回傳原本端點會回的 Flask 回應。"""
+    job_id = claude_queue.submit_job({'system': system, 'messages': list(messages), 'max_tokens': max_tokens,
+                                      'use_cache': use_cache, 'finish': finish})
+    if session is not None:
+        session['pending_job'] = job_id
+    return jsonify(claude_queue.get_status(job_id)), 202
+
+
+def session_job_pending(session):
+    """這個演練 session 是否還有排隊／處理中的工作（避免連點送出兩次）"""
+    jid = session.get('pending_job')
+    return bool(jid) and claude_queue.get_status(jid)['status'] in ('queued', 'running')
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  優秀範例引擎（A: few-shot / C: RAG）— 依 543 場資料分析報告 B 建置
 #  必守原則：不動評分邏輯；只加表、加欄、加 prompt 區塊；範例只影響「真實度＋建議」
@@ -1968,6 +2032,28 @@ def bot_ui():
 @app.route('/<path:path>')
 def static_files(path):
     return send_from_directory('public', path)
+
+
+@app.route('/api/job/<job_id>', methods=['GET'])
+def api_job_status(job_id):
+    """前端輪詢：排隊中／處理中回 202（附位置與預估秒數）；完成回原端點的結果與狀態碼；逾時回 503。"""
+    st = claude_queue.get_status(job_id)
+    s = st['status']
+    if s in ('queued', 'running'):
+        return jsonify(st), 202
+    if s == 'done':
+        return jsonify(st['result']['body']), st['result']['status']
+    if s == 'timeout':
+        return jsonify({'error': st['error']}), 503
+    if s == 'error':
+        return jsonify({'error': st['error']}), 500
+    return jsonify({'error': '找不到這筆請求（可能已過期），請重新操作'}), 404
+
+
+@app.route('/api/queue-stats', methods=['GET'])
+def api_queue_stats():
+    """整體佇列狀態（排隊中、處理中、近一分鐘請求數與 token 用量）"""
+    return jsonify(claude_queue.get_queue_stats())
 
 
 @app.route('/api/config', methods=['GET'])
@@ -2897,30 +2983,32 @@ def mg_start():
             else:
                 first_user = (f'（場景開始：你正準備匯款/交錢，一位{r["scene"]}走過來關心你。'
                               f'請用你的角色身份，說出符合當下情緒的第一句話。）')
-            response = call_ai(system_prompt, [{'role': 'user', 'content': first_user}], max_tokens=650)
-            raw_opening = response.text
-            opening, emo = extract_emotion_payload(raw_opening, None, signal=signal)
-            opening = normalize_action_format(opening)
-            sessions[session_id] = {
-                'mg': True, 'mode': 'intervene', 'role': role, 'signal': signal,
-                'fraud_type': fraud_type, 'level': level, 'persona': persona, 'case_id': case_id,
-                'ip': ip, 'unit_name': unit_name, 'user_name': user_name, 'ai_assist': ai_assist,
-                'bank_name': bank_name,
-                'system_prompt': system_prompt, 'emotion_score': emo['emotion_score'],
-                'steps_done': ['look'], 'neg_hits': 0,  # 開場即『看』階段（觀察情緒/行為）
-                'messages': [{'role': 'user', 'content': first_user},
-                             {'role': 'assistant', 'content': raw_opening}],
-                'conversation_log': [{'speaker': '民眾', 'text': opening}],
-                'last_active': time.time(), 'created_at': time.time(),
-            }
-            resp = {'mode': 'intervene', 'opening': opening, 'persona': persona,
-                    'role': role, 'roleLabel': r['label'], 'actor': r['actor'],
-                    'signal': signal, 'hideSignal': hide_signal, 'fraudType': fraud_type,
-                    'typeLabel': ('混合實戰' if hide_signal else MG_TYPES[fraud_type]['label']),
-                    'caseId': case_id, 'level': level, 'aiAssist': ai_assist,
-                    'emotion_score': emo['emotion_score'], 'current_step': 'look'}
-            if level == MG_LEVEL_COACH:
-                resp['coach'] = mg_coach_for_step('look', fraud_type, signal, role, last_civ=opening)
+
+            def build(response):
+                raw_opening = response.text
+                opening, emo = extract_emotion_payload(raw_opening, None, signal=signal)
+                opening = normalize_action_format(opening)
+                sessions[session_id] = {
+                    'mg': True, 'mode': 'intervene', 'role': role, 'signal': signal,
+                    'fraud_type': fraud_type, 'level': level, 'persona': persona, 'case_id': case_id,
+                    'ip': ip, 'unit_name': unit_name, 'user_name': user_name, 'ai_assist': ai_assist,
+                    'bank_name': bank_name,
+                    'system_prompt': system_prompt, 'emotion_score': emo['emotion_score'],
+                    'steps_done': ['look'], 'neg_hits': 0,  # 開場即『看』階段（觀察情緒/行為）
+                    'messages': [{'role': 'user', 'content': first_user},
+                                 {'role': 'assistant', 'content': raw_opening}],
+                    'conversation_log': [{'speaker': '民眾', 'text': opening}],
+                    'last_active': time.time(), 'created_at': time.time(),
+                }
+                resp = {'mode': 'intervene', 'opening': opening, 'persona': persona,
+                        'role': role, 'roleLabel': r['label'], 'actor': r['actor'],
+                        'signal': signal, 'hideSignal': hide_signal, 'fraudType': fraud_type,
+                        'typeLabel': ('混合實戰' if hide_signal else MG_TYPES[fraud_type]['label']),
+                        'caseId': case_id, 'level': level, 'aiAssist': ai_assist,
+                        'emotion_score': emo['emotion_score'], 'current_step': 'look'}
+                if level == MG_LEVEL_COACH:
+                    resp['coach'] = mg_coach_for_step('look', fraud_type, signal, role, last_civ=opening)
+                return resp
         else:
             scen_group = MG_REFUSE[r['scam']]['scenarios']
             case_id = data.get('caseId') or sorted(scen_group)[0]
@@ -2931,48 +3019,55 @@ def mg_start():
                        'desc': sc['desc'], 'signal': signal, 'fraud': r['scam']}
             system_prompt = build_mg_scammer_prompt(role, case_id, signal)
             first_user = '（場景開始：請你以詐騙者身份，依劇本主動對民眾說出第一句開場白，開始行騙。）'
-            response = call_ai(system_prompt, [{'role': 'user', 'content': first_user}], max_tokens=650)
-            raw_opening = response.text
-            opening, risk = extract_risk_payload(raw_opening, None, signal=signal)
-            sessions[session_id] = {
-                'mg': True, 'mode': 'refuse', 'role': role, 'scam': r['scam'], 'signal': signal,
-                'case_id': case_id, 'level': level, 'persona': persona, 'ip': ip,
-                'unit_name': unit_name, 'user_name': user_name,
-                'system_prompt': system_prompt, 'risk_score': risk['risk_score'],
-                'start_risk': risk['risk_score'], 'pos_streak': 0, 'neg_hits': 0,
-                'flags_seen': list(risk['red_flags']),
-                'messages': [{'role': 'user', 'content': first_user},
-                             {'role': 'assistant', 'content': raw_opening}],
-                'conversation_log': [{'speaker': '對方', 'text': opening}],
-                'last_active': time.time(), 'created_at': time.time(),
-            }
-            resp = {'mode': 'refuse', 'opening': opening, 'persona': persona,
-                    'role': role, 'roleLabel': r['label'], 'actor': r['actor'],
-                    'signal': signal, 'scamLabel': sc['label'], 'aiRole': sc['ai_role'],
-                    'caseId': case_id, 'risk_score': risk['risk_score']}
-            # B 類固定一般指引（協助辨識）：依開場白露出的紅旗給對應的辨識提示與回應
-            resp['coach'] = mg_refuse_coach(sc, risk['red_flags'], 0)
 
-        with _lock:
-            daily_stats['total_sessions'] += 1
-            ip_day_log[rate_key(unit_name, user_name, ip)] += 1
-        try:
-            db_upsert_user(unit_name, user_name)
-            db_create_session(session_id, unit_name, user_name, ip, signal,
-                              (fraud_type if mode == 'intervene' else r['scam']),
-                              persona, case_id=case_id, role=role, mode=mode,
-                              ai_assist=(ai_assist if mode == 'intervene' else None),
-                              bank_name=(bank_name if role == 'bank' else None))
-            spk = '民眾' if mode == 'intervene' else '對方'
-            db_log_message(session_id, spk, resp['opening'],
-                           getattr(response, 'usage', None),
-                           emotion_score=resp.get('emotion_score'),
-                           current_step='look' if mode == 'intervene' else None)
-        except Exception as db_err:
-            print(f'[DB] MG 建立錯誤: {db_err}')
-        log_usage(ip, 'mg_start', getattr(response, 'usage', None),
-                  {'role': role, 'mode': mode, 'signal': signal, 'unit': unit_name})
-        return jsonify(resp)
+            def build(response):
+                raw_opening = response.text
+                opening, risk = extract_risk_payload(raw_opening, None, signal=signal)
+                sessions[session_id] = {
+                    'mg': True, 'mode': 'refuse', 'role': role, 'scam': r['scam'], 'signal': signal,
+                    'case_id': case_id, 'level': level, 'persona': persona, 'ip': ip,
+                    'unit_name': unit_name, 'user_name': user_name,
+                    'system_prompt': system_prompt, 'risk_score': risk['risk_score'],
+                    'start_risk': risk['risk_score'], 'pos_streak': 0, 'neg_hits': 0,
+                    'flags_seen': list(risk['red_flags']),
+                    'messages': [{'role': 'user', 'content': first_user},
+                                 {'role': 'assistant', 'content': raw_opening}],
+                    'conversation_log': [{'speaker': '對方', 'text': opening}],
+                    'last_active': time.time(), 'created_at': time.time(),
+                }
+                resp = {'mode': 'refuse', 'opening': opening, 'persona': persona,
+                        'role': role, 'roleLabel': r['label'], 'actor': r['actor'],
+                        'signal': signal, 'scamLabel': sc['label'], 'aiRole': sc['ai_role'],
+                        'caseId': case_id, 'risk_score': risk['risk_score']}
+                # B 類固定一般指引（協助辨識）：依開場白露出的紅旗給對應的辨識提示與回應
+                resp['coach'] = mg_refuse_coach(sc, risk['red_flags'], 0)
+                return resp
+
+        def finish(response):
+            # Claude 回來後才建立演練 session、計次、寫 DB（排隊逾時不會留下空場次）
+            resp = build(response)
+            with _lock:
+                daily_stats['total_sessions'] += 1
+                ip_day_log[rate_key(unit_name, user_name, ip)] += 1
+            try:
+                db_upsert_user(unit_name, user_name)
+                db_create_session(session_id, unit_name, user_name, ip, signal,
+                                  (fraud_type if mode == 'intervene' else r['scam']),
+                                  persona, case_id=case_id, role=role, mode=mode,
+                                  ai_assist=(ai_assist if mode == 'intervene' else None),
+                                  bank_name=(bank_name if role == 'bank' else None))
+                spk = '民眾' if mode == 'intervene' else '對方'
+                db_log_message(session_id, spk, resp['opening'],
+                               getattr(response, 'usage', None),
+                               emotion_score=resp.get('emotion_score'),
+                               current_step='look' if mode == 'intervene' else None)
+            except Exception as db_err:
+                print(f'[DB] MG 建立錯誤: {db_err}')
+            log_usage(ip, 'mg_start', getattr(response, 'usage', None),
+                      {'role': role, 'mode': mode, 'signal': signal, 'unit': unit_name})
+            return jsonify(resp)
+
+        return enqueue_ai(system_prompt, [{'role': 'user', 'content': first_user}], 650, finish)
     except Exception as e:
         print(f'MG 開始錯誤: {e}')
         return jsonify({'error': '系統錯誤，請稍後再試'}), 500
@@ -2990,6 +3085,8 @@ def mg_chat():
     if session_id not in sessions or not sessions[session_id].get('mg'):
         return jsonify({'error': '演練階段已結束或不存在，請重新開始'}), 404
     session = sessions[session_id]
+    if session_job_pending(session):
+        return jsonify({'error': '上一句還在處理中，請稍候'}), 409
     rl_ok, rl_err = check_rate_limit(rate_key(session.get('unit_name'), session.get('user_name'), ip))
     if not rl_ok:
         return jsonify({'error': rl_err}), 429
@@ -3002,29 +3099,12 @@ def mg_chat():
         return jsonify({'error': '請輸入內容'}), 400
     message = humanize_money(message)  # 受訓者語音轉字的大數字（200000）統一為口語「20萬」
 
-    session['messages'].append({'role': 'user', 'content': message})
-    session['conversation_log'].append({'speaker': actor, 'text': message})
+    user_msg = {'role': 'user', 'content': message}
 
-    try:
-        if is_injection_attempt(message):
-            # 高信心提示詞注入／套話攻擊：不送交 AI，直接用角色會有的反應擋掉（見 is_injection_attempt）
-            print(f'[Security] 偵測到疑似提示詞注入/套話攻擊，未送交 AI｜session={session_id}｜訊息={message[:80]!r}', flush=True)
-            usage_obj = None
-            if session['mode'] == 'intervene':
-                prev_emo = session.get('emotion_score', INITIAL_EMOTION.get(session.get('signal'), 60))
-                fake_json = json.dumps({'emotion_score': prev_emo, 'delta': 0,
-                                        'reason': '受訓者問題與情境無關', 'phrase_tags': [], 'current_step': None},
-                                       ensure_ascii=False)
-            else:
-                prev_risk = session.get('risk_score', 50)
-                fake_json = json.dumps({'risk_score': prev_risk, 'delta': 0, 'reason': '受訓者問題與情境無關',
-                                        'red_flags': [], 'user_move': 'other', 'outcome': 'ongoing'},
-                                       ensure_ascii=False)
-            raw_reply = f'{_INJECTION_DEFLECT}\n{fake_json}'
-        else:
-            response = call_ai(session['system_prompt'], session['messages'], max_tokens=650)
-            raw_reply = response.text
-            usage_obj = response.usage
+    def finish(raw_reply, usage_obj):
+        # Claude 回來後才把這句寫進歷史：排隊逾時的話不會留下半套紀錄，使用者重送也不會重複
+        session['messages'].append(user_msg)
+        session['conversation_log'].append({'speaker': actor, 'text': message})
         new_turn = turn_count + 1
         if usage_obj is not None:
             log_usage(ip, 'mg_chat', usage_obj, {'turn': new_turn, 'role': session['role']})
@@ -3166,6 +3246,26 @@ def mg_chat():
                 sc = mg_scenario(session)
                 out['coach'] = mg_refuse_coach(sc, risk['red_flags'], new_turn)
             return jsonify(out)
+
+    try:
+        if is_injection_attempt(message):
+            # 高信心提示詞注入／套話攻擊：不送交 AI，直接用角色會有的反應擋掉（見 is_injection_attempt）
+            print(f'[Security] 偵測到疑似提示詞注入/套話攻擊，未送交 AI｜session={session_id}｜訊息={message[:80]!r}', flush=True)
+            usage_obj = None
+            if session['mode'] == 'intervene':
+                prev_emo = session.get('emotion_score', INITIAL_EMOTION.get(session.get('signal'), 60))
+                fake_json = json.dumps({'emotion_score': prev_emo, 'delta': 0,
+                                        'reason': '受訓者問題與情境無關', 'phrase_tags': [], 'current_step': None},
+                                       ensure_ascii=False)
+            else:
+                prev_risk = session.get('risk_score', 50)
+                fake_json = json.dumps({'risk_score': prev_risk, 'delta': 0, 'reason': '受訓者問題與情境無關',
+                                        'red_flags': [], 'user_move': 'other', 'outcome': 'ongoing'},
+                                       ensure_ascii=False)
+            raw_reply = f'{_INJECTION_DEFLECT}\n{fake_json}'
+            return finish(raw_reply, usage_obj)
+        return enqueue_ai(session['system_prompt'], session['messages'] + [user_msg], 650,
+                          lambda r: finish(r.text, r.usage), session=session)
     except Exception as e:
         print(f'MG 對話錯誤: {e}')
         return jsonify({'error': '系統暫時無法回應'}), 500
@@ -3182,6 +3282,8 @@ def mg_feedback():
     if session_id not in sessions or not sessions[session_id].get('mg'):
         return jsonify({'error': '找不到演練記錄'}), 404
     session = sessions[session_id]
+    if session_job_pending(session):
+        return jsonify({'error': '點評還在處理中，請稍候'}), 409
     actor = MG_ROLES[session['role']]['actor']
     turn_count = sum(1 for m in session['conversation_log'] if m['speaker'] == actor)
     history_text = '\n'.join(f"【{m['speaker']}】{m['text']}" for m in session['conversation_log'])
@@ -3193,44 +3295,48 @@ def mg_feedback():
             fraud_label = MG_TYPES[session['fraud_type']]['label']
             is_pretest = session.get('ai_assist') is False   # 前測：ai_assist=0
             prompt = build_feedback_prompt(fraud_label, signal_label, turn_count, history_text, pretest=is_pretest)
-            response = call_ai(None, [{'role': 'user', 'content': prompt}], max_tokens=1400, use_cache=False)
-            raw_fb = response.text
-            fb, scores = extract_feedback_scores(raw_fb)
-            if scores is None:
-                scores = scores_from_detail_line(fb)
-            log_usage(ip, 'mg_feedback', response.usage, {'role': session['role'], 'turns': turn_count})
-            # ── 單一總分（100）＝ 五步技巧 80 ＋ 民眾情緒降溫 20；≥ MG_PASS_SCORE 通過 ──
-            emo_start = INITIAL_EMOTION.get(session['signal'], 60)
-            emo_end = session.get('emotion_score', emo_start)
-            sc = scores or {}
-            skill_avg = (sum(sc.get(k, 0) for k in ('look', 'calm', 'listen', 'ask', 'guard')) / 5) if sc else 0
-            skill_pts = round(skill_avg * 0.8)                       # 0–80
-            # 情緒降溫：從起始降到 MG_CALM_LINE(30) 以下拿滿 20；沒降或升高 0 分
-            drop = max(0, emo_start - emo_end)
-            need = max(1, emo_start - MG_CALM_LINE)
-            emo_pts = round(min(1.0, drop / need) * 20)              # 0–20
-            total = min(100, skill_pts + emo_pts)
-            if is_pretest and total > MG_PRETEST_MAX:
-                # 前測分數上限：壓在 85，並同步改寫點評文字中的總分
-                total = MG_PRETEST_MAX
-                fb = re.sub(r'(\d{1,3})(\s*/\s*100\s*分)',
-                            lambda m: (str(MG_PRETEST_MAX) + m.group(2)) if int(m.group(1)) > MG_PRETEST_MAX else m.group(0), fb)
-            passed = total >= MG_PASS_SCORE
-            # 存檔：五軸之外一併把「畫面上顯示的單一總分」寫進 scores_json（供後台頒獎／排名，與受訓者看到的分數一致）
-            saved_scores = dict(sc)
-            saved_scores.update({'total': total, 'skill_pts': skill_pts, 'emo_pts': emo_pts,
-                                 'emo_start': emo_start, 'emo_end': emo_end, 'passed': passed})
-            try:
-                db_finalize_session(session_id, fb, scores=saved_scores)
-            except Exception as db_err:
-                print(f'[DB] MG 點評寫入錯誤: {db_err}')
-            trigger_backup_email('V5演練點評完成')
-            return jsonify({'mode': 'intervene', 'feedback': fb, 'scores': scores,
-                            'total': total, 'skill_pts': skill_pts, 'emo_pts': emo_pts,
-                            'pass_score': MG_PASS_SCORE, 'passed': passed,
-                            'emotion_start': emo_start, 'emotion_end': emo_end,
-                            'steps_done': session['steps_done'], 'weight': w,
-                            'neg_hits': session['neg_hits'], 'turns': turn_count})
+
+            def finish(response):
+                raw_fb = response.text
+                fb, scores = extract_feedback_scores(raw_fb)
+                if scores is None:
+                    scores = scores_from_detail_line(fb)
+                log_usage(ip, 'mg_feedback', response.usage, {'role': session['role'], 'turns': turn_count})
+                # ── 單一總分（100）＝ 五步技巧 80 ＋ 民眾情緒降溫 20；≥ MG_PASS_SCORE 通過 ──
+                emo_start = INITIAL_EMOTION.get(session['signal'], 60)
+                emo_end = session.get('emotion_score', emo_start)
+                sc = scores or {}
+                skill_avg = (sum(sc.get(k, 0) for k in ('look', 'calm', 'listen', 'ask', 'guard')) / 5) if sc else 0
+                skill_pts = round(skill_avg * 0.8)                       # 0–80
+                # 情緒降溫：從起始降到 MG_CALM_LINE(30) 以下拿滿 20；沒降或升高 0 分
+                drop = max(0, emo_start - emo_end)
+                need = max(1, emo_start - MG_CALM_LINE)
+                emo_pts = round(min(1.0, drop / need) * 20)              # 0–20
+                total = min(100, skill_pts + emo_pts)
+                if is_pretest and total > MG_PRETEST_MAX:
+                    # 前測分數上限：壓在 85，並同步改寫點評文字中的總分
+                    total = MG_PRETEST_MAX
+                    fb = re.sub(r'(\d{1,3})(\s*/\s*100\s*分)',
+                                lambda m: (str(MG_PRETEST_MAX) + m.group(2)) if int(m.group(1)) > MG_PRETEST_MAX else m.group(0), fb)
+                passed = total >= MG_PASS_SCORE
+                # 存檔：五軸之外一併把「畫面上顯示的單一總分」寫進 scores_json（供後台頒獎／排名，與受訓者看到的分數一致）
+                saved_scores = dict(sc)
+                saved_scores.update({'total': total, 'skill_pts': skill_pts, 'emo_pts': emo_pts,
+                                     'emo_start': emo_start, 'emo_end': emo_end, 'passed': passed})
+                try:
+                    db_finalize_session(session_id, fb, scores=saved_scores)
+                except Exception as db_err:
+                    print(f'[DB] MG 點評寫入錯誤: {db_err}')
+                trigger_backup_email('V5演練點評完成')
+                return jsonify({'mode': 'intervene', 'feedback': fb, 'scores': scores,
+                                'total': total, 'skill_pts': skill_pts, 'emo_pts': emo_pts,
+                                'pass_score': MG_PASS_SCORE, 'passed': passed,
+                                'emotion_start': emo_start, 'emotion_end': emo_end,
+                                'steps_done': session['steps_done'], 'weight': w,
+                                'neg_hits': session['neg_hits'], 'turns': turn_count})
+
+            return enqueue_ai(None, [{'role': 'user', 'content': prompt}], 1400, finish,
+                              use_cache=False, session=session)
         else:
             sc = mg_scenario(session)
             risk_end = session.get('risk_score', 50)
