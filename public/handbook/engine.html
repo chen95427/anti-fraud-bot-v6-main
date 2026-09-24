@@ -1409,39 +1409,10 @@ function scrollLog(){const c=$('clog');c.scrollTop=c.scrollHeight;}
 
 /* ===== API ===== */
 async function api(path,body){
-  let res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  let d=await res.json().catch(()=>({error:'伺服器回應異常'}));
-  // 202＝已進 Claude 佇列：輪詢 /api/job/<id> 直到有結果（後端 60 秒內一定會給結果或「系統忙碌」）
-  if(res.status===202&&d.jobId){
-    const jobId=d.jobId,t0=Date.now();
-    try{
-      while(res.status===202){
-        queueHint(d);
-        if(Date.now()-t0>90000)throw new Error('系統忙碌，請稍後再試');
-        await new Promise(r=>setTimeout(r,d.status==='queued'?Math.min(4000,Math.max(1500,(d.etaSeconds||0)*250)):1200));
-        try{res=await fetch('/api/job/'+encodeURIComponent(jobId));d=await res.json();}
-        catch(e){res={status:202};}   // 網路閃斷：繼續等，直到上面的時間上限
-      }
-    }finally{queueHint(null);}
-  }
+  const res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await res.json().catch(()=>({error:'伺服器回應異常'}));
   if(!res.ok)throw new Error(d.error||('HTTP '+res.status));
   return d;
-}
-/* 排隊提示：使用人數多、請求在 Claude 佇列排隊時，畫面上方顯示「你排第幾位、預估幾秒」 */
-function queueHint(st){
-  let el=document.getElementById('queueHint');
-  if(!st||st.status!=='queued'){if(el)el.style.display='none';return;}
-  if(!el){
-    el=document.createElement('div');el.id='queueHint';
-    el.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;max-width:calc(100% - 32px);'
-      +'background:#1A3C6E;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;line-height:1.5;'
-      +'box-shadow:0 4px 14px rgba(0,0,0,.2);text-align:center';
-    document.body.appendChild(el);
-  }
-  const ahead=Math.max(0,(st.position||1)-1);
-  el.textContent='目前使用人數較多，排隊中：你是第 '+(st.position||1)+' 位（前面還有 '+ahead+' 人）'
-    +(st.etaSeconds?'，預估約 '+st.etaSeconds+' 秒':'');
-  el.style.display='block';
 }
 </script>
 </body>
